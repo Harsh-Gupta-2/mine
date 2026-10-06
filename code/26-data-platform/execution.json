@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "replayed and out-of-order change positions ignored",
+    "attribute change opens a new version and closes exactly one open row",
+    "delete closes history without erasing prior versions",
+    "fact grain key rejects duplicate load",
+    "non-integer measure rejected at declared grain"
+  ],
+  "scope": "In-memory dimension/fact model, not a warehouse engine, CDC connector, orchestration tool or query optimizer",
+  "timestamp": "2026-10-06T10:26:49.398Z"
+}

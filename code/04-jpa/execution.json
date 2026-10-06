@@ -1,0 +1,9 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "reason":  "Existing JDK, Maven and cached ORM dependencies required. Only diagram downloads were authorized.",
+    "compile":  "not executed",
+    "labs":  [
+                 "JpaLab: not executed"
+             ],
+    "timestamp":  "2026-10-06T12:21:38.2688039+05:30"
+}

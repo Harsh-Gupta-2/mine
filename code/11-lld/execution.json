@@ -1,0 +1,9 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "reason":  "No existing JDK compiler found. Downloads are not authorized.",
+    "compile":  "not executed",
+    "labs":  [
+                 "LldLab: twelve models not executed"
+             ],
+    "timestamp":  "2026-10-06T14:17:05.1822496+05:30"
+}

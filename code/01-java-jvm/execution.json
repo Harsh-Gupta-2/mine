@@ -1,0 +1,10 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "reason":  "No existing JDK compiler found. Downloads are not authorized.",
+    "compile":  "not executed",
+    "labs":  [
+                 "CoreJavaLab: not executed",
+                 "LoadingLab: not executed"
+             ],
+    "timestamp":  "2026-10-05T23:49:31.3568743+05:30"
+}

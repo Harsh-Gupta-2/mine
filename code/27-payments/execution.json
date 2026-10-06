@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "unbalanced and non-integer postings rejected before any entry exists",
+    "capture above authorization rejected",
+    "replayed capture key returns stored result without a second posting",
+    "refunds cannot exceed captured amount and close the payable balance",
+    "unknown provider outcome stays pending reconciliation rather than succeeding",
+    "capture content conflict and payment identity overwrite rejected",
+    "refund replay preserves original result without a second posting and rejects changed content",
+    "zero negative fractional and unsafe operation amounts rejected"
+  ],
+  "scope": "In-memory single-currency ledger and state machine, not a payment processor, settlement file, scheme integration or compliance control",
+  "timestamp": "2026-10-06T10:16:55.261Z"
+}

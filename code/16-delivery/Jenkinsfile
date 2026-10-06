@@ -1,0 +1,35 @@
+pipeline {
+    agent { label 'linux-jdk21' }
+    options {
+        skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timeout(time: 10, unit: 'MINUTES')
+        timestamps()
+    }
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Compile probe') {
+            steps {
+                dir('docs/java-fs-guide/code/14-docker') {
+                    dir('out') { deleteDir() }
+                    sh 'mkdir -p out'
+                    sh 'javac --release 21 --add-modules jdk.httpserver -d out ProbeServer.java'
+                }
+            }
+        }
+        stage('Self-test') {
+            steps {
+                dir('docs/java-fs-guide/code/14-docker') {
+                    sh 'java --add-modules jdk.httpserver -cp out ProbeServer --self-test'
+                }
+            }
+        }
+        stage('Archive teaching artifact') {
+            steps {
+                archiveArtifacts artifacts: 'docs/java-fs-guide/code/14-docker/out/**/*.class', fingerprint: true
+            }
+        }
+    }
+}

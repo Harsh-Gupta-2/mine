@@ -1,0 +1,10 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "reason":  "Existing JDK/Maven unavailable; no downloads authorized.",
+    "staticStatus":  "PASS",
+    "checks":  [
+                   "POM XML parsed",
+                   "Both Java source files present"
+               ],
+    "tests":  0
+}

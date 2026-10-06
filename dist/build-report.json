@@ -1,0 +1,218 @@
+{
+  "builtAt": "2026-10-06T10:30:47.849Z",
+  "runtime": "v24.20.0",
+  "completed": [
+    "00",
+    "01",
+    "02",
+    "21",
+    "03",
+    "04",
+    "06",
+    "05",
+    "07",
+    "26",
+    "08",
+    "09",
+    "10",
+    "25",
+    "22",
+    "11",
+    "12",
+    "27",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "23",
+    "19",
+    "24",
+    "20"
+  ],
+  "planned": 0,
+  "chapterMetrics": {
+    "10": {
+      "words": 5657,
+      "proseWords": 5278,
+      "verifyItems": 4,
+      "diagrams": 6
+    },
+    "11": {
+      "words": 6000,
+      "proseWords": 5566,
+      "verifyItems": 2,
+      "diagrams": 14
+    },
+    "12": {
+      "words": 7409,
+      "proseWords": 6648,
+      "verifyItems": 3,
+      "diagrams": 14
+    },
+    "13": {
+      "words": 4541,
+      "proseWords": 4172,
+      "verifyItems": 5,
+      "diagrams": 6
+    },
+    "14": {
+      "words": 3837,
+      "proseWords": 3566,
+      "verifyItems": 4,
+      "diagrams": 3
+    },
+    "15": {
+      "words": 4336,
+      "proseWords": 4006,
+      "verifyItems": 6,
+      "diagrams": 5
+    },
+    "16": {
+      "words": 4330,
+      "proseWords": 4060,
+      "verifyItems": 5,
+      "diagrams": 4
+    },
+    "17": {
+      "words": 4516,
+      "proseWords": 4116,
+      "verifyItems": 6,
+      "diagrams": 6
+    },
+    "18": {
+      "words": 4568,
+      "proseWords": 4233,
+      "verifyItems": 5,
+      "diagrams": 5
+    },
+    "19": {
+      "words": 4012,
+      "proseWords": 3767,
+      "verifyItems": 4,
+      "diagrams": 4
+    },
+    "20": {
+      "words": 8226,
+      "proseWords": 8164,
+      "verifyItems": 1,
+      "diagrams": 1
+    },
+    "21": {
+      "words": 5019,
+      "proseWords": 4530,
+      "verifyItems": 6,
+      "diagrams": 7
+    },
+    "22": {
+      "words": 5340,
+      "proseWords": 4954,
+      "verifyItems": 5,
+      "diagrams": 6
+    },
+    "23": {
+      "words": 4517,
+      "proseWords": 4219,
+      "verifyItems": 7,
+      "diagrams": 5
+    },
+    "24": {
+      "words": 3666,
+      "proseWords": 3057,
+      "verifyItems": 2,
+      "diagrams": 4
+    },
+    "25": {
+      "words": 6084,
+      "proseWords": 5620,
+      "verifyItems": 9,
+      "diagrams": 4
+    },
+    "26": {
+      "words": 4026,
+      "proseWords": 3791,
+      "verifyItems": 5,
+      "diagrams": 3
+    },
+    "27": {
+      "words": 5630,
+      "proseWords": 5162,
+      "verifyItems": 10,
+      "diagrams": 7
+    },
+    "00": {
+      "words": 3825,
+      "proseWords": 3453,
+      "verifyItems": 1,
+      "diagrams": 3
+    },
+    "01": {
+      "words": 9230,
+      "proseWords": 8442,
+      "verifyItems": 6,
+      "diagrams": 9
+    },
+    "02": {
+      "words": 10424,
+      "proseWords": 9605,
+      "verifyItems": 8,
+      "diagrams": 10
+    },
+    "03": {
+      "words": 12364,
+      "proseWords": 11404,
+      "verifyItems": 13,
+      "diagrams": 11
+    },
+    "04": {
+      "words": 8997,
+      "proseWords": 8285,
+      "verifyItems": 9,
+      "diagrams": 9
+    },
+    "06": {
+      "words": 11662,
+      "proseWords": 10198,
+      "verifyItems": 13,
+      "diagrams": 8
+    },
+    "05": {
+      "words": 11693,
+      "proseWords": 10494,
+      "verifyItems": 12,
+      "diagrams": 8
+    },
+    "07": {
+      "words": 10340,
+      "proseWords": 9698,
+      "verifyItems": 9,
+      "diagrams": 9
+    },
+    "08": {
+      "words": 6255,
+      "proseWords": 5778,
+      "verifyItems": 9,
+      "diagrams": 7
+    },
+    "09": {
+      "words": 5672,
+      "proseWords": 5294,
+      "verifyItems": 5,
+      "diagrams": 6
+    }
+  },
+  "anchors": 4977,
+  "internalLinks": 3320,
+  "brokenLinks": 0,
+  "diagramSources": 184,
+  "renderedDiagrams": 184,
+  "diagramRenderer": "Mermaid 11.12.0 browser bundle in local headless Chrome, network blocked",
+  "registeredTerms": 474,
+  "pdf": "generated, 10310450 bytes",
+  "degradation": [
+    "Strict subset Markdown renderer retained; Pandoc and Mermaid CLI not installed.",
+    "Syntax highlighting unavailable.",
+    "Only diagram dependencies authorized for download; Java/Maven labs remain subject to existing tool limits."
+  ]
+}

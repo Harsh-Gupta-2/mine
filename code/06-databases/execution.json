@@ -1,0 +1,10 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "reason":  "No existing JDK compiler found. Downloads are not authorized.",
+    "compile":  "not executed",
+    "labs":  [
+                 "MvccLab: not executed",
+                 "ConnectionPoolLab: not executed"
+             ],
+    "timestamp":  "2026-10-06T13:26:04.3852753+05:30"
+}

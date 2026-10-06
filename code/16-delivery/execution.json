@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "matching reviewed intent promotes without mutating input",
+    "stale approval rejected",
+    "failed evidence or mutable tag rejected",
+    "schema-incompatible rollback rejected"
+  ],
+  "scope": "Synthetic release-policy model; booleans and digest shapes are not actual attestations or images",
+  "jenkinsExecution": "NOT EXECUTED",
+  "timestamp": "2026-10-06T09:17:31.457Z"
+}

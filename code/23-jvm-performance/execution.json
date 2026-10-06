@@ -1,0 +1,11 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "reason":  "Existing JDK or requested Maven prerequisites unavailable; no downloads authorized.",
+    "staticStatus":  "PASS",
+    "checks":  [
+                   "POM XML parsed",
+                   "JFR and JMH sources present"
+               ],
+    "jfr":  "NOT EXECUTED",
+    "jmh":  "NOT EXECUTED"
+}

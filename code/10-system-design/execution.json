@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "unit-consistent capacity arithmetic",
+    "backlog drain requires surplus capacity",
+    "attempt count fits parent budget",
+    "invalid inputs rejected"
+  ],
+  "assumptions": {
+    "rate": 2000,
+    "residenceSeconds": 0.125,
+    "bytes": 1000,
+    "days": 7,
+    "copies": 3
+  },
+  "calculated": {
+    "meanInFlight": 250,
+    "recordsPerDay": 172800000,
+    "storedBytes": 3628800000000
+  },
+  "scope": "Hypothetical arithmetic only; not measured traffic, capacity or latency",
+  "timestamp": "2026-10-06T08:41:41.650Z"
+}

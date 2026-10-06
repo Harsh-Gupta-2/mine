@@ -1,0 +1,13 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "staticStatus":  "PASS",
+    "checks":  [
+                   "JSON parsed",
+                   "Selectors and named ports agree",
+                   "HPA target agrees",
+                   "Local image and token policy",
+                   "Readiness/liveness paths match probe"
+               ],
+    "reason":  "Local file checks only; no Kubernetes API schema validation, admission, apply, scheduling or runtime test.",
+    "kubectlOnPath":  false
+}

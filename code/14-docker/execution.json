@@ -1,0 +1,13 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "staticStatus":  "PASS",
+    "checks":  [
+                   "Compose JSON parsed",
+                   "No implicit image pull",
+                   "Loopback port and read-only runtime",
+                   "Multi-stage and non-root instructions present"
+               ],
+    "reason":  "Preflight only: Java compilation, image build and container execution not performed. Explicit existing base images and Docker are required; downloads are not authorized.",
+    "dockerOnPath":  false,
+    "javacOnPath":  false
+}

@@ -1,0 +1,10 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "reason":  "No existing JDK compiler found. Downloads are not authorized.",
+    "compile":  "not executed",
+    "labs":  [
+                 "SnapshotLab: not executed",
+                 "ConcurrencyLab: not executed"
+             ],
+    "timestamp":  "2026-10-06T00:11:05.9336812+05:30"
+}

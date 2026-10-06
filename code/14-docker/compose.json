@@ -1,0 +1,19 @@
+{
+  "name": "java-guide-probe",
+  "services": {
+    "probe": {
+      "image": "java-guide-probe:local",
+      "pull_policy": "never",
+      "ports": ["127.0.0.1:18080:8080"],
+      "init": true,
+      "read_only": true,
+      "user": "10001:10001",
+      "cap_drop": ["ALL"],
+      "security_opt": ["no-new-privileges:true"],
+      "tmpfs": ["/tmp"],
+      "mem_limit": "128m",
+      "cpus": 0.5,
+      "stop_grace_period": "10s"
+    }
+  }
+}

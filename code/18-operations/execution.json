@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "request error-budget arithmetic",
+    "no traffic is unknown rather than healthy",
+    "both burn windows required",
+    "classic histogram cardinality estimate",
+    "invalid inputs rejected"
+  ],
+  "scope": "Synthetic arithmetic, not production SLIs, PromQL evaluation or an alerting system",
+  "timestamp": "2026-10-06T09:34:43.232Z"
+}

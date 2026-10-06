@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "UTF-8 decoder preserves split character",
+    "line framing spans input chunks",
+    "loopback HTTP assembles split application writes"
+  ],
+  "scope": "Standard-library stream and loopback HTTP checks, not packet capture, DNS, TLS, Java NIO or a network benchmark",
+  "timestamp": "2026-10-06T09:43:01.959Z"
+}

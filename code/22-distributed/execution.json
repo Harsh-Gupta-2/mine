@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "Lamport receive rule and overflow guard",
+    "vector order and concurrent histories",
+    "higher epoch must reach the resource",
+    "stale write rejected after resource advances"
+  ],
+  "scope": "Single-process logical-clock and effect-side fencing model, not leases, consensus, persistence or Redlock validation",
+  "timestamp": "2026-10-06T09:48:36.890Z"
+}

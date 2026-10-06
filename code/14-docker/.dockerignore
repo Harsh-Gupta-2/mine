@@ -1,0 +1,7 @@
+.git
+out
+*.log
+*.pem
+.env
+.env.*
+execution.json

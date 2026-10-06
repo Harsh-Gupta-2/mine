@@ -1,0 +1,10 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "reason":  "No existing JDK compiler found. Downloads are not authorized.",
+    "compile":  "not executed",
+    "labs":  [
+                 "IdempotencyLab: not executed",
+                 "ReplayCursorLab: not executed"
+             ],
+    "timestamp":  "2026-10-06T12:58:05.3252646+05:30"
+}

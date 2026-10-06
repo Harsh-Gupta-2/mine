@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "older request cannot overwrite current request",
+    "tenant switch and switch-back invalidate earlier generation",
+    "duplicate, older and invalid progress versions cannot regress snapshot",
+    "out-of-order completion remains safe even when transport ignores abort",
+    "disposed loader ignores completion"
+  ],
+  "scope": "Pure view-state model, not React, DOM, HTTP or SSE integration",
+  "timestamp": "2026-10-06T08:37:44.877Z"
+}

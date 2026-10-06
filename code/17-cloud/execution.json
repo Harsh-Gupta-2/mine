@@ -1,0 +1,14 @@
+﻿{
+    "status":  "NOT EXECUTED",
+    "staticStatus":  "PASS",
+    "checks":  [
+                   "JSON parsed",
+                   "Deletion guards present",
+                   "Public access blocks declared",
+                   "Versioning declared",
+                   "Storage encryption declared"
+               ],
+    "reason":  "No Terraform syntax/provider validation, init, plan, apply or AWS access. Provider downloads and account operations are not authorized by this preflight.",
+    "terraformOnPath":  false,
+    "awsOnPath":  false
+}

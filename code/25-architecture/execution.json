@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "runtime": "v24.20.0",
+  "checks": [
+    "inward dependency rule detects domain-to-adapter leak",
+    "context map cycle detected",
+    "aggregate invariant rejects command and records no event",
+    "duplicate command is idempotent without a second event",
+    "value equality and entity identity differ"
+  ],
+  "scope": "Declared module/context graphs and one in-memory aggregate, not a Java package scan, Spring wiring or deployed architecture",
+  "timestamp": "2026-10-06T10:26:48.866Z"
+}

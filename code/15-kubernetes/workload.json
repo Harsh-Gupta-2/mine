@@ -1,0 +1,61 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "Namespace",
+      "metadata": {"name": "java-guide-lab"}
+    },
+    {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {"name": "guide-probe", "namespace": "java-guide-lab"},
+      "spec": {
+        "replicas": 2,
+        "selector": {"matchLabels": {"app": "guide-probe"}},
+        "strategy": {"type": "RollingUpdate", "rollingUpdate": {"maxSurge": 1, "maxUnavailable": 0}},
+        "template": {
+          "metadata": {"labels": {"app": "guide-probe"}},
+          "spec": {
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 20,
+            "securityContext": {"runAsNonRoot": true, "runAsUser": 10001, "runAsGroup": 10001, "seccompProfile": {"type": "RuntimeDefault"}},
+            "containers": [
+              {
+                "name": "probe",
+                "image": "java-guide-probe:local",
+                "imagePullPolicy": "Never",
+                "ports": [{"name": "http", "containerPort": 8080}],
+                "resources": {"requests": {"cpu": "100m", "memory": "64Mi"}, "limits": {"cpu": "500m", "memory": "128Mi"}},
+                "startupProbe": {"httpGet": {"path": "/live", "port": "http"}, "periodSeconds": 2, "failureThreshold": 30},
+                "readinessProbe": {"httpGet": {"path": "/ready", "port": "http"}, "periodSeconds": 5, "timeoutSeconds": 1, "failureThreshold": 2},
+                "livenessProbe": {"httpGet": {"path": "/live", "port": "http"}, "periodSeconds": 10, "timeoutSeconds": 1, "failureThreshold": 3},
+                "securityContext": {"allowPrivilegeEscalation": false, "readOnlyRootFilesystem": true, "capabilities": {"drop": ["ALL"]}},
+                "volumeMounts": [{"name": "scratch", "mountPath": "/tmp"}]
+              }
+            ],
+            "volumes": [{"name": "scratch", "emptyDir": {"sizeLimit": "16Mi"}}]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "Service",
+      "metadata": {"name": "guide-probe", "namespace": "java-guide-lab"},
+      "spec": {"type": "ClusterIP", "selector": {"app": "guide-probe"}, "ports": [{"port": 8080, "targetPort": "http"}]}
+    },
+    {
+      "apiVersion": "autoscaling/v2",
+      "kind": "HorizontalPodAutoscaler",
+      "metadata": {"name": "guide-probe", "namespace": "java-guide-lab"},
+      "spec": {
+        "scaleTargetRef": {"apiVersion": "apps/v1", "kind": "Deployment", "name": "guide-probe"},
+        "minReplicas": 2,
+        "maxReplicas": 4,
+        "metrics": [{"type": "Resource", "resource": {"name": "cpu", "target": {"type": "Utilization", "averageUtilization": 70}}}]
+      }
+    }
+  ]
+}
