@@ -1,0 +1,12 @@
+{
+  "name": "java-fs-guide",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node verify.mjs"
+  },
+  "engines": { "node": ">=22" },
+  "description": "Offline guide with locally rendered Mermaid SVG diagrams. See review-log.md for execution evidence."
+}
