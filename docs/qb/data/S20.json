@@ -1,0 +1,2192 @@
+{
+  "section": "S20",
+  "section_title": "Behavioral and HR",
+  "questions": [
+    {
+      "id": "JH-S20-001",
+      "topic": "Introduction and motivation",
+      "question": "Introduce yourself and explain the kind of backend role you are looking for.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Microservices",
+        "R:OAuth",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I am Harsh, a Java backend software engineer based in Noida with about two and a half years of experience including an internship. My work includes authentication microservices, Java connectors, PostgreSQL reliability work, Kafka-based integrations and production release support. I built an Informatica IICS connector from scratch and worked on other integration connectors. I am targeting backend Java roles in product companies and fintechs. My reason for moving is [[HARSH TO FILL: truthful reason]], and the work I want to grow into is [[HARSH TO FILL: specific responsibility]]. I would connect that goal to the actual job description rather than claim knowledge of a company's internal work that I have not verified.",
+      "keywords": [
+        "current role",
+        "experience",
+        "backend focus",
+        "ownership",
+        "motivation",
+        "role fit"
+      ],
+      "followups": [
+        {
+          "q": "Why not describe every tool on the resume?",
+          "a": "A concise introduction should establish relevant work and direction; deeper details belong in follow-up questions."
+        },
+        {
+          "q": "How do you discuss the current employer?",
+          "a": "Stay factual and professional, explaining your own goals rather than inventing complaints or criticizing individuals."
+        }
+      ],
+      "trap": "Using a generic motivation story or an invented reason for switching.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Resume-only HR skeleton; personal motivations unknown."
+    },
+    {
+      "id": "JH-S20-002",
+      "topic": "Conflict and ownership",
+      "question": "Describe a disagreement or missed commitment and how you handled your responsibility.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a real example and use situation, responsibility, action and result as the structure. The situation was [[HARSH TO FILL: actual disagreement or commitment]], and my responsibility was [[HARSH TO FILL: what I owned]]. I would explain the competing constraints fairly, what evidence I gathered, how I communicated risk early and which decision or compromise followed. Then I would state the actual result, including anything that did not work, and the change I made to prevent recurrence. I would avoid presenting myself as the only competent person or claiming the team succeeded because of me alone. The interviewer needs a concrete account of judgment, accountability and learning.",
+      "keywords": [
+        "situation",
+        "responsibility",
+        "evidence",
+        "communication",
+        "result",
+        "learning"
+      ],
+      "followups": [
+        {
+          "q": "What if the outcome was not successful?",
+          "a": "Explain it honestly and identify what you controlled, what you learned and what changed afterward."
+        },
+        {
+          "q": "How do you show ownership without exaggerating?",
+          "a": "Separate your actions from the team's decisions and give the real contribution boundary."
+        }
+      ],
+      "trap": "Inventing a polished conflict story or blaming others without explaining your own choices.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Personal example must be supplied by Harsh."
+    },
+    {
+      "id": "JH-S20-003",
+      "topic": "Strengths and development areas",
+      "question": "What is a strength you can demonstrate, and what technical area are you actively improving?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Informatica",
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The mock assessment identifies production-incident stories and Informatica connector architecture as strengths, so I would choose one and support it with [[HARSH TO FILL: real example and outcome]]. For a development area, I can truthfully discuss a tested gap such as explaining Spring proxies or writing SQL clearly, together with [[HARSH TO FILL: actual practice and evidence of improvement]]. I would describe the current limit specifically, not call myself weak at all backend engineering. I also should not claim the gap is resolved merely because I read a model answer. A useful response shows self-awareness, an improvement method and a concrete way to check progress.",
+      "keywords": [
+        "demonstrated strength",
+        "specific gap",
+        "practice",
+        "feedback",
+        "progress evidence",
+        "self-awareness"
+      ],
+      "followups": [
+        {
+          "q": "How can progress be demonstrated?",
+          "a": "Answer a fresh variant unaided, execute a relevant exercise or show a real work improvement rather than only reporting study time."
+        },
+        {
+          "q": "Should the weakness be a disguised compliment?",
+          "a": "No. Choose a genuine bounded development area and explain what you are doing about it."
+        }
+      ],
+      "trap": "Claiming every readiness GAP is already fixed because the handbook contains an answer.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Uses supplied mock status only; no improvement claimed without evidence."
+    },
+    {
+      "id": "JH-S20-004",
+      "topic": "Logistics and interview questions",
+      "question": "How would you discuss notice period, compensation, relocation and questions for the interviewer?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would keep logistics factual: my contractual notice period is [[HARSH TO FILL]], my confirmed availability is [[HARSH TO FILL]], and my relocation or work-location preferences are [[HARSH TO FILL]]. I would not promise an early release without approval. For compensation I would discuss [[HARSH TO FILL: truthful expectation or preferred negotiation approach]] in the context of role scope and total compensation, without inventing competing offers. My questions would focus on ownership, on-call expectations, how success is measured, deployment and incident practices, and the next interview steps. I would select a few questions relevant to what we actually discussed rather than recite a generic list.",
+      "keywords": [
+        "notice period",
+        "confirmed availability",
+        "location",
+        "total compensation",
+        "role scope",
+        "on-call"
+      ],
+      "followups": [
+        {
+          "q": "What if salary expectations are not finalized?",
+          "a": "State that honestly and ask about the role's approved range and compensation structure."
+        },
+        {
+          "q": "Can you disclose client secrets to demonstrate experience?",
+          "a": "No. Describe architectural patterns and permitted outcomes without confidential details or credentials."
+        }
+      ],
+      "trap": "Inventing salary, offers, notice flexibility or personal relocation preferences.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Personal HR facts intentionally left blank. No resume hook applies to compensation itself."
+    },
+    {
+      "id": "JH-S20-005",
+      "topic": "Reason for switching",
+      "question": "Why are you considering a move from your current role now?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would give a truthful reason tied to what I want to do next, rather than criticize my current employer or imply a problem that did not happen. The facts I can safely establish are that I have about two and a half years of experience including an internship and am targeting backend Java roles at product companies and fintechs. My personal reason for moving is not supplied, so I need [[HARSH TO FILL: concise, honest reason and timing]]. I would then connect that reason to a specific responsibility in this vacancy and explain why the move is deliberate. I would avoid claiming an offer, promotion promise or dissatisfaction unless it is true and relevant.",
+      "keywords": [
+        "truthful motivation",
+        "timing",
+        "career direction",
+        "backend Java",
+        "role connection",
+        "professional tone"
+      ],
+      "followups": [
+        {
+          "q": "Is there a specific event prompting the move?",
+          "a": "Answer only with the real event, if any: [[HARSH TO FILL: relevant context]]."
+        },
+        {
+          "q": "Would you stay for a counteroffer?",
+          "a": "Decide based on actual priorities and answer consistently: [[HARSH TO FILL: considered position]]."
+        }
+      ],
+      "trap": "Using a fabricated conflict or negative story to make a routine career move sound dramatic.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reason and timing remain personal placeholders."
+    },
+    {
+      "id": "JH-S20-006",
+      "topic": "Career direction",
+      "question": "What kind of backend engineer do you want to become over the next few years?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Microservices",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would describe a direction that is ambitious but connected to work I have actually done. The resume shows Java backend services, identity integrations, connectors, database reliability, event-driven integrations and release support. I could build on that by deepening [[HARSH TO FILL: genuine area of interest, such as service design, reliability or identity]], while remaining accountable for implementation and production behavior. I would not claim a fixed promotion timeline or say I already operate at an architect level. A useful answer names the kind of problem I want to solve, the capability I need to develop and one way this role could provide relevant responsibility, subject to what the job description actually says.",
+      "keywords": [
+        "career direction",
+        "current evidence",
+        "skill depth",
+        "responsibility",
+        "development goal",
+        "role alignment"
+      ],
+      "followups": [
+        {
+          "q": "What capability do you want to strengthen first?",
+          "a": "Name a real priority and how you will practice it: [[HARSH TO FILL: area and method]]."
+        },
+        {
+          "q": "Is management your goal?",
+          "a": "Answer from your actual preference; technical growth does not require pretending to want people management."
+        }
+      ],
+      "trap": "Promising a specific title or career path just because it sounds impressive.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Aspirations are not supplied; use a genuine direction."
+    },
+    {
+      "id": "JH-S20-007",
+      "topic": "Product and fintech motivation",
+      "question": "Why are you targeting product-company and fintech backend roles?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:OAuth",
+        "R:Kafka",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "My stated target is backend Java work at product companies and fintechs. I would explain the actual reasons behind that preference, connecting them to responsibilities rather than prestige or a broad claim that every such company works the same way. Relevant experience I can point to includes authentication services, OAuth PKCE integration, PostgreSQL reliability work and Kafka-based integrations, while the scale and domain I want next need [[HARSH TO FILL: truthful motivation]]. I would identify what I hope to learn or own, then show that I have researched this specific role using public, reliable information. I should not imply that I know a company's internal architecture or customer base without evidence.",
+      "keywords": [
+        "role preference",
+        "domain interest",
+        "relevant experience",
+        "learning goal",
+        "specific research",
+        "no assumptions"
+      ],
+      "followups": [
+        {
+          "q": "Would you consider a service-company role?",
+          "a": "Answer based on genuine criteria rather than dismissing an entire employer category: [[HARSH TO FILL: priorities]]."
+        },
+        {
+          "q": "What makes fintech engineering interesting to you?",
+          "a": "Use a real interest in correctness, security or reliability if it is yours: [[HARSH TO FILL: reason]]."
+        }
+      ],
+      "trap": "Giving a prestige-based answer or making blanket claims about product and fintech organizations.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Target sectors are supplied; personal reasons are not."
+    },
+    {
+      "id": "JH-S20-008",
+      "topic": "Specific role fit",
+      "question": "Which parts of this role are the strongest match for your experience, and where would you need to ramp up?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:OAuth",
+        "R:Informatica",
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would compare the job description with concrete evidence, not say that I match every requirement. My supplied experience includes Java backend work, authentication services, connector development, Kafka integrations, PostgreSQL reliability and production releases. I would select the two most relevant items for this role and state my personal contribution. Then I would name one genuine gap, such as an unfamiliar domain or tool, and explain a practical ramp-up plan. I need [[HARSH TO FILL: target role requirements, matching examples and actual learning gap]]. I would avoid claiming production expertise in every listed skill; the resume includes familiar technologies as well as direct work. That distinction makes both fit and onboarding expectations clearer.",
+      "keywords": [
+        "job requirements",
+        "evidence",
+        "personal contribution",
+        "bounded gap",
+        "ramp-up",
+        "scope honesty"
+      ],
+      "followups": [
+        {
+          "q": "Which requirement is your strongest match?",
+          "a": "Choose from the actual posting and support it with a verifiable example: [[HARSH TO FILL: match]]."
+        },
+        {
+          "q": "What would you learn in your first month?",
+          "a": "Prioritize the system, team practices and domain required by this role: [[HARSH TO FILL: plan]]."
+        }
+      ],
+      "trap": "Claiming mastery of every skill keyword, including areas listed only as familiarity.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Role-specific answer requires the actual job description."
+    },
+    {
+      "id": "JH-S20-009",
+      "topic": "Values at work",
+      "question": "Which work value most influences how you make engineering decisions?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a value I genuinely use, such as reliability, candor, customer impact or learning, and define what it changes in a decision. For example, if I choose reliability, I should explain how I weigh a release deadline against a known customer risk and what evidence I require before proceeding. That example must be real: [[HARSH TO FILL: value, situation and action]]. I would avoid presenting values as slogans or implying there is never a trade-off. The interviewer needs to hear how I behave when the value costs time or convenience. I would close with a practical check, such as making risk visible, documenting a decision or asking for review.",
+      "keywords": [
+        "chosen value",
+        "decision behavior",
+        "trade-off",
+        "real example",
+        "evidence",
+        "accountability"
+      ],
+      "followups": [
+        {
+          "q": "When has this value been difficult to follow?",
+          "a": "Use a real bounded example and describe the cost honestly: [[HARSH TO FILL: situation]]."
+        },
+        {
+          "q": "What if values conflict?",
+          "a": "Make the competing obligations explicit, assess harm and involve the accountable decision makers."
+        }
+      ],
+      "trap": "Reciting company-value language without a specific behavior or trade-off.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No personal values anecdote is fabricated."
+    },
+    {
+      "id": "JH-S20-010",
+      "topic": "Ethical security judgment",
+      "question": "What would you do if asked to bypass an authentication or data-protection control to meet a deadline?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:SCIM",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would first clarify the requested outcome and the control's purpose, then explain the concrete risk of bypassing it in terms of unauthorized access, exposure or auditability. I would not silently weaken an authentication or tenant boundary. I would offer a safer alternative, such as narrowing scope, using an approved temporary control or changing the release plan, and involve the designated security and product owners if risk acceptance is required. For a personal example I need [[HARSH TO FILL: real situation, if one occurred]]. Otherwise I would answer as a scenario, not claim it happened. Any exception should have explicit approval, limited duration, monitoring and a removal plan under the organization's policy.",
+      "keywords": [
+        "clarify outcome",
+        "security purpose",
+        "safer alternative",
+        "risk owner",
+        "approval",
+        "expiry"
+      ],
+      "followups": [
+        {
+          "q": "Would you ever ship with a known vulnerability?",
+          "a": "That requires formal risk review and authorized acceptance; I would not make the decision alone."
+        },
+        {
+          "q": "What if a manager insists?",
+          "a": "State the risk clearly, document it through the proper channel and escalate under policy."
+        }
+      ],
+      "trap": "Claiming a deadline automatically justifies disabling an access control.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Scenario answer only; no ethical incident is asserted."
+    },
+    {
+      "id": "JH-S20-011",
+      "topic": "Confidentiality",
+      "question": "How do you discuss client work in an interview without disclosing confidential information?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:Informatica",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would describe the technical shape and my contribution while removing client identifiers, credentials, personal data, proprietary schemas and details that could identify an incident. The supplied resume already describes a financial-planning SaaS client and a healthcare supply-chain client at a broad domain level; I would stay within the disclosure rules I am authorized to use. If a detail is uncertain or restricted, I would say so and offer a synthetic example or generalized architecture. I need [[HARSH TO FILL: any employer confidentiality boundary relevant to interviews]]. I would not show screenshots, logs or source code from work. A useful answer remains technically specific about mechanisms without revealing private customer facts.",
+      "keywords": [
+        "data minimization",
+        "sanitized example",
+        "client boundary",
+        "credentials",
+        "synthetic data",
+        "technical specificity"
+      ],
+      "followups": [
+        {
+          "q": "Can you share a production log with names removed?",
+          "a": "Only if policy permits and sanitization is complete; a synthetic or verbal example is safer."
+        },
+        {
+          "q": "How do you show impact without client metrics?",
+          "a": "Use approved aggregated figures or explain the method without exposing restricted data."
+        }
+      ],
+      "trap": "Assuming removing a company name makes customer data or incident details safe to disclose.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Only broad client domains from supplied resume are used."
+    },
+    {
+      "id": "JH-S20-012",
+      "topic": "Escalating risk",
+      "question": "How would you raise a reliability or security concern when the team is under delivery pressure?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would state the observed risk, its evidence, the likely impact and the decision needed, separating facts from uncertainty. Then I would propose options with their cost: fix now, reduce scope, stage the rollout or accept a documented residual risk through the proper authority. I would make the escalation early enough that the team still has choices and keep the tone focused on the system rather than blaming a person. A personal example needs [[HARSH TO FILL: actual concern, audience, evidence and outcome]]. Without one, I would make clear that this is my approach to a scenario. I would not promise that every risk can be eliminated or that delivery pressure excuses hiding it.",
+      "keywords": [
+        "evidence",
+        "impact",
+        "uncertainty",
+        "options",
+        "early escalation",
+        "risk authority"
+      ],
+      "followups": [
+        {
+          "q": "What if stakeholders disagree about severity?",
+          "a": "Compare evidence and impact, document uncertainty, and involve the accountable risk owner."
+        },
+        {
+          "q": "How do you keep escalation constructive?",
+          "a": "Present actionable choices and focus on consequences, not motives."
+        }
+      ],
+      "trap": "Raising a vague alarm without evidence, options or a clear decision request.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Personal escalation story remains a placeholder."
+    },
+    {
+      "id": "JH-S20-013",
+      "topic": "Conflict with a teammate",
+      "question": "Tell me about a disagreement with a teammate and how you reached a working decision.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a real disagreement about a technical choice, priority or ownership boundary, then describe the shared goal before explaining where our views differed. I would show how I listened, what evidence or experiment helped, and how the decision was made by the appropriate owner. The personal event is unknown: [[HARSH TO FILL: actual disagreement, my position, teammate's concern and decision]]. I would include what I changed my mind about, if anything, and how we worked together afterward. I would avoid presenting the other person as unreasonable or claiming consensus if the decision was simply assigned. If I have not had a relevant conflict, I should say so and use a hypothetical clearly labeled as such.",
+      "keywords": [
+        "shared goal",
+        "different views",
+        "listening",
+        "evidence",
+        "decision owner",
+        "working relationship"
+      ],
+      "followups": [
+        {
+          "q": "What if you still disagreed after the decision?",
+          "a": "Commit professionally while preserving a concise record of the concern and agreed review point."
+        },
+        {
+          "q": "What did you learn about your approach?",
+          "a": "Name a real behavior change: [[HARSH TO FILL: lesson and subsequent action]]."
+        }
+      ],
+      "trap": "Inventing a conflict or making the story a disguised complaint about a colleague.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No personal conflict story supplied."
+    },
+    {
+      "id": "JH-S20-014",
+      "topic": "Disagreement with a manager",
+      "question": "How would you respond if you believed your manager's technical direction created avoidable risk?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would first make sure I understand the goal and constraints behind the direction, then bring a specific technical risk and supporting evidence rather than arguing from preference. I would propose a low-cost test or alternative and explain consequences for reliability, security or delivery. If the manager owns the decision and the risk is acceptable, I would support the agreed path while making any necessary follow-up visible. For a serious security or customer-safety concern, I would use the organization's escalation route. I need [[HARSH TO FILL: actual example, if one happened]]. This answer is a decision method, not a claim that I have had such a disagreement. I would not imply authority I did not hold.",
+      "keywords": [
+        "clarify constraints",
+        "specific risk",
+        "evidence",
+        "experiment",
+        "decision authority",
+        "escalation"
+      ],
+      "followups": [
+        {
+          "q": "Would you implement a decision you disagree with?",
+          "a": "If it is safe and authorized, yes, while documenting concerns through the appropriate channel."
+        },
+        {
+          "q": "When would you escalate beyond your manager?",
+          "a": "For material unresolved harm or policy violation, following the defined route."
+        }
+      ],
+      "trap": "Framing respectful challenge as either passive obedience or personal confrontation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No manager disagreement anecdote supplied."
+    },
+    {
+      "id": "JH-S20-015",
+      "topic": "Receiving feedback",
+      "question": "Describe a piece of feedback that changed how you work.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would use feedback that I actually received, explain what behavior it addressed, and distinguish the feedback from my interpretation of it. Then I would name the specific adjustment I made and what later evidence shows whether it helped. I need [[HARSH TO FILL: feedback source, context, response and observed change]]. I would not invent praise or a dramatic correction to sound coachable. If the feedback was difficult, I can explain how I asked clarifying questions and agreed on a way to revisit progress. If I have not yet seen measurable impact, I should say that honestly and describe what I am monitoring. The point is demonstrable response, not claiming every suggestion was automatically right.",
+      "keywords": [
+        "specific feedback",
+        "behavior",
+        "reflection",
+        "change",
+        "evidence",
+        "follow-up"
+      ],
+      "followups": [
+        {
+          "q": "What if you disagreed with the feedback?",
+          "a": "Ask for examples, compare expectations and agree on observable behavior to review."
+        },
+        {
+          "q": "How do you know your change helped?",
+          "a": "Use real subsequent feedback or work evidence: [[HARSH TO FILL: indicator]]."
+        }
+      ],
+      "trap": "Offering a generic weakness with no feedback source, action or evidence of change.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No feedback anecdote supplied."
+    },
+    {
+      "id": "JH-S20-016",
+      "topic": "Giving feedback",
+      "question": "How do you give a peer corrective feedback without damaging collaboration?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would focus on an observable behavior or artifact and its effect, then invite the peer's context before suggesting a change. Feedback should be timely, private when appropriate and proportionate to risk; a security or production concern may require faster formal escalation than routine style disagreement. I need [[HARSH TO FILL: a real example if available, what I said and what happened next]]. If there is no personal example, I would present the method as an approach rather than claim success. I would separate code-review preferences from correctness or safety issues and make the requested action clear. The goal is better work and a functioning relationship, not proving I was right.",
+      "keywords": [
+        "observable behavior",
+        "impact",
+        "context",
+        "timing",
+        "proportionate escalation",
+        "clear request"
+      ],
+      "followups": [
+        {
+          "q": "What if the feedback is not accepted?",
+          "a": "Clarify evidence and impact, then use the team's decision or escalation process if risk remains."
+        },
+        {
+          "q": "Should every disagreement go into a public review?",
+          "a": "No. Choose a channel that is respectful and appropriate to urgency and policy."
+        }
+      ],
+      "trap": "Using personal labels or public embarrassment instead of actionable work-focused feedback.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No peer-feedback story is invented."
+    },
+    {
+      "id": "JH-S20-017",
+      "topic": "Cross-team collaboration",
+      "question": "Tell me about coordinating work across teams when an integration boundary was unclear.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:ETL",
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a real collaboration example and identify the teams' shared outcome, the unclear interface and who owned each decision. Then I would describe how we made assumptions explicit, agreed on a contract or handoff, and handled testing across the boundary. The resume shows connector and microservice work but does not identify a cross-team episode: [[HARSH TO FILL: teams, interface, my contribution and result]]. I would state where coordination took longer than expected and how I reduced ambiguity, perhaps with a contract test or decision record if that actually occurred. I would not claim that I resolved another team's work alone. If no example exists, I would explain a proposed approach as hypothetical.",
+      "keywords": [
+        "shared outcome",
+        "ownership boundary",
+        "interface contract",
+        "handoff",
+        "cross-team test",
+        "decision record"
+      ],
+      "followups": [
+        {
+          "q": "What if another team cannot meet the date?",
+          "a": "Surface dependency risk early, negotiate scope or sequencing, and keep stakeholders informed."
+        },
+        {
+          "q": "How do you prevent hidden assumptions?",
+          "a": "Write down the contract, owner and failure behavior, then validate it with both sides."
+        }
+      ],
+      "trap": "Claiming cross-team leadership without describing actual authority or contribution.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No team names or anecdote assumed."
+    },
+    {
+      "id": "JH-S20-018",
+      "topic": "Remote collaboration",
+      "question": "How do you keep remote or distributed teammates aligned on a technical change?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would make the work legible asynchronously: a short problem statement, decision owner, interface, open risks and next checkpoint, with a live discussion reserved for ambiguity that benefits from conversation. For a production or authentication change, I would include test evidence and a safe handoff rather than relying on a status message that says done. I need [[HARSH TO FILL: actual remote-work practices and an example of a missed or successful handoff]]. I would not claim experience with a fully distributed team unless that is true. The process should respect time zones and avoid turning every decision into a meeting. Clear written context lets teammates challenge assumptions and continue when schedules do not overlap.",
+      "keywords": [
+        "async context",
+        "decision owner",
+        "interface",
+        "risk",
+        "handoff",
+        "time zones"
+      ],
+      "followups": [
+        {
+          "q": "When do you switch from text to a meeting?",
+          "a": "When uncertainty, urgency or disagreement is not resolving efficiently in writing."
+        },
+        {
+          "q": "How do you close the loop afterward?",
+          "a": "Record the decision, owner and actions in the shared system: [[HARSH TO FILL: actual practice]]."
+        }
+      ],
+      "trap": "Equating remote collaboration with frequent meetings or claiming habits never used.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Remote-work experience is not specified."
+    },
+    {
+      "id": "JH-S20-019",
+      "topic": "Ownership boundary",
+      "question": "Describe a problem you owned end to end, including the part that depended on other people or systems.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Informatica",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would select a real task whose ownership boundary I can explain, such as a service change, connector feature or release responsibility. I would state the outcome I was accountable for, the decisions I made, the dependencies another team or provider controlled, and how I kept those dependencies from becoming surprises. The resume supports ownership of three auth microservices and release work, but this particular end-to-end example needs [[HARSH TO FILL: task, authority, collaborators and result]]. I would describe a setback or unresolved piece if relevant. Ownership does not mean doing every task personally; it means making the work and risks visible and following through at the boundary I actually controlled.",
+      "keywords": [
+        "accountable outcome",
+        "decision scope",
+        "dependency",
+        "communication",
+        "follow-through",
+        "team contribution"
+      ],
+      "followups": [
+        {
+          "q": "What if the external dependency failed?",
+          "a": "Explain what I could mitigate and how I communicated the limitation: [[HARSH TO FILL: real action]]."
+        },
+        {
+          "q": "How do you avoid taking credit for team work?",
+          "a": "Attribute shared outcomes accurately and specify my own decisions and deliverables."
+        }
+      ],
+      "trap": "Defining ownership as sole authorship or taking credit for a shared production outcome.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Uses supplied ownership scope without inventing a success story."
+    },
+    {
+      "id": "JH-S20-020",
+      "topic": "Taking initiative",
+      "question": "Tell me about a time you noticed an issue outside your immediate task and acted on it.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Postgres",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would use an actual example where I noticed a risk or gap, explain why it mattered, and show how I checked whether it was within my authority to act. Then I would describe the smallest useful action, who I informed and whether the work was adopted. I need [[HARSH TO FILL: issue noticed, evidence, action, permission boundary and outcome]]. The existing resume facts mention production support, database reliability and releases, but they do not prove a separate initiative story. I would not recast assigned work as unsolicited initiative. If the fix required another owner, I would explain how I surfaced it and helped without bypassing review or creating untracked production changes.",
+      "keywords": [
+        "observed gap",
+        "evidence",
+        "authority",
+        "small action",
+        "communication",
+        "adoption"
+      ],
+      "followups": [
+        {
+          "q": "What if the issue was outside your authority?",
+          "a": "Document evidence and route it to the accountable owner rather than make an unsafe change."
+        },
+        {
+          "q": "How did you know it mattered?",
+          "a": "Use the actual customer, reliability or security signal: [[HARSH TO FILL: evidence]]."
+        }
+      ],
+      "trap": "Claiming initiative for an unauthorized production change or routine assigned responsibility.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No personal initiative episode supplied."
+    },
+    {
+      "id": "JH-S20-021",
+      "topic": "Taking accountability",
+      "question": "Describe a mistake you made, how you disclosed it and what changed afterward.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a real, bounded mistake and state my part without minimizing or assigning blame. I would explain how I noticed it, who needed to know, what immediate correction or containment I made, and how I checked for wider impact. Then I would name a process or test change that followed, if one actually did. I need [[HARSH TO FILL: mistake, impact, disclosure, correction and learning]]. I would not invent a customer incident or use a trivial fake weakness to avoid accountability. If the mistake had no measurable harm, I would still explain why it mattered and what signal would reveal recurrence. The answer should be candid while protecting confidential details.",
+      "keywords": [
+        "personal responsibility",
+        "impact check",
+        "disclosure",
+        "containment",
+        "prevention",
+        "learning"
+      ],
+      "followups": [
+        {
+          "q": "Would you tell your manager before confirming every detail?",
+          "a": "For material risk, report what is known and uncertain early, then update as evidence improves."
+        },
+        {
+          "q": "How do you show the change lasted?",
+          "a": "Use a real follow-up test or review: [[HARSH TO FILL: evidence]]."
+        }
+      ],
+      "trap": "Inventing a sanitized failure or describing someone else's mistake as your own.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No mistake anecdote is supplied."
+    },
+    {
+      "id": "JH-S20-022",
+      "topic": "Responding to failure",
+      "question": "Tell me about an approach that did not work and how you decided what to try next.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Testing"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would describe a genuine attempt, the expectation behind it and the evidence that showed it was not working. The key is how I limited cost, revised my understanding and chose the next experiment, not a heroic ending. I need [[HARSH TO FILL: real attempt, disconfirming evidence, adjustment and outcome]]. If the final result was mixed, I would say so and identify what remains unresolved. I would distinguish a controlled technical experiment from a production change that needed approval. The supplied incident and connector experience could provide context, but no failed approach is given. I would not attach a false resolution or metric simply to make the story sound complete.",
+      "keywords": [
+        "initial expectation",
+        "evidence",
+        "bounded experiment",
+        "changed hypothesis",
+        "next action",
+        "unresolved result"
+      ],
+      "followups": [
+        {
+          "q": "What would you do differently now?",
+          "a": "Name a concrete earlier check or smaller experiment: [[HARSH TO FILL: improvement]]."
+        },
+        {
+          "q": "How do you prevent experiments from affecting customers?",
+          "a": "Use a safe environment, controlled scope and approval appropriate to the risk."
+        }
+      ],
+      "trap": "Turning every failure into an implausibly perfect success story.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No failed-project narrative is invented."
+    },
+    {
+      "id": "JH-S20-023",
+      "topic": "Ambiguous requirements",
+      "question": "How do you start when a technical request is ambiguous but delivery time is limited?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would identify the decision that blocks safe progress, the assumptions that can be tested cheaply and the parts that can remain flexible. Then I would clarify the user-visible outcome, failure behavior, data or security constraints and who can accept scope trade-offs. A thin interface or example can make ambiguity concrete before a full implementation. I need [[HARSH TO FILL: a real example and how I confirmed assumptions]]. I would document unresolved questions and the owner for each, rather than quietly choosing defaults that become permanent. When no answer arrives, I would propose a reversible option and communicate its limits. This is a method answer unless I can supply a real personal event.",
+      "keywords": [
+        "blocking decision",
+        "assumptions",
+        "user outcome",
+        "failure behavior",
+        "reversible option",
+        "decision owner"
+      ],
+      "followups": [
+        {
+          "q": "What if the product owner is unavailable?",
+          "a": "Identify a safe, reversible slice and escalate the assumptions that affect risk or scope."
+        },
+        {
+          "q": "How do you avoid overdesign?",
+          "a": "Resolve only decisions that constrain the next step and revisit evidence as it arrives."
+        }
+      ],
+      "trap": "Treating guesses as requirements or building a large solution before confirming the outcome.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No ambiguity anecdote supplied."
+    },
+    {
+      "id": "JH-S20-024",
+      "topic": "Missed deadline",
+      "question": "Tell me about a deadline you missed or nearly missed and how you handled the commitment.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a real commitment and explain the original estimate, the signal that it was at risk and when I communicated that signal. Then I would describe how I re-scoped, requested help or renegotiated the date, and what actually shipped. I need [[HARSH TO FILL: deadline, cause, early communication, decision and outcome]]. I would own any part of the estimate or execution that I controlled while distinguishing external dependencies accurately. If the deadline was met, I can still discuss the risk and the trade-off made, but not call it a miss. I would finish with what changed in my planning method, supported by a later example if available.",
+      "keywords": [
+        "commitment",
+        "risk signal",
+        "early communication",
+        "scope",
+        "dependency",
+        "planning change"
+      ],
+      "followups": [
+        {
+          "q": "How early did you raise the risk?",
+          "a": "Give the actual timing and what was known then: [[HARSH TO FILL: timing]]."
+        },
+        {
+          "q": "Did quality suffer to hit the date?",
+          "a": "Answer honestly and explain the agreed trade-off and follow-up work, if any."
+        }
+      ],
+      "trap": "Blaming a dependency while omitting when the risk became visible or what you did.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No deadline event supplied."
+    },
+    {
+      "id": "JH-S20-025",
+      "topic": "Competing priorities",
+      "question": "How do you prioritize two urgent requests when both stakeholders expect immediate delivery?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would compare customer impact, security or data risk, deadline reversibility, dependencies and the cost of delay, then make the conflict visible to the accountable stakeholders. If one request is a production incident or security exposure, that changes the priority, but I would verify severity rather than rely on who is loudest. I would propose a sequence or split that preserves safe progress and ask for an explicit trade-off when capacity cannot satisfy both. A personal example requires [[HARSH TO FILL: requests, criteria, decision and outcome]]. I would not promise both deliverables or quietly starve one. The priority should be revisited if evidence or impact changes.",
+      "keywords": [
+        "customer impact",
+        "security risk",
+        "reversibility",
+        "dependencies",
+        "capacity",
+        "explicit trade-off"
+      ],
+      "followups": [
+        {
+          "q": "What if both are equally critical?",
+          "a": "Escalate the capacity choice with impact and options; do not hide the impossible constraint."
+        },
+        {
+          "q": "Who makes the final priority call?",
+          "a": "The actual accountable product or incident owner under the team's process."
+        }
+      ],
+      "trap": "Ranking work by stakeholder seniority alone without explaining impact and risk.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Method is scenario-based; no priority anecdote supplied.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-026",
+      "topic": "Deadline estimation",
+      "question": "How do you estimate backend work when unknown integration or testing effort could dominate?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:Microservices",
+        "R:Testing"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would decompose the work into discovery, implementation, integration, verification and rollout, then identify the assumptions with the largest uncertainty. For a provider integration, a short spike or contract check may reduce uncertainty more effectively than adding false precision to an estimate. I would include review and failure-path testing rather than estimate only coding time, and communicate a range or confidence level when appropriate. I need [[HARSH TO FILL: actual estimation practice and a real example]]. As evidence changes, I would update the forecast early and explain scope options. I would not use a confident single date to conceal unknown SDK behavior or dependencies. The estimate is a planning commitment, not a guarantee against newly discovered facts.",
+      "keywords": [
+        "decomposition",
+        "uncertainty",
+        "integration spike",
+        "testing",
+        "confidence range",
+        "early update"
+      ],
+      "followups": [
+        {
+          "q": "What if a dependency has no response date?",
+          "a": "Make it an explicit risk, pursue a bounded alternative and avoid treating the date as confirmed."
+        },
+        {
+          "q": "How do you estimate testing?",
+          "a": "Include representative failures, integration boundaries and rollout checks rather than only unit-test coding."
+        }
+      ],
+      "trap": "Giving precision unsupported by unknown integration or acceptance criteria.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No personal estimate is claimed."
+    },
+    {
+      "id": "JH-S20-027",
+      "topic": "Quality under pressure",
+      "question": "How do you protect correctness when a release deadline is fixed and testing time is shrinking?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Testing",
+        "R:CICD",
+        "R:OAuth"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would identify which checks protect the highest-risk behavior, especially security boundaries, data writes and rollback safety, and preserve those even if lower-value scope is reduced. I would communicate what is not tested and ask the authorized owner to decide whether to delay, narrow or accept a residual risk. For a change to an authentication service, a passing happy path would not replace tests for invalid identity or authorization. I need [[HARSH TO FILL: real release pressure example, test decision and authority]]. If there is no example, I would present this as a principle. I would not silently skip a required control or describe an untested deployment as fully safe.",
+      "keywords": [
+        "risk-based testing",
+        "security boundary",
+        "scope reduction",
+        "residual risk",
+        "decision authority",
+        "transparency"
+      ],
+      "followups": [
+        {
+          "q": "Would you skip all integration tests?",
+          "a": "Not automatically; preserve tests tied to the most consequential real boundaries and disclose remaining gaps."
+        },
+        {
+          "q": "Who accepts residual risk?",
+          "a": "The designated accountable owner, not an individual developer by default."
+        }
+      ],
+      "trap": "Treating a schedule as authority to conceal or bypass mandatory quality and security gates.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No release-pressure anecdote supplied."
+    },
+    {
+      "id": "JH-S20-028",
+      "topic": "Production ownership",
+      "question": "What is your role when a production issue occurs outside your normal working hours?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would answer from the actual on-call or support arrangement rather than imply 24-hour availability that is not part of my role. The resume says I supported production and participated in P1 RCA, but does not state a rotation, escalation expectation or response obligation. I need [[HARSH TO FILL: real support schedule, escalation boundary and example if any]]. In a live incident, I would follow the defined severity process, protect customer data, communicate known facts and hand off clearly when another owner takes over. If I am not the responder, I should say who is and what support I am expected to provide. Sustainable coverage depends on clear ownership and recovery procedures, not informal heroics.",
+      "keywords": [
+        "support arrangement",
+        "severity",
+        "escalation",
+        "customer data",
+        "handoff",
+        "sustainable coverage"
+      ],
+      "followups": [
+        {
+          "q": "Are you willing to join an on-call rotation?",
+          "a": "State your genuine availability and ask about frequency, compensation and expectations: [[HARSH TO FILL: position]]."
+        },
+        {
+          "q": "What makes a good handoff?",
+          "a": "Impact, timeline, evidence, current mitigation, open risks and the next accountable owner."
+        }
+      ],
+      "trap": "Claiming an on-call schedule or unlimited availability not stated in the resume.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Production-support fact is supplied; schedule is not."
+    },
+    {
+      "id": "JH-S20-029",
+      "topic": "Incident communication",
+      "question": "How do you communicate during an incident when the root cause is still unknown?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Observability"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "I would report confirmed impact, what is being checked, the current mitigation and when the next update will arrive, explicitly labeling hypotheses as unconfirmed. That keeps stakeholders informed without turning an early guess into a public root-cause claim. I would coordinate through the incident owner and use approved channels, keeping credentials and customer details out of broad updates. I have supplied experience with P1 RCA using Grafana, Prometheus and Loki, but no exact communication example or process. For a personal story I need [[HARSH TO FILL: audience, update cadence, actual wording or decision and result]]. If I only know the technical investigation, I should not claim I was incident commander. Clear uncertainty is more useful than false certainty.",
+      "keywords": [
+        "confirmed impact",
+        "hypothesis label",
+        "mitigation",
+        "next update",
+        "incident owner",
+        "confidentiality"
+      ],
+      "followups": [
+        {
+          "q": "What if the update has no new finding?",
+          "a": "Share that investigation continues, what is being tested and the next update time."
+        },
+        {
+          "q": "Who sends customer communications?",
+          "a": "Follow the designated incident communication owner and approved process."
+        }
+      ],
+      "trap": "Announcing a speculative root cause or claiming command responsibility without owning it.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Strong status limited to incident-story readiness; personal communication facts remain unknown."
+    },
+    {
+      "id": "JH-S20-030",
+      "topic": "Giving credit",
+      "question": "How do you describe a team result while making your own contribution clear?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:Postgres",
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would state the shared outcome first, then identify the decisions, code, investigation or release work I personally contributed and the parts owned by teammates. For the supplied healthcare result, I can say the work was associated with 87% fewer customer-impacting failures, but I must not imply I alone caused that team outcome. I need [[HARSH TO FILL: precise contribution, collaborators and evidence source]]. I would explain how our responsibilities fit together and acknowledge unresolved attribution where necessary. This is stronger than minimizing my work or claiming the whole result as mine. If pressed for a percentage of ownership, I would describe deliverables rather than invent a numerical share.",
+      "keywords": [
+        "shared outcome",
+        "personal contribution",
+        "team boundary",
+        "attribution",
+        "evidence source",
+        "credit"
+      ],
+      "followups": [
+        {
+          "q": "Did you personally deliver the entire 87% reduction?",
+          "a": "The supplied facts do not establish sole causation; describe your verified contribution and the team result separately."
+        },
+        {
+          "q": "How do you identify collaborators?",
+          "a": "Use roles or team functions as permitted, without disclosing confidential names."
+        }
+      ],
+      "trap": "Claiming sole credit for a team reliability outcome or inventing an ownership percentage.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Uses the metric carefully and explicitly avoids sole attribution."
+    },
+    {
+      "id": "JH-S20-031",
+      "topic": "Learning unfamiliar technology",
+      "question": "How do you learn a new technology well enough to use it responsibly in a production system?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:Java",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would start with the system boundary and the behavior we need, then use official documentation and a small isolated exercise to validate the key assumptions. Before production use, I would check version compatibility, failure behavior, security implications, observability and how the team can maintain it. I need [[HARSH TO FILL: a real example of a technology learned, practice method and evidence of readiness]]. Building an Informatica connector from scratch is supplied experience, but it does not tell us the exact learning process, so I should not retrofit a story. I would ask for review from someone familiar with the platform and test against realistic edge cases. Learning is complete enough for a task when risks are understood, not when a tutorial runs once.",
+      "keywords": [
+        "system need",
+        "authoritative docs",
+        "isolated experiment",
+        "version compatibility",
+        "failure behavior",
+        "review"
+      ],
+      "followups": [
+        {
+          "q": "How do you know the tutorial matches production needs?",
+          "a": "Validate relevant boundaries and failure cases in a controlled environment, not only its happy path."
+        },
+        {
+          "q": "What if documentation is unclear?",
+          "a": "Build a minimal reproducible question, inspect supported examples and seek an accountable expert review."
+        }
+      ],
+      "trap": "Claiming production readiness based only on completing a tutorial.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No personal learning anecdote supplied."
+    },
+    {
+      "id": "JH-S20-032",
+      "topic": "Learning plan",
+      "question": "Which technical gap are you actively working on, and how will you know you have improved?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Spring"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The mock assessment identifies specific gaps, including SQL query writing, Stream API, Spring proxies, class loading and concurrency internals. I should select one genuine current priority rather than imply every gap is already fixed. I need [[HARSH TO FILL: chosen topic, current baseline, practice schedule and evidence of progress]]. A credible plan uses retrieval and applied exercises: solve a fresh problem, explain the mechanism aloud, then compare against authoritative references and retest later. I would state what remains uncertain. Reading an answer once is not proof of mastery, and the supplied readiness labels should not be upgraded without new assessment. I can connect the selected topic to this role only if the job actually uses it.",
+      "keywords": [
+        "specific gap",
+        "baseline",
+        "practice",
+        "retrieval",
+        "fresh exercise",
+        "progress evidence"
+      ],
+      "followups": [
+        {
+          "q": "How do you avoid rehearsing only memorized wording?",
+          "a": "Practice a new variant and explain the underlying mechanism without notes."
+        },
+        {
+          "q": "Which gap is already closed?",
+          "a": "Only claim that after a fresh, verifiable check: [[HARSH TO FILL: evidence]]."
+        }
+      ],
+      "trap": "Claiming improvement solely because an answer has been written or read.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Mock GAP topics are supplied; current learning activity is not."
+    },
+    {
+      "id": "JH-S20-033",
+      "topic": "Learning from a production incident",
+      "question": "What did a production incident teach you that changed your later engineering practice?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Observability",
+        "R:Testing"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "I would choose a real P1 investigation and state the lesson only after describing the evidence that made it meaningful. A useful structure is the assumption I held, the signal that challenged it, the operational or design change that followed, and the later check that showed whether the change helped. I need [[HARSH TO FILL: incident, lesson, changed practice and evidence]]. The supplied facts establish P1 RCA with Grafana, Prometheus and Loki and identify incident stories as a strength, but they do not provide a lesson or outcome. I must not manufacture one. If no later practice changed, I can discuss what I learned without pretending a permanent process was adopted.",
+      "keywords": [
+        "assumption",
+        "incident evidence",
+        "lesson",
+        "changed practice",
+        "follow-up check",
+        "honest limits"
+      ],
+      "followups": [
+        {
+          "q": "What behavior changed after the incident?",
+          "a": "Name the real behavior or say the lesson has not yet changed a routine: [[HARSH TO FILL: change]]."
+        },
+        {
+          "q": "How do you know it helped?",
+          "a": "Use actual recurrence, test or observability evidence and its observation period."
+        }
+      ],
+      "trap": "Attaching a generic lesson to an incident without a later behavior or evidence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "STRONG applies to incident storytelling readiness, not unspecified lesson details."
+    },
+    {
+      "id": "JH-S20-034",
+      "topic": "Adapting to change",
+      "question": "How do you respond when a requirement or release plan changes after implementation has started?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:CICD",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would identify what changed, which assumptions or interfaces are affected, and whether the change alters risk, data compatibility or release readiness. Then I would estimate the smallest safe adjustment, make the impact visible and confirm the decision owner before replacing the plan. If useful, I would preserve a reversible path or separate the new scope from the already validated work. I need [[HARSH TO FILL: a real change event, my response and result]]. I would not describe changing direction as automatically positive; late change can create real cost and should be managed transparently. If the release is already underway, I would coordinate status and verification rather than make an untracked production adjustment.",
+      "keywords": [
+        "changed assumption",
+        "impact analysis",
+        "decision owner",
+        "scope",
+        "reversibility",
+        "release coordination"
+      ],
+      "followups": [
+        {
+          "q": "What if the change conflicts with a committed date?",
+          "a": "Present scope, risk and schedule options for an explicit decision."
+        },
+        {
+          "q": "How do you keep old validation useful?",
+          "a": "Map changed requirements to affected tests and rerun relevant boundaries."
+        }
+      ],
+      "trap": "Accepting new scope silently while hiding its effect on quality or schedule.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No change-management anecdote supplied."
+    },
+    {
+      "id": "JH-S20-035",
+      "topic": "Disagreeing with product",
+      "question": "How would you handle a product request whose behavior is technically feasible but creates a reliability concern?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would translate the technical concern into user and operational consequences, such as duplicate effects, delayed processing or unclear recovery, and verify those risks with a small test or workload model where possible. Then I would offer alternatives that preserve the core user outcome, making cost and residual risk explicit. The product owner can prioritize scope, but security or compliance acceptance may require a separate accountable owner. I need [[HARSH TO FILL: actual product disagreement if one occurred]]. Otherwise I would call this a scenario. I would avoid using implementation complexity alone as a veto and avoid promising reliability the architecture cannot support. A shared decision record can prevent the trade-off from being rediscovered later.",
+      "keywords": [
+        "user consequence",
+        "reliability risk",
+        "evidence",
+        "alternative",
+        "risk owner",
+        "decision record"
+      ],
+      "followups": [
+        {
+          "q": "What if product accepts the operational risk?",
+          "a": "Confirm the correct authority, document scope and monitoring, and proceed only within policy."
+        },
+        {
+          "q": "How do you avoid overengineering?",
+          "a": "Tie safeguards to a concrete failure mode and expected impact."
+        }
+      ],
+      "trap": "Treating technical preference as a blocker without describing user impact or alternatives.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No product conflict anecdote supplied.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-036",
+      "topic": "Working across time zones",
+      "question": "How do you manage a release or incident handoff when another team is in a different time zone?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:CICD",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would leave a handoff that allows the next team to act without reconstructing the whole investigation: current impact, timeline, artifact or service version, evidence gathered, mitigation, open hypotheses and the next safe action. I would mark who owns each item and when escalation is needed. For a deployment, the handoff should also state whether promotion is paused and which verification remains. I need [[HARSH TO FILL: actual time-zone collaboration experience and team conventions]]. I would not assume remote or global-team experience from the resume. When no overlap exists, written clarity and an agreed escalation path matter more than sending repeated pings. Sensitive details should stay in access-controlled channels.",
+      "keywords": [
+        "impact",
+        "timeline",
+        "evidence",
+        "current mitigation",
+        "next action",
+        "owner"
+      ],
+      "followups": [
+        {
+          "q": "What if the next team disagrees with your diagnosis?",
+          "a": "Separate observed facts from hypotheses and make the evidence reproducible."
+        },
+        {
+          "q": "What information should not go in a broad handoff?",
+          "a": "Credentials, unnecessary personal data and restricted customer information."
+        }
+      ],
+      "trap": "A vague status message that leaves the next owner without an actionable state.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Cross-time-zone experience is unspecified."
+    },
+    {
+      "id": "JH-S20-037",
+      "topic": "Learning from a teammate",
+      "question": "Describe a time a teammate's expertise changed your implementation or technical judgment.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a real collaboration and explain what I initially believed, what the teammate contributed and how we tested or evaluated the alternative. The answer should show that I can use expertise without surrendering independent reasoning: I would state what evidence persuaded me and whether the final choice had limitations. I need [[HARSH TO FILL: teammate's insight, original view, resulting change and outcome]]. I would describe the person's role rather than disclose a name or confidential details. If I cannot identify a true example, I should not invent one; I can instead explain how I seek review on unfamiliar areas and label that as my general practice. The value is learning made observable in a decision.",
+      "keywords": [
+        "initial view",
+        "peer insight",
+        "evidence",
+        "changed decision",
+        "collaboration",
+        "limitation"
+      ],
+      "followups": [
+        {
+          "q": "What if the advice conflicted with documentation?",
+          "a": "Reconcile the version and context, then validate behavior rather than choosing authority by status."
+        },
+        {
+          "q": "How did you credit the teammate?",
+          "a": "Name their contribution appropriately while preserving confidentiality."
+        }
+      ],
+      "trap": "Creating a fictional mentor story or claiming agreement without evidence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No teammate-learning anecdote supplied."
+    },
+    {
+      "id": "JH-S20-038",
+      "topic": "Handling an unknown question",
+      "question": "What do you do when an interviewer asks for a project detail you cannot recall or did not own?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would separate what I personally remember, what I know from general engineering principles and what I did not own. If the missing detail is a project fact, I would say I do not recall and explain how I would verify it, rather than reconstruct a plausible answer. If the question is hypothetical, I can state assumptions and reason from them. The resume spans several connectors and services, so precise ownership boundaries matter. I need [[HARSH TO FILL: one actual example of a detail outside my scope, if available]]. I would remain useful by clarifying the interface or decision I did own. Honesty about uncertainty is better than fabricating a class name, metric, provider setting or outcome.",
+      "keywords": [
+        "memory boundary",
+        "ownership boundary",
+        "assumptions",
+        "verification",
+        "hypothetical label",
+        "honesty"
+      ],
+      "followups": [
+        {
+          "q": "Can you still explain the design?",
+          "a": "Yes, distinguish verified project facts from a clearly labeled general approach."
+        },
+        {
+          "q": "What would you check afterward?",
+          "a": "The relevant source, test, deployment record or owner-approved document: [[HARSH TO FILL: source]]."
+        }
+      ],
+      "trap": "Bluffing with an invented API, metric or implementation detail to avoid saying I do not know.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reinforces the no-invention constraint across interviews."
+    },
+    {
+      "id": "JH-S20-039",
+      "topic": "Strength in practice",
+      "question": "Which professional strength would your teammates recognize, and what evidence supports it?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The mock assessment identifies Informatica connector architecture and production-incident debugging stories as strong areas. I can use one of those only if I can support the claim with my actual contribution and an example a teammate could verify. I need [[HARSH TO FILL: chosen strength, specific behavior, evidence and feedback source]]. I would avoid turning a strength into an unsupported personality label such as always calm or exceptionally proactive. A good response describes what I do, the conditions where it helps and one limitation I still watch for. If I select a technical strength, I should be ready for a deep follow-up on architecture or incident evidence rather than rely on the label STRONG alone.",
+      "keywords": [
+        "demonstrated strength",
+        "observable behavior",
+        "evidence",
+        "peer perspective",
+        "scope",
+        "limitation"
+      ],
+      "followups": [
+        {
+          "q": "What evidence beyond your own opinion supports it?",
+          "a": "A real deliverable, measured result or specific teammate feedback: [[HARSH TO FILL: evidence]]."
+        },
+        {
+          "q": "When can this strength become a weakness?",
+          "a": "Explain a genuine boundary, such as over-investing in detail, only if it applies."
+        }
+      ],
+      "trap": "Using a mock readiness label as a substitute for a concrete personal example.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Readiness status is supplied; teammate feedback is not."
+    },
+    {
+      "id": "JH-S20-040",
+      "topic": "Development area",
+      "question": "What is a real limitation in your current work, and how do you keep it from becoming a delivery risk?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Spring"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a bounded limitation that is honest and relevant, not a disguised compliment or a claim that I am broadly poor at engineering. The supplied mock assessment lists specific GAP topics such as SQL writing, Spring proxies and JVM internals, but I need [[HARSH TO FILL: which limitation is genuinely current and how it affects my work]]. I would explain the safeguard I use today, such as review, a focused test or asking an experienced owner, and the plan to improve. I would not say the gap is closed because I studied it. A credible answer shows self-awareness, safe collaboration and progress evidence while recognizing where independent expertise is still required.",
+      "keywords": [
+        "bounded limitation",
+        "current impact",
+        "safeguard",
+        "review",
+        "practice plan",
+        "progress evidence"
+      ],
+      "followups": [
+        {
+          "q": "Could this limitation affect production work?",
+          "a": "Describe the actual boundary and safeguards honestly: [[HARSH TO FILL: scope]]."
+        },
+        {
+          "q": "How will you measure improvement?",
+          "a": "Use a fresh task or review outcome, not study hours alone."
+        }
+      ],
+      "trap": "Choosing a fake weakness or claiming an assessed GAP has disappeared without retesting.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Uses supplied gap list without asserting a personal current status beyond it."
+    },
+    {
+      "id": "JH-S20-041",
+      "topic": "Role expectations",
+      "question": "What would you want to understand about success in this role before accepting it?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would ask how the role's first six to twelve months are evaluated, what services or outcomes it owns, and how much responsibility includes implementation, production support and design. For a backend role, I would also clarify on-call expectations, release practices, testing standards and the team's approach to technical debt. I would tailor these questions to information already shared rather than interrogate the interviewer from a script. My own acceptance criteria are personal and need [[HARSH TO FILL: most important role conditions]]. Asking about success helps both sides detect a mismatch early. I would not assume that a product or fintech title guarantees a particular engineering culture or level of autonomy.",
+      "keywords": [
+        "success criteria",
+        "service ownership",
+        "production support",
+        "on-call",
+        "release practice",
+        "role conditions"
+      ],
+      "followups": [
+        {
+          "q": "Which answer would change your decision?",
+          "a": "Know my real priorities in advance: [[HARSH TO FILL: decision factors]]."
+        },
+        {
+          "q": "What if the role scope is unclear?",
+          "a": "Ask for a recent example of a task and the expected ownership boundary."
+        }
+      ],
+      "trap": "Assuming job title alone defines autonomy, on-call burden or success measures.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Questions are prompts; personal acceptance criteria are unknown.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-042",
+      "topic": "Questions for engineering interviewer",
+      "question": "What would you ask an engineer about the team's architecture and day-to-day technical decisions?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would ask questions that reveal actual engineering work: which service or domain this role will own, how changes cross service boundaries, what failure modes create the most operational work, and how design decisions are reviewed. I might ask how the team validates releases and how it balances feature delivery with reliability. I would choose two or three based on the conversation, then listen for concrete examples rather than a polished slogan. The answers help me assess fit, not evaluate the team from one response. I need [[HARSH TO FILL: personal priorities among architecture, reliability, security and ownership]]. I would avoid asking for confidential details or making assumptions about the company's stack before the interviewer describes it.",
+      "keywords": [
+        "service ownership",
+        "architecture boundary",
+        "failure modes",
+        "design review",
+        "release validation",
+        "fit"
+      ],
+      "followups": [
+        {
+          "q": "What if the interviewer does not know?",
+          "a": "Ask who owns that area or how the team normally makes the decision."
+        },
+        {
+          "q": "How many questions should you ask?",
+          "a": "Prioritize a few relevant questions and leave room for the interviewer's discussion."
+        }
+      ],
+      "trap": "Using generic questions whose answers are already on the public careers page.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No company-specific claims are embedded.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-043",
+      "topic": "Questions for manager",
+      "question": "What would you ask the hiring manager about feedback, growth and team collaboration?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would ask how priorities are set when reliability and feature work compete, how feedback is given, and what distinguishes strong performance at this level. A concrete question might invite the manager to describe a recent cross-team dependency or a new engineer's first meaningful ownership area. I would use the response to understand decision rights, support and expectations rather than trying to guess the manager's preferred answer. My own growth needs are personal: [[HARSH TO FILL: development goal and support that matters]]. I would keep the tone curious and reciprocal. A manager's answer is one data point, so I would compare it with other interview conversations and the role description before drawing conclusions.",
+      "keywords": [
+        "priority setting",
+        "feedback cadence",
+        "level expectations",
+        "ownership",
+        "cross-team work",
+        "growth support"
+      ],
+      "followups": [
+        {
+          "q": "What if answers conflict across interviewers?",
+          "a": "Ask for clarification respectfully and determine which owner can explain the role's operating model."
+        },
+        {
+          "q": "Should you ask about weaknesses?",
+          "a": "Ask about current team challenges in a constructive, specific way rather than fishing for criticism."
+        }
+      ],
+      "trap": "Treating one broad culture answer as a complete picture of how the team operates.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Question suggestions only; no managerial anecdotes implied.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-044",
+      "topic": "Notice period",
+      "question": "What is your notice period, and what start date can you responsibly commit to?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would check my contract and current employer policy before giving a number. The supplied resume does not state notice duration, leave balance, release flexibility or a last working day, so I need [[HARSH TO FILL: contractual notice and verified earliest availability]]. I would distinguish the standard period from an early-release request that has not been approved. If a transition plan could affect timing, I would describe it accurately and update the recruiter when confirmed. I would not promise a date based on an assumption or pressure the current employer with a false competing offer. A reliable answer is direct, gives a realistic range only when justified, and makes clear which date is confirmed versus tentative.",
+      "keywords": [
+        "contractual period",
+        "verified date",
+        "approval",
+        "tentative versus confirmed",
+        "transition",
+        "honesty"
+      ],
+      "followups": [
+        {
+          "q": "Can you negotiate an early release?",
+          "a": "Only if permitted and approved; do not present a request as guaranteed."
+        },
+        {
+          "q": "Can you start before the official release?",
+          "a": "State the real contractual and policy constraints: [[HARSH TO FILL: confirmed position]]."
+        }
+      ],
+      "trap": "Inventing a shorter notice period to remain competitive.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "All notice and availability facts remain placeholders.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-045",
+      "topic": "Compensation expectations",
+      "question": "What compensation are you seeking, and how would you evaluate the overall offer?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would prepare a truthful range or a clear negotiation position before the call, based on my actual expectations and the role's scope. No salary, current compensation or competing offer is supplied, so I need [[HARSH TO FILL: preferred range, basis and any constraints]]. I would ask how fixed pay, variable pay, equity or benefits are structured rather than comparing only headline totals. If the employer has a budgeted range, I can use it to assess alignment. I would not invent offers, misstate current pay or agree to a number I have not considered. The response should remain professional and leave room to discuss level, responsibilities and the full package.",
+      "keywords": [
+        "truthful range",
+        "role scope",
+        "fixed pay",
+        "variable pay",
+        "total package",
+        "negotiation"
+      ],
+      "followups": [
+        {
+          "q": "What if asked for current salary?",
+          "a": "Answer according to local law and personal choice, then redirect to expected compensation if appropriate."
+        },
+        {
+          "q": "What if the offered range is below expectation?",
+          "a": "Ask about level and package components, then state the genuine decision boundary."
+        }
+      ],
+      "trap": "Fabricating a competing offer or quoting a range without understanding its components.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No compensation facts or negotiation outcome invented.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-046",
+      "topic": "Relocation and work location",
+      "question": "Are you willing to relocate or work from the location required for this role?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The supplied profile says I am based in Noida; it does not say whether I can relocate, commute, travel or work from another office. I need [[HARSH TO FILL: actual location preference, constraints and decision timeline]]. I would answer directly and distinguish a firm limit from something I could consider after learning the schedule and support. If the role is hybrid or remote, I would ask what attendance means in practice rather than infer policy from the posting. I would not claim flexibility I cannot sustain. Clear logistics early help both sides avoid late-stage surprises, and personal or family details need not be disclosed beyond what is relevant to availability.",
+      "keywords": [
+        "current location",
+        "preference",
+        "constraint",
+        "hybrid schedule",
+        "travel",
+        "decision timing"
+      ],
+      "followups": [
+        {
+          "q": "Could you move later if needed?",
+          "a": "Give the real conditions and timeline: [[HARSH TO FILL: relocation terms]]."
+        },
+        {
+          "q": "Are you available for office attendance?",
+          "a": "State an honest sustainable schedule after clarifying the team's policy."
+        }
+      ],
+      "trap": "Answering yes to relocation or hybrid expectations without checking practical constraints.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No relocation preference inferred from Noida location.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-047",
+      "topic": "Work authorization and employment logistics",
+      "question": "Are there any work-authorization or employment constraints that could affect your start date?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would answer only what the employer needs to establish eligibility and timing, using accurate documentation and avoiding assumptions about my status. The supplied profile does not state citizenship, work authorization, background-check needs or employment restrictions, so I need [[HARSH TO FILL: truthful applicable status and any process constraint]]. If there is no relevant constraint, I can say so plainly. If an answer depends on location or role type, I would clarify the jurisdiction and ask the recruiter what documentation is required. I would not provide sensitive personal details beyond the legitimate hiring process or guess how a policy applies. This is a logistics question, not a place to improvise facts under pressure.",
+      "keywords": [
+        "eligibility",
+        "jurisdiction",
+        "documentation",
+        "start date",
+        "privacy",
+        "accuracy"
+      ],
+      "followups": [
+        {
+          "q": "What documents should you provide?",
+          "a": "Only those requested through the employer's approved process and secure channel."
+        },
+        {
+          "q": "What if you are unsure whether a constraint applies?",
+          "a": "Ask the recruiter or qualified adviser before making a definitive representation."
+        }
+      ],
+      "trap": "Guessing at legal eligibility or sharing sensitive documents through an unverified channel.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No legal status is inferred or requested here.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-048",
+      "topic": "Other offers",
+      "question": "Are you interviewing elsewhere or holding another offer, and how would you answer without creating false leverage?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would answer truthfully about my actual search stage and timing. The supplied facts list companies applied to as priorities, but do not say that I have interviews, active offers or deadlines, so I need [[HARSH TO FILL: current accurate status]]. An application is not an offer, and I would not blur that distinction. If I do have a real deadline, I can share it respectfully without pressuring the recruiter or disclosing another employer's confidential details. If I do not, I can say I am exploring opportunities and ask about the hiring timeline. Credibility matters more than manufactured leverage, especially when start dates and compensation later need to align with the facts.",
+      "keywords": [
+        "accurate status",
+        "application versus offer",
+        "real deadline",
+        "confidentiality",
+        "timeline",
+        "credibility"
+      ],
+      "followups": [
+        {
+          "q": "Should you name every company?",
+          "a": "Only if useful and truthful; there is no need to disclose confidential recruiting details."
+        },
+        {
+          "q": "What if another process moves faster?",
+          "a": "Share the real timing and ask whether the process can be aligned."
+        }
+      ],
+      "trap": "Presenting target applications as interviews or inventing an offer to accelerate negotiation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No interviews or offers are implied by the priority-company list.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-049",
+      "topic": "Remote and hybrid expectations",
+      "question": "What work arrangement helps you do your best work, and how would you handle a remote or hybrid team?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would state my actual preference and constraints rather than treat remote or office work as universally better. The profile gives Noida as my location but no work-arrangement preference or remote-team history. I need [[HARSH TO FILL: preferred arrangement, sustainable availability and any constraint]]. Then I would explain how I keep work visible through clear written updates, documented decisions and explicit handoffs if those practices genuinely describe me. I would ask about the team's in-office cadence, time-zone overlap and expectations for incidents or releases. I would not claim that asynchronous work is effortless or that I am available at all hours. Compatibility depends on mutual operating agreements, not just the word hybrid in a posting.",
+      "keywords": [
+        "actual preference",
+        "location",
+        "availability",
+        "written updates",
+        "time-zone overlap",
+        "team expectations"
+      ],
+      "followups": [
+        {
+          "q": "Can you support occasional office days?",
+          "a": "Answer with real frequency and constraints: [[HARSH TO FILL: availability]]."
+        },
+        {
+          "q": "How do you stay visible remotely?",
+          "a": "Describe actual written practices and predictable handoffs, not constant online presence."
+        }
+      ],
+      "trap": "Claiming unrestricted flexibility or equating online presence with effective collaboration.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No remote-work preference or experience invented.",
+      "resume_hooks": []
+    },
+    {
+      "id": "JH-S20-050",
+      "topic": "Closing questions",
+      "question": "At the end of an interview, what would you ask to clarify the team's needs and next steps?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "HR",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would choose a small number of questions based on what remains unclear: the role's first ownership area, how production responsibility is shared, what success looks like, and which challenges the team most needs this hire to address. I might ask whether my experience with Java services, identity integrations or connector work is relevant to those needs, while inviting the interviewer to correct my understanding. I would also confirm the process and expected timeline. I need [[HARSH TO FILL: which role conditions matter most to me]]. I would not ask for confidential customer details or repeat questions already answered. A thoughtful close should help both sides make a better decision, not perform interest through a memorized list.",
+      "keywords": [
+        "ownership area",
+        "production support",
+        "success criteria",
+        "team challenge",
+        "experience fit",
+        "next steps"
+      ],
+      "followups": [
+        {
+          "q": "What if the interviewer asks whether you have concerns?",
+          "a": "Raise any genuine role ambiguity respectfully and ask for clarification rather than inventing a concern."
+        },
+        {
+          "q": "Should you ask about the interview result?",
+          "a": "Confirm the expected timeline and contact path without demanding an immediate decision."
+        }
+      ],
+      "trap": "Reciting a long generic question list or seeking confidential customer information.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Finishes the target set with practical questions, not fabricated personal preferences.",
+      "resume_hooks": []
+    }
+  ]
+}

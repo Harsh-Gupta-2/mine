@@ -1,0 +1,3322 @@
+{
+  "section": "S10",
+  "section_title": "Kafka and RabbitMQ",
+  "questions": [
+    {
+      "id": "JH-S10-001",
+      "topic": "Kafka ordering and groups",
+      "question": "What ordering and parallelism does a Kafka consumer group actually provide?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Kafka orders records within a partition, not globally across a topic. In an ordinary consumer group, a partition is assigned to one group member at a time, so partition count bounds parallel partition consumption for that group. A key-based partitioning scheme can keep related records together, but changing partitioning or launching unordered async processing can break the business ordering you expected. Different consumer groups maintain independent progress for their own uses. I would distinguish fetching order from completed processing order and define how a slow or poison record affects later records on the same partition. Adding consumers beyond the usable partitions does not automatically add throughput.",
+      "keywords": [
+        "partition order",
+        "consumer group",
+        "assignment",
+        "key partitioning",
+        "processing order",
+        "parallelism"
+      ],
+      "followups": [
+        {
+          "q": "Can two groups both process the same record?",
+          "a": "Yes. Groups represent independent subscriptions and offsets, not a global consume-once lock."
+        },
+        {
+          "q": "What is the cost of a hot key?",
+          "a": "Its records concentrate in one partition and can bottleneck that ordering domain despite spare capacity elsewhere."
+        }
+      ],
+      "trap": "Claiming a topic is globally ordered or that every additional consumer increases throughput.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-002",
+      "topic": "Offsets and external effects",
+      "question": "A consumer updates a database and crashes before committing its Kafka offset. What happens after restart?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Postgres",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The group can receive that record again because the committed offset does not reflect the completed database effect. Committing the offset first merely exchanges duplicates for a loss window if the database work then fails. I would make the database operation idempotent, often recording a stable event identity in the same transaction as the business update. Kafka transactions can coordinate supported Kafka reads and writes, but they do not automatically include an arbitrary external database transaction. Rebalances and revoked partitions add another ownership boundary: avoid allowing stale asynchronous work to commit progress for work the consumer no longer owns. Offsets should represent completed, safely accounted-for processing.",
+      "keywords": [
+        "offset commit",
+        "redelivery",
+        "idempotent consumer",
+        "event identity",
+        "database transaction",
+        "rebalance"
+      ],
+      "followups": [
+        {
+          "q": "Is exactly-once a universal end-to-end guarantee?",
+          "a": "No. State the boundary: supported broker transactions do not automatically make external HTTP or database side effects exactly once."
+        },
+        {
+          "q": "Can later completed records justify skipping an unfinished earlier offset?",
+          "a": "Not when committing a position would acknowledge the unfinished record too; track contiguous completed progress or preserve sequential processing."
+        }
+      ],
+      "trap": "Moving the commit earlier and calling duplicate handling solved without acknowledging the new loss window.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-003",
+      "topic": "RabbitMQ delivery controls",
+      "question": "How do publisher confirms, consumer acknowledgements and prefetch address different responsibilities?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Publisher confirms report the broker's handling of publication according to the configured queue and durability semantics. They do not prove a consumer completed the business task. Consumer acknowledgements tell the broker that a delivery was handled and can be removed from its outstanding delivery state. Prefetch limits unacknowledged deliveries for the configured consumer or channel scope, helping avoid one slow worker taking an excessive backlog. I would acknowledge after the intended processing boundary, expect redelivery around failures and make the handler idempotent. A negative acknowledgement can requeue or discard according to configuration, so uncontrolled requeue loops need a retry or dead-letter policy. Delivery guarantees depend on the full topology and persistence settings.",
+      "keywords": [
+        "publisher confirm",
+        "consumer acknowledgement",
+        "prefetch",
+        "redelivery",
+        "dead-letter policy",
+        "durability"
+      ],
+      "followups": [
+        {
+          "q": "Does a confirm prove successful routing?",
+          "a": "Not by itself in every publication setup. Unroutable-message handling needs the appropriate mandatory/return or alternate-exchange policy."
+        },
+        {
+          "q": "Why avoid unlimited immediate requeues?",
+          "a": "A poison message can spin, consume capacity and starve useful work without ever becoming processable."
+        }
+      ],
+      "trap": "Using publisher confirmation as proof of completed business processing.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; topology-specific guarantees must be established for the deployment."
+    },
+    {
+      "id": "JH-S10-004",
+      "topic": "Kafka partition keys",
+      "question": "How do you choose a Kafka key when per-entity ordering matters?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Choose a stable key that represents the entity whose state transitions must be observed in order, such as an account or order identifier. The producer's partitioner maps that key to a partition, and consumers then read that partition's log order. A key is not a magic global lock: different keys can share partitions, and a hot key limits parallelism. Null keys or custom partitioners may distribute differently. I would verify serialization, partitioner behavior and partition-count changes against the deployed client and topic configuration before promising an ordering contract.",
+      "keywords": [
+        "entity key",
+        "partitioner",
+        "partition order",
+        "hot key",
+        "partition count"
+      ],
+      "followups": [
+        {
+          "q": "Does changing partition count preserve key ordering over history?",
+          "a": "Not necessarily: key-to-partition mapping can change, splitting one key's history across partitions. Plan migration deliberately."
+        },
+        {
+          "q": "Can ordering survive parallel handler tasks?",
+          "a": "Only if the application preserves sequence for a key, for example by serializing work per partition or key."
+        }
+      ],
+      "trap": "Treating a key as a globally ordered sequence or assuming any hash partitioner stays stable through topology changes.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm selected Kafka client partitioner and partition-count behavior for the deployed version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-005",
+      "topic": "Kafka producer acknowledgements",
+      "question": "What durability trade-off does a Kafka producer make among acknowledgement settings?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The acknowledgement setting controls when the producer considers a send successful relative to broker replication. Waiting only for the leader can reduce latency but may lose acknowledged data if that replica fails before replication catches up. Waiting for the in-sync replica set gives a stronger replication boundary, while a no-wait mode provides little broker confirmation. The setting works together with replication factor, minimum in-sync replicas, retries and idempotence. I would define the tolerated loss and availability trade-off, then test broker-failure behavior rather than describe one setting as universally durable.",
+      "keywords": [
+        "acks",
+        "leader",
+        "in-sync replicas",
+        "replication factor",
+        "min ISR",
+        "producer retry"
+      ],
+      "followups": [
+        {
+          "q": "Does acks=all mean every replica acknowledged?",
+          "a": "It means the current in-sync replica set under broker policy, not necessarily every configured replica."
+        },
+        {
+          "q": "What if the ISR is smaller than the minimum?",
+          "a": "The broker can reject writes, preserving the configured durability threshold at the expense of write availability."
+        }
+      ],
+      "trap": "Saying all acknowledgements guarantee survival of every failure regardless of replication and broker policy.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify acks and min.insync.replicas semantics for the deployed Kafka release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-006",
+      "topic": "Kafka producer idempotence",
+      "question": "What duplicate-send problem does Kafka producer idempotence address, and what remains outside its guarantee?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A producer can retry after a network ambiguity where the broker accepted a batch but the acknowledgement was lost. With idempotence enabled, producer identity and sequence information let the broker suppress duplicate writes caused by those retries within the supported producer session and ordering constraints. This is not a universal deduplication key for repeated application sends, and it does not make an external database side effect exactly once. I would still use business event identifiers where duplicate commands are possible and review the client version's compatible settings for retries and in-flight requests.",
+      "keywords": [
+        "ambiguous acknowledgement",
+        "producer sequence",
+        "retry",
+        "duplicate batch",
+        "business event ID"
+      ],
+      "followups": [
+        {
+          "q": "Will it collapse two intentional sends of identical payloads?",
+          "a": "No. They are separate application sends unless the broker sees them as retry duplicates in the producer protocol."
+        },
+        {
+          "q": "Does it cover consume-transform-produce workflows?",
+          "a": "Not alone; transactional processing and offset handling are needed for the Kafka-to-Kafka boundary."
+        }
+      ],
+      "trap": "Calling producer idempotence application-level deduplication or end-to-end exactly-once processing.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify idempotent-producer defaults and compatible retry/in-flight settings for the exact Kafka client release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-007",
+      "topic": "Kafka producer retries",
+      "question": "How can producer retries affect ordering and duplicate behavior?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A retry may follow a timeout even though the original append succeeded, so the producer cannot infer broker outcome from a missing acknowledgement. Idempotence suppresses protocol-level retry duplicates under supported settings. Without it, multiple requests in flight can let a later batch succeed before an earlier failed batch, depending on client configuration, violating expected order. I would set delivery deadlines from the service latency budget, preserve per-key serialization where needed, classify terminal failures, and report ambiguous outcomes for reconciliation instead of retrying forever. The policy must also respect downstream idempotency.",
+      "keywords": [
+        "timeout ambiguity",
+        "retry policy",
+        "idempotence",
+        "in-flight requests",
+        "ordering",
+        "delivery deadline"
+      ],
+      "followups": [
+        {
+          "q": "What does a timeout prove?",
+          "a": "Only that success was not observed before the deadline; the broker may still have appended the record."
+        },
+        {
+          "q": "Should every failure be retried?",
+          "a": "No. Bound attempts and backoff, and distinguish transient transport failures from invalid records or authorization errors."
+        }
+      ],
+      "trap": "Assuming timeout means no write occurred or that unlimited retries are harmless.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check producer ordering guarantees and retry defaults for the exact client version and settings.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-008",
+      "topic": "Kafka batching and linger",
+      "question": "Why can producer batching improve throughput, and what does linger trade away?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The producer accumulates records for a partition into batches, amortizing request overhead and often enabling more efficient compression. A small linger interval gives low-volume traffic time to form fuller batches, improving throughput at the cost of added send latency. Batch size, memory pressure, active partition count and broker capacity affect the result, so increasing buffers alone can simply increase queued memory. I would tune with representative traffic and observe latency percentiles, batch utilization, request rate and buffer exhaustion. The appropriate value is a measured latency-throughput balance, not a universal default.",
+      "keywords": [
+        "batching",
+        "linger",
+        "compression",
+        "latency",
+        "buffer memory",
+        "throughput"
+      ],
+      "followups": [
+        {
+          "q": "Does a larger batch always improve throughput?",
+          "a": "No. It can increase memory and waiting time without helping sparse or broker-bound traffic."
+        },
+        {
+          "q": "Why does partition count matter?",
+          "a": "More active partitions spread records among more batches, which can leave each one less full."
+        }
+      ],
+      "trap": "Optimizing only peak throughput while ignoring tail latency and producer buffer pressure.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-009",
+      "topic": "Kafka compression",
+      "question": "Where does Kafka producer compression help, and what should you measure before enabling it?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Compression can reduce bytes sent over the network and stored in log segments, especially when records are batched and payloads contain repeated structure. It consumes producer or broker CPU, and the achievable ratio depends on data shape and codec. A very small or already-compressed payload may gain little. I would compare end-to-end producer latency, CPU, network throughput, disk usage and consumer decompression cost using representative messages. Compression does not replace schema design or payload limits, and compatibility with the deployed broker and client must be confirmed before selecting a codec.",
+      "keywords": [
+        "batch compression",
+        "network bytes",
+        "disk usage",
+        "CPU trade-off",
+        "payload shape",
+        "codec"
+      ],
+      "followups": [
+        {
+          "q": "Why does batching affect compression ratio?",
+          "a": "A larger batch gives the codec more neighboring records in which to find repeated patterns."
+        },
+        {
+          "q": "Does compression shrink the logical event?",
+          "a": "No. Consumers still receive the decoded record content; compression changes transport and storage representation."
+        }
+      ],
+      "trap": "Assuming compression is free or choosing a codec without verifying deployment support.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm codec support and configuration for the deployed Kafka broker and client versions.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-010",
+      "topic": "Kafka schemas and compatibility",
+      "question": "How should an event schema evolve without breaking independent producers and consumers?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Treat an event as a long-lived contract, not a private class serialization. Prefer additive, optional changes with explicit defaults and avoid changing the meaning or wire type of an existing field. Compatibility direction matters: old consumers reading new data differs from new consumers reading retained old data. A schema registry can enforce selected compatibility rules, but it cannot guarantee correct business semantics or safe rollout ordering. I would identify producer and consumer versions, test old and new payloads, deploy consumers that tolerate the change, then publish it with rollback and replay plans.",
+      "keywords": [
+        "event contract",
+        "compatibility direction",
+        "optional field",
+        "default",
+        "schema registry",
+        "rollout"
+      ],
+      "followups": [
+        {
+          "q": "Is adding a required field always backward-compatible?",
+          "a": "No. Existing records or producers may not supply it; compatibility depends on format and registry rules."
+        },
+        {
+          "q": "Can a registry validate business meaning?",
+          "a": "No. It can check schema-level rules, not whether a field retains the intended domain semantics."
+        }
+      ],
+      "trap": "Assuming any additive field is safe regardless of requiredness, defaults, encoding and rollout sequence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify compatibility mode and default-value rules for the actual schema format and registry version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-011",
+      "topic": "Kafka retention and compaction",
+      "question": "How do Kafka time retention and log compaction represent different data contracts?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Time or size retention removes old log segments according to topic policy, so consumers must keep up within the replay window. Compaction instead retains the latest value for each key over time; cleanup of older segments is asynchronous and tombstones have retention behavior of their own. A compacted topic can rebuild a keyed state view, but it is not an unbounded audit history. I would choose based on whether the contract is replayable events or latest state, then document tombstone handling, bootstrap behavior, deletion expectations and the actual broker cleanup policy.",
+      "keywords": [
+        "time retention",
+        "log compaction",
+        "key",
+        "tombstone",
+        "replay window",
+        "state view"
+      ],
+      "followups": [
+        {
+          "q": "Does compaction immediately remove superseded records?",
+          "a": "No. Cleanup is asynchronous as log segments become eligible for compaction."
+        },
+        {
+          "q": "Can a compacted topic preserve every historical change?",
+          "a": "No. It retains latest keyed values rather than a complete immutable audit trail."
+        }
+      ],
+      "trap": "Treating compaction as immediate deduplication or as equivalent to time-based retention.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check broker-release documentation for tombstone retention and cleanup timing in the configured policy.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-012",
+      "topic": "Kafka transactions",
+      "question": "What problem do Kafka producer transactions solve, and what do they not include?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A Kafka transaction can atomically publish a set of Kafka records and, in supported consume-transform-produce processing, include the consumed offsets in the same Kafka transaction. A downstream consumer configured to read committed data avoids observing aborted transactional records. This provides atomicity within Kafka's transactional boundary, not across an unrelated SQL database, email service or HTTP API. The application must use a stable transactional identity strategy and handle fencing and aborts correctly. I would name the exact sources and sinks in the guarantee, then test crash recovery and visibility with the deployed client and broker versions.",
+      "keywords": [
+        "atomic Kafka writes",
+        "offsets",
+        "read committed",
+        "abort",
+        "transactional identity",
+        "boundary"
+      ],
+      "followups": [
+        {
+          "q": "Does a SQL update join the Kafka transaction automatically?",
+          "a": "No. It needs a separate coordination or outbox design; Kafka cannot enlist an arbitrary database transaction by default."
+        },
+        {
+          "q": "What does a read-committed consumer skip?",
+          "a": "It does not expose records from aborted transactions; committed records remain visible according to log order."
+        }
+      ],
+      "trap": "Using 'exactly once' without naming the Kafka-only boundary and external side-effect limitations.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify transaction API lifecycle, fencing behavior and broker prerequisites for the deployed versions.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-013",
+      "topic": "Kafka consume-transform-produce",
+      "question": "How would you avoid exposing output records when a Kafka transformation later aborts?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "For a Kafka-to-Kafka flow, process the input, publish outputs and send the consumed offsets to the producer transaction, then commit that transaction. If processing fails before commit, abort so downstream read-committed consumers do not treat partial output as committed work. The consumer's group progress must not also be committed independently ahead of that transaction. This pattern still depends on correctly handling producer fencing, retries and transaction timeouts, and it does not atomically include external effects. I would use the supported client API as documented and test crashes at each boundary rather than hand-roll offset sequencing.",
+      "keywords": [
+        "input offsets",
+        "output records",
+        "transaction commit",
+        "abort",
+        "read committed",
+        "crash points"
+      ],
+      "followups": [
+        {
+          "q": "Why include offsets in the transaction?",
+          "a": "It couples progress with outputs so a restart does not expose one side without the other within Kafka."
+        },
+        {
+          "q": "Can consumers with read-uncommitted see aborted output?",
+          "a": "They may observe transactional records before the outcome is committed; use the intended isolation setting."
+        }
+      ],
+      "trap": "Committing input progress separately before output publication is safely committed.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm supported transactional consume-produce APIs and isolation settings for the selected Kafka client release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-014",
+      "topic": "Kafka offset commit timing",
+      "question": "What is the difference between committing a Kafka offset before versus after processing?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A committed offset is the group's recovery position, not a receipt that the application has durably finished every side effect. Committing before processing can lose work if the process fails afterward. Committing after processing can cause redelivery if the effect succeeds but the commit fails, so the handler must tolerate duplicates or coordinate progress with the effect. Automatic commits can acknowledge records based on polling cadence rather than business completion. I would explicitly choose the failure bias, use idempotent processing, bound in-flight work, and monitor commit failures and lag.",
+      "keywords": [
+        "recovery position",
+        "early commit",
+        "late commit",
+        "redelivery",
+        "duplicate effect",
+        "automatic commit"
+      ],
+      "followups": [
+        {
+          "q": "Which order favors no loss over no duplicates?",
+          "a": "Processing before commit favors redelivery over lost work, but duplicate-safe effects are still required."
+        },
+        {
+          "q": "Does disabling auto-commit solve exactly-once?",
+          "a": "No. It gives control over timing, not atomicity with an external side effect."
+        }
+      ],
+      "trap": "Calling either commit order exactly once without accounting for crashes between the two operations.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-015",
+      "topic": "Kafka parallel processing and offsets",
+      "question": "How should a consumer track commits when records from one partition finish out of order?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Kafka offsets represent a position in a partition, so committing past an unfinished earlier record can cause that record to be skipped after restart. If processing is parallelized, track completion per partition and advance only the highest contiguous completed position, using the client's required next-offset convention. Alternatively, serialize work within a partition and parallelize across partitions. Rebalance revocation must stop or drain tasks and prevent stale owners from committing. I would cap the in-flight queue and define what happens when one task fails while later records have already completed.",
+      "keywords": [
+        "contiguous completion",
+        "per-partition state",
+        "next offset",
+        "in-flight tasks",
+        "rebalance",
+        "commit safety"
+      ],
+      "followups": [
+        {
+          "q": "Can you commit the maximum completed offset?",
+          "a": "Only if every earlier record in that partition is also complete; otherwise a gap can be acknowledged accidentally."
+        },
+        {
+          "q": "What is the simpler ordering model?",
+          "a": "Process serially per partition while running separate partitions concurrently."
+        }
+      ],
+      "trap": "Committing the largest finished offset while an earlier record is still running.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check the chosen client API's offset convention and rebalance callbacks before implementing parallel completion tracking.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-016",
+      "topic": "Kafka consumer group scaling",
+      "question": "Why does adding consumers stop increasing throughput for a Kafka consumer group?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Within a group, each partition is assigned to at most one consumer member at a time, so useful parallel consumption is bounded by the assigned partition count. Extra members may remain idle, although they can help after a failure. Throughput may plateau earlier if one partition is hot, handlers are slow, downstream storage is saturated or polling is blocked. Increasing partition count can add parallelism but changes ordering distribution and broker overhead. I would inspect per-partition lag and processing time before changing topology, and scale the bottleneck rather than count consumers alone.",
+      "keywords": [
+        "partition assignment",
+        "consumer members",
+        "idle consumers",
+        "hot partition",
+        "lag",
+        "bottleneck"
+      ],
+      "followups": [
+        {
+          "q": "Can one consumer process several partitions?",
+          "a": "Yes; a member can own multiple partitions when there are fewer members than partitions."
+        },
+        {
+          "q": "Should partitions always equal the maximum number of replicas?",
+          "a": "No. Choose from throughput, ordering, failover and operational constraints."
+        }
+      ],
+      "trap": "Assuming consumer count alone determines parallel throughput.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-017",
+      "topic": "Kafka rebalances",
+      "question": "What causes a consumer-group rebalance, and how can it affect in-flight work?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A rebalance redistributes partition ownership when membership, subscription or group metadata changes, and can also follow a member failing to maintain its group protocol. During ownership transfer, work already fetched may still be running in application threads. If the old owner commits after revocation, it can conflict with the new owner's progress or duplicate effects. The handler should stop accepting revoked-partition work, finish or safely cancel in-flight tasks, commit only completed positions when permitted, and keep side effects idempotent. I would monitor rebalance frequency and duration because repeated churn reduces useful processing time.",
+      "keywords": [
+        "membership change",
+        "partition ownership",
+        "revocation",
+        "in-flight work",
+        "commit",
+        "rebalance churn"
+      ],
+      "followups": [
+        {
+          "q": "Does a rebalance itself delete records?",
+          "a": "No. It changes assignments; committed offsets and retention determine subsequent reads."
+        },
+        {
+          "q": "What metric indicates repeated instability?",
+          "a": "Observe rebalance count and duration alongside consumer lag and processing throughput."
+        }
+      ],
+      "trap": "Assuming the consumer's background work automatically stops when its partition is revoked.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm rebalance callback and group-protocol behavior for the exact client and broker versions.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-018",
+      "topic": "Kafka consumer liveness",
+      "question": "How can slow processing make a Kafka consumer appear dead even when its process is running?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Group membership depends on the consumer continuing to participate in its protocol, not merely on the JVM process existing. Long blocking work in the poll path can exceed configured liveness or progress intervals, causing reassignment while the original work remains active. The next owner may then repeat the same event. A bounded worker pool can separate fetching from processing, but the consumer must keep polling safely and maintain per-partition completion and commit rules. I would compare processing latency with configured timeouts, reduce blocking, and test slow dependencies and pauses under realistic load.",
+      "keywords": [
+        "poll loop",
+        "liveness",
+        "processing delay",
+        "worker pool",
+        "reassignment",
+        "timeout"
+      ],
+      "followups": [
+        {
+          "q": "Does increasing a timeout fix the root cause?",
+          "a": "It may tolerate longer pauses, but can delay failure detection and does not bound backlog or duplicate side effects."
+        },
+        {
+          "q": "Can a separate thread poll freely while work is unfinished?",
+          "a": "Only with careful partition ownership, bounded in-flight work and offset tracking; otherwise it can outrun safe processing."
+        }
+      ],
+      "trap": "Treating a live process as proof that it is still a healthy group member.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify current group timing settings and client liveness semantics for the deployed Kafka release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-019",
+      "topic": "Kafka offset reset",
+      "question": "When does Kafka use an offset-reset policy, and why is it not a normal retry mechanism?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The reset policy applies when a group has no valid committed position for a partition, such as a new group or an offset that has fallen outside retained data. Depending on policy, the client can begin at an available boundary or fail rather than choose silently. It does not retry a particular failed business operation and does not restore deleted history. I would make the initial-position choice explicit for each workload, alert on unexpected resets, and document replay consequences before changing group identity or retention settings.",
+      "keywords": [
+        "committed position",
+        "retention",
+        "initial offset",
+        "reset policy",
+        "replay",
+        "group identity"
+      ],
+      "followups": [
+        {
+          "q": "Does earliest mean the topic's complete history?",
+          "a": "No. It means the earliest currently retained offset, which may already be after expired data."
+        },
+        {
+          "q": "Can a reset policy fix poison-record processing?",
+          "a": "No. It can skip or replay positions, but poison handling needs an explicit business and delivery policy."
+        }
+      ],
+      "trap": "Using offset reset as a substitute for retry, recovery or retention planning.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm the selected client's reset-policy names and defaults for the deployed version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-020",
+      "topic": "Kafka poison records",
+      "question": "How do you handle a Kafka record that repeatedly fails processing without silently losing later events?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Impetus",
+          "sources": [
+            "S008"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "First classify whether failure is transient, data-specific or a code defect. A bounded retry with backoff can help transient dependencies, but an endlessly retried record blocks progress for that partition and can create a hot loop. A dead-letter path should preserve the original payload, topic, partition, offset, failure context and event identity while protecting sensitive data. Moving it aside is a business decision: later events may depend on it, so ordering semantics must be explicit. Alert and provide controlled replay after repair rather than treating dead-lettering as successful processing.",
+      "keywords": [
+        "failure classification",
+        "bounded retry",
+        "backoff",
+        "dead letter",
+        "ordering",
+        "replay"
+      ],
+      "followups": [
+        {
+          "q": "Can a dead-letter topic guarantee eventual correction?",
+          "a": "No. It preserves evidence; operators still need ownership, repair, replay and audit procedures."
+        },
+        {
+          "q": "Should every failure be retried?",
+          "a": "No. Invalid schema or permanent authorization errors usually need quarantine or correction, not repeated broker calls."
+        }
+      ],
+      "trap": "Skipping a bad record automatically without considering dependent events or exposing a recovery path.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern. Reported in user-provided interview notes, item 8.3 (Impetus)."
+    },
+    {
+      "id": "JH-S10-021",
+      "topic": "Kafka consumer fetch and poll",
+      "question": "What responsibilities belong in a Kafka consumer poll loop?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The poll loop drives record retrieval and group participation, and the returned records must be accounted for before safe progress is committed. Processing everything synchronously inside the loop is simple and preserves local order, but a slow dependency can delay further polling. Offloading work can improve utilization while introducing bounded-queue, per-partition ordering, completion tracking and rebalance coordination responsibilities. I would keep the consumer API's thread-safety rules, avoid unbounded buffering, and choose a poll batch size that fits memory and processing latency. The loop should expose lag, failures and time spent in each stage.",
+      "keywords": [
+        "poll loop",
+        "group participation",
+        "bounded queue",
+        "thread safety",
+        "partition order",
+        "lag"
+      ],
+      "followups": [
+        {
+          "q": "Can multiple threads use one consumer instance freely?",
+          "a": "Do not assume so; follow the specific client API's thread-safety contract, commonly keeping consumer operations on one thread."
+        },
+        {
+          "q": "What is the risk of a huge poll batch?",
+          "a": "It can create long processing pauses, memory pressure and delayed progress or reassignment."
+        }
+      ],
+      "trap": "Moving processing to an executor without also designing bounds, ordered completion and safe commits.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check consumer API thread-safety and poll timing requirements for the exact client release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-022",
+      "topic": "Kafka partition expansion",
+      "question": "What changes when you increase a Kafka topic's partition count?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "More partitions can provide additional consumer parallelism and distribute new writes, but also create metadata, file and replication overhead. Existing records do not move automatically to new partitions, and key-to-partition mapping can change for later records, so one entity's historical and future events may no longer share a single ordered log. Consumer groups also rebalance after the topology change. I would check whether partition count is part of the event-ordering contract, estimate broker and recovery costs, and plan migration or versioning if stable per-key ordering is required.",
+      "keywords": [
+        "parallelism",
+        "key mapping",
+        "historical records",
+        "ordering",
+        "rebalance",
+        "broker overhead"
+      ],
+      "followups": [
+        {
+          "q": "Do old records get repartitioned?",
+          "a": "No. The existing log remains in its original partitions; the change affects future assignment and writes."
+        },
+        {
+          "q": "Is adding partitions always reversible?",
+          "a": "Treat it as a persistent topology change; the safe rollback and ordering consequences need explicit planning."
+        }
+      ],
+      "trap": "Increasing partitions as a purely operational tuning knob with no effect on keyed ordering.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify partition-expansion constraints and client partitioner behavior for the deployed Kafka release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-023",
+      "topic": "Kafka replication and ISR",
+      "question": "What does the in-sync replica set tell an operator about a Kafka partition?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The in-sync replica set is the replicas considered sufficiently caught up under the broker's replication rules for that partition. It is relevant to acknowledgement policy and failover eligibility, but it is not a generic count of every replica that exists. A shrinking ISR may indicate lag, broker trouble or network pressure; if it falls below a configured write threshold, writes can be rejected rather than weaken the policy. I would inspect leader, replicas, ISR, under-replicated status and broker health together, then decide whether availability or the stated durability threshold should govern recovery.",
+      "keywords": [
+        "ISR",
+        "replica lag",
+        "leader",
+        "under-replicated",
+        "write threshold",
+        "availability"
+      ],
+      "followups": [
+        {
+          "q": "Does ISR membership prove replicas are on separate failure domains?",
+          "a": "No. Placement and rack-awareness configuration determine fault-domain separation."
+        },
+        {
+          "q": "Should an operator lower the minimum immediately?",
+          "a": "Only after understanding the durability loss and recovery situation; otherwise it can hide the underlying replication failure."
+        }
+      ],
+      "trap": "Equating ISR size with configured replication factor or assuming replicas occupy independent hardware.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check ISR membership and min-ISR behavior against the exact Kafka broker version and cluster configuration.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-024",
+      "topic": "Kafka replication factor",
+      "question": "How do replication factor and partition count affect Kafka availability and resource use?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Each partition's replication factor determines how many broker copies are assigned, improving the chance of serving after a broker failure when replicas are healthy and distributed appropriately. Replication consumes storage, network bandwidth and recovery time, and it does not protect against every correlated failure or operator deletion. More partitions multiply replica assignments and per-partition overhead. I would set the factor from availability and recovery objectives, use suitable placement across failure domains, and test leader failover and restoration. Replication is not a backup; retention and independent recovery requirements need separate treatment.",
+      "keywords": [
+        "replication factor",
+        "partition count",
+        "failure domains",
+        "storage",
+        "leader failover",
+        "backup"
+      ],
+      "followups": [
+        {
+          "q": "Does replication replace backups?",
+          "a": "No. Replication can reproduce accidental deletion or corruption; backups and replay strategies address different recovery cases."
+        },
+        {
+          "q": "Why does placement matter?",
+          "a": "Replicas on the same failure domain can disappear together despite a high configured factor."
+        }
+      ],
+      "trap": "Promising fault tolerance based only on replica count, with no placement or recovery assumptions.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify broker placement and replication policies for the actual cluster topology.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-025",
+      "topic": "Kafka event timestamps",
+      "question": "How should an event pipeline distinguish event time from broker append time?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Event time represents when the producer says the domain event occurred; broker append time represents when the broker accepted it. They answer different questions and can diverge through offline clients, retries or clock skew. Analytics windows may need event time and a lateness policy, while operational ingestion measurements often use broker or processing timestamps. I would define which timestamp each consumer uses, preserve the original source time and validate clock quality. Kafka timestamp interpretation can depend on topic configuration, so I would not infer business chronology from a timestamp field without checking how it was assigned.",
+      "keywords": [
+        "event time",
+        "append time",
+        "clock skew",
+        "late events",
+        "windowing",
+        "timestamp policy"
+      ],
+      "followups": [
+        {
+          "q": "Can append order establish business event order?",
+          "a": "Not necessarily; events may arrive late or be retried, so domain sequence or entity version may be needed."
+        },
+        {
+          "q": "What if producer clocks disagree?",
+          "a": "Treat event time as imperfect input, monitor skew and define correction or lateness rules for consumers."
+        }
+      ],
+      "trap": "Assuming a timestamp always means the same time source or proves causal order.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check topic timestamp policy and timestamp assignment behavior for the deployed broker configuration.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-026",
+      "topic": "Kafka headers and event identity",
+      "question": "What belongs in Kafka record headers versus the event payload?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Headers are useful for transport metadata such as trace context, correlation identifiers, content hints or routing annotations that infrastructure can inspect without decoding the domain body. The payload should remain the authoritative business event contract, including fields consumers need to understand the event. Headers are not inherently trustworthy or confidential; validate values and avoid putting credentials or sensitive personal data there. I would specify required header names, multiplicity and encoding, preserve them through forwarding where appropriate, and make consumers tolerate missing optional metadata. Schema evolution should cover the payload independently.",
+      "keywords": [
+        "headers",
+        "payload contract",
+        "trace context",
+        "correlation ID",
+        "sensitive data",
+        "encoding"
+      ],
+      "followups": [
+        {
+          "q": "Should authorization claims be trusted from a header?",
+          "a": "Only after a trusted authenticated boundary establishes and protects them; a producer-controlled value is not proof of identity."
+        },
+        {
+          "q": "Can headers replace schema versioning?",
+          "a": "No. They may identify a format, but the payload still needs a compatible contract."
+        }
+      ],
+      "trap": "Treating metadata headers as inherently trusted or moving required business fields out of the event contract.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-027",
+      "topic": "Kafka dead-letter design",
+      "question": "What information makes a dead-letter record useful for safe investigation and replay?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A useful dead-letter envelope preserves the original event bytes or a faithful representation, source topic, partition and offset, stable event identity, failure classification, timestamp and a sanitized diagnostic. It should also identify the processing version when that helps reproduce a defect. Protect secrets and regulated fields, restrict access, and define retention because error payloads can be more sensitive than logs. Replay must be controlled, duplicate-safe and aware of ordering and schema evolution. I would monitor volume and age, assign an owner, and document whether the original offset is acknowledged only after the dead-letter write is durable.",
+      "keywords": [
+        "original payload",
+        "source coordinates",
+        "event ID",
+        "failure class",
+        "redaction",
+        "controlled replay"
+      ],
+      "followups": [
+        {
+          "q": "Should the full exception stack go into the dead-letter payload?",
+          "a": "Prefer bounded, sanitized diagnostics; stack traces can expose internals and inflate message size."
+        },
+        {
+          "q": "When can the source record be committed?",
+          "a": "Only after the quarantine action is durably confirmed under the chosen failure-handling contract."
+        }
+      ],
+      "trap": "Acknowledging the source before preserving enough information to investigate or recover it.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-028",
+      "topic": "Kafka cross-cluster replication",
+      "question": "What should a team decide before replicating Kafka topics between clusters?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:AWS",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Start with the purpose: disaster recovery, regional consumption, migration or aggregation. Then define which topics and metadata move, how offsets map, what happens to consumer groups, and how duplicate or divergent writes are handled during failover. Replication is usually asynchronous, so recovery-point objectives and lag matter; it is not automatically a synchronous mirror. Topic naming, access control, schema availability, network cost and sensitive-data residency also constrain the design. I would test a failover and failback runbook with real offsets and application behavior, and verify the selected replication tool's exact semantics.",
+      "keywords": [
+        "disaster recovery",
+        "replication lag",
+        "offset mapping",
+        "failover",
+        "divergent writes",
+        "data residency"
+      ],
+      "followups": [
+        {
+          "q": "Does mirrored data imply consumer offsets are identical?",
+          "a": "No. Offset translation or group migration may be needed, depending on the tool and topology."
+        },
+        {
+          "q": "Can both clusters accept writes during failover?",
+          "a": "Only with an explicit conflict and ownership model; unconstrained dual writes can diverge."
+        }
+      ],
+      "trap": "Calling cross-cluster replication zero-loss failover without measuring lag or validating offset continuity.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify topic, offset, and failover semantics for the chosen Kafka replication product and version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-029",
+      "topic": "RabbitMQ exchange routing",
+      "question": "How do exchange type, binding and routing key combine to route a RabbitMQ message?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A publisher sends to an exchange with a routing key; the exchange evaluates its type and bindings to select zero or more queues. A direct exchange matches a binding key exactly, a topic exchange applies wildcard pattern rules, and a fanout exchange broadcasts to bound queues. The queue stores or delivers routed messages under its own policies. A successful publish does not by itself prove that a queue matched, so unroutable handling needs explicit design. I would draw the exchange-binding-queue graph and test exact routes, including missing bindings and alternate paths.",
+      "keywords": [
+        "exchange",
+        "binding",
+        "routing key",
+        "direct",
+        "topic",
+        "fanout",
+        "unroutable"
+      ],
+      "followups": [
+        {
+          "q": "Can a message route to multiple queues?",
+          "a": "Yes. Multiple matching bindings can route one publication to several queues."
+        },
+        {
+          "q": "What does a publisher confirm establish?",
+          "a": "Broker handling of the publication, not necessarily that a consumer completed the business task."
+        }
+      ],
+      "trap": "Assuming every accepted publication was routed to the intended durable queue.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify routing and unroutable-message behavior against the deployed RabbitMQ server and client.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-030",
+      "topic": "RabbitMQ durable messaging",
+      "question": "What must be durable for a RabbitMQ message to survive a broker restart?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Durability is a chain of choices, not a single message flag. The queue or stream must have the intended durable lifecycle, the message must use the appropriate persistence mode, and the broker must have safely accepted and stored it under its queue type and deployment policy. Publisher confirms help the producer learn the broker's acceptance boundary, while consumer acknowledgements govern removal after processing. These do not guarantee protection from every disk, cluster or operator failure. I would define the required failure model, configure topology before publishing, and test restart and node-loss scenarios on the actual RabbitMQ version.",
+      "keywords": [
+        "durable queue",
+        "persistent message",
+        "publisher confirm",
+        "acknowledgement",
+        "failure model",
+        "restart"
+      ],
+      "followups": [
+        {
+          "q": "Does a durable queue make transient messages persistent?",
+          "a": "No. Queue durability and message persistence are separate settings."
+        },
+        {
+          "q": "Does persistence mean the consumer processed it?",
+          "a": "No. It concerns broker storage; consumer acknowledgement is a separate lifecycle boundary."
+        }
+      ],
+      "trap": "Treating one durability flag as proof of end-to-end survival and processing.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify message persistence and queue durability guarantees for the deployed RabbitMQ queue type and version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-031",
+      "topic": "RabbitMQ publisher confirms",
+      "question": "How should a RabbitMQ publisher react when a publish confirmation is lost or delayed?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A missing confirmation is ambiguous: the broker may have accepted the publication while the acknowledgement was lost, or it may not have accepted it. Retrying can therefore create duplicates. Correlate outstanding publishes with confirms, bound the in-flight window, handle nacks and connection recovery, and make downstream processing idempotent using a stable event identifier. If routing matters, separately handle returned unroutable messages; a confirm alone is not proof that a queue matched. I would persist or reconstruct unsent work at the application boundary and test channel loss during publication.",
+      "keywords": [
+        "confirm correlation",
+        "ambiguous outcome",
+        "retry duplicate",
+        "nack",
+        "unroutable return",
+        "event ID"
+      ],
+      "followups": [
+        {
+          "q": "Does a nack mean the message was consumed?",
+          "a": "No. It reports a negative publisher-side outcome; consumer processing is a distinct boundary."
+        },
+        {
+          "q": "How do you avoid losing an in-memory publish on restart?",
+          "a": "Keep the source of truth durable or use an outbox-like handoff before considering the work complete."
+        }
+      ],
+      "trap": "Treating connection recovery or a retry as proof the first publication did not reach the broker.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check confirm and return ordering/API behavior for the exact RabbitMQ client release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-032",
+      "topic": "RabbitMQ delivery acknowledgement",
+      "question": "What failure window remains when a RabbitMQ consumer acknowledges after its database commit?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Postgres",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "If the database transaction commits and the consumer crashes before its acknowledgement reaches the broker, RabbitMQ can redeliver the message. The database effect may then run again, so the handler needs a stable deduplication key or idempotent update in the same transaction as its business change. Acknowledging first avoids that duplicate window but creates a loss window if the database transaction fails afterward. The correct boundary usually favors retryable delivery plus duplicate-safe state. I would also handle acknowledgement channel ownership carefully and ensure a poison record does not loop forever.",
+      "keywords": [
+        "acknowledgement",
+        "database commit",
+        "redelivery",
+        "idempotency",
+        "deduplication key",
+        "failure window"
+      ],
+      "followups": [
+        {
+          "q": "Can RabbitMQ and an arbitrary database commit atomically together?",
+          "a": "Not by default; use a deliberate coordination or outbox/inbox pattern."
+        },
+        {
+          "q": "What should a duplicate delivery do?",
+          "a": "Recognize the event identity and return the prior successful outcome without repeating the non-idempotent effect."
+        }
+      ],
+      "trap": "Claiming manual acknowledgements remove duplicates across the database-broker crash boundary.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-033",
+      "topic": "RabbitMQ prefetch",
+      "question": "How does RabbitMQ prefetch affect consumer throughput and fairness?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Prefetch limits how many deliveries can remain unacknowledged for a consumer or channel, depending on the configured scope. A small limit reduces memory and prevents one slow worker from holding a large share of queued work, but may leave capacity idle during network or processing delays. A large value can improve utilization while increasing in-flight memory and redelivery bursts after failure. I would tune it against message size, handler latency, concurrency and fairness goals, then measure unacknowledged counts and queue age. It is flow control, not a guarantee of exactly-once handling.",
+      "keywords": [
+        "prefetch",
+        "unacknowledged",
+        "flow control",
+        "fairness",
+        "in-flight memory",
+        "redelivery"
+      ],
+      "followups": [
+        {
+          "q": "Does prefetch equal application worker count?",
+          "a": "Not necessarily; configure and observe the actual channel/consumer scope and worker concurrency."
+        },
+        {
+          "q": "Can a high prefetch improve fairness?",
+          "a": "It can worsen fairness by allowing one consumer to reserve many messages before completing them."
+        }
+      ],
+      "trap": "Setting an arbitrarily high prefetch to maximize throughput without accounting for memory and failure redelivery.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm prefetch scope and default semantics for the deployed RabbitMQ protocol and client.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-034",
+      "topic": "RabbitMQ negative acknowledgements",
+      "question": "When should a consumer reject, nack, requeue or dead-letter a RabbitMQ delivery?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Choose the disposition from the failure class. A transient dependency failure may merit a bounded delayed retry, while malformed or permanently invalid input should be quarantined or rejected rather than immediately returned to the same consumer. Requeueing everything can create a hot loop and starve healthy messages. Dead-letter routing must preserve useful context and have its own capacity and monitoring. The acknowledgement decision follows the business completion boundary; if processing succeeded, acknowledge, and if the outcome is uncertain, make duplicate handling safe. I would map each error category to a documented retry count, delay and terminal destination.",
+      "keywords": [
+        "acknowledge",
+        "reject",
+        "nack",
+        "requeue",
+        "dead letter",
+        "bounded retry"
+      ],
+      "followups": [
+        {
+          "q": "Does requeue guarantee another consumer receives it?",
+          "a": "No. Scheduling and queue state determine redelivery; it may return quickly to the same consumer."
+        },
+        {
+          "q": "Should malformed input be retried indefinitely?",
+          "a": "Usually not; quarantine it with safe diagnostics and a correction/replay process."
+        }
+      ],
+      "trap": "Using immediate requeue as a universal recovery strategy.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify reject/nack and dead-letter behavior for the queue type and RabbitMQ version in use.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-035",
+      "topic": "RabbitMQ dead lettering",
+      "question": "How does a dead-letter exchange help, and what does it not solve by itself?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A queue can route messages that are rejected, expire or exceed configured limits to a dead-letter exchange, which applies normal bindings to move them to a quarantine destination. This separates poison work from the main flow and enables inspection. It does not decide whether the message is safe to replay, guarantee unlimited capacity, or automatically preserve application-level failure context. Policies and queue type affect dead-letter guarantees, so I would test broker failure during transfer and preserve the original routing information. Add alerting, retention, access controls and an owned replay process; otherwise the dead-letter queue becomes silent message loss by neglect.",
+      "keywords": [
+        "dead-letter exchange",
+        "rejection",
+        "expiry",
+        "quarantine",
+        "capacity",
+        "replay"
+      ],
+      "followups": [
+        {
+          "q": "Should dead-letter queues have unlimited retention?",
+          "a": "No. Define capacity, retention and escalation so a growing failure stream cannot exhaust resources."
+        },
+        {
+          "q": "Can every dead-lettered message be safely replayed unchanged?",
+          "a": "No. Correct the cause and assess duplicate effects, schema version and ordering first."
+        }
+      ],
+      "trap": "Treating configured dead-lettering as proof of durable, observable, automatically recoverable handling.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check dead-letter transfer guarantees and supported policies for the deployed RabbitMQ queue type/version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-036",
+      "topic": "RabbitMQ delayed retry",
+      "question": "How can a RabbitMQ retry design avoid both tight requeue loops and unbounded delay queues?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Impetus",
+          "sources": [
+            "S008"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Classify transient failures, assign a bounded attempt count, and introduce increasing delay or scheduled retry rather than immediately requeueing into the same hot queue. A retry route can use dedicated delay queues or a supported delayed-message facility, but implementation and ordering properties vary by deployment. Preserve original event identity and increment retry metadata without allowing untrusted headers to control unlimited work. After the retry budget, route to a monitored dead-letter destination. I would account for retry queue capacity and poison-message behavior, and verify that the chosen expiration and dead-letter mechanism behaves as expected during broker restarts.",
+      "keywords": [
+        "bounded attempts",
+        "backoff",
+        "delay queue",
+        "retry metadata",
+        "dead letter",
+        "capacity"
+      ],
+      "followups": [
+        {
+          "q": "Why not sleep inside the consumer?",
+          "a": "It occupies a worker and can reduce throughput or hold deliveries unacknowledged during the delay."
+        },
+        {
+          "q": "Can retry queues preserve original ordering?",
+          "a": "Usually not as a general guarantee; delayed messages can re-enter after later work has proceeded."
+        }
+      ],
+      "trap": "Claiming delayed retries preserve strict FIFO ordering while allowing other messages to pass.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify delayed-message or TTL/dead-letter retry semantics for the exact RabbitMQ feature and release.]"
+      ],
+      "notes": "Unverified pattern. Reported in user-provided interview notes, item 8.3 (Impetus)."
+    },
+    {
+      "id": "JH-S10-037",
+      "topic": "RabbitMQ message TTL",
+      "question": "What does message TTL mean for a RabbitMQ queue, and what should consumers not assume?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A message time-to-live establishes an expiry policy after which the message is no longer eligible for normal delivery from that queue, with the exact removal and dead-letter timing governed by broker behavior and queue configuration. TTL does not mean the consumer receives a callback precisely at the expiry instant, and queue backlog or policy interactions matter. Expired work may be discarded or dead-lettered depending on configuration. I would define whether expiry is a business cancellation or just a stale-work limit, preserve audit requirements, and test head-of-line and dead-letter behavior using the deployed queue type.",
+      "keywords": [
+        "message TTL",
+        "expiry",
+        "dead lettering",
+        "stale work",
+        "queue policy",
+        "audit"
+      ],
+      "followups": [
+        {
+          "q": "Does TTL cancel an already delivered message?",
+          "a": "No; once delivered, application processing and acknowledgement determine its outcome."
+        },
+        {
+          "q": "Can expired messages simply disappear?",
+          "a": "They may, unless a configured dead-letter route and policy capture them."
+        }
+      ],
+      "trap": "Treating TTL as a precise scheduler or as cancellation of in-flight business work.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check expiry removal and dead-letter timing for the RabbitMQ queue type and release in use.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-038",
+      "topic": "RabbitMQ queue limits",
+      "question": "How should queue length limits and overflow policies be chosen?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Queue limits bound broker resource growth when producers outpace consumers, but the overflow policy decides whether new or existing messages are rejected or removed, which changes delivery guarantees. Set limits from acceptable backlog age, message size, recovery throughput and disk capacity rather than an arbitrary count. Alert before the threshold and apply producer backpressure or shed load deliberately. If messages are discarded or dead-lettered, make that visible to the owning service. I would test burst and sustained overload scenarios, including what publishers observe and how the system recovers after consumers return.",
+      "keywords": [
+        "queue limit",
+        "overflow policy",
+        "backpressure",
+        "backlog age",
+        "disk capacity",
+        "publisher outcome"
+      ],
+      "followups": [
+        {
+          "q": "Is a message-count limit enough?",
+          "a": "Not always; bytes and payload-size distribution can be the real resource constraint."
+        },
+        {
+          "q": "Should producers ignore publish failures at capacity?",
+          "a": "No. They need bounded retries or a durable source and explicit overload handling."
+        }
+      ],
+      "trap": "Adding a queue cap without deciding which messages are rejected, dropped or routed elsewhere.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify queue-length and overflow policy behavior for the deployed RabbitMQ release and queue type.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-039",
+      "topic": "RabbitMQ queue types",
+      "question": "How would you compare RabbitMQ classic and quorum queues when durability and availability matter?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Choose a queue type from the required failure model and operational behavior rather than assuming every queue has identical replication. Quorum queues use a replicated consensus-based design intended for data safety across node failures, with different latency, resource and feature trade-offs from classic queues. A single-node or non-replicated queue has a different availability boundary. I would compare publish confirmation, leader failover, recovery cost, ordering, supported policies and cluster sizing for the exact server release. Then test node loss and recovery under workload. The durable choice also needs publisher confirms, persistent messages and consumer-side duplicate handling.",
+      "keywords": [
+        "queue type",
+        "quorum",
+        "replication",
+        "leader failover",
+        "durability",
+        "recovery"
+      ],
+      "followups": [
+        {
+          "q": "Does quorum mean no message loss under every failure?",
+          "a": "No. State the replica majority, confirmation boundary, disk and correlated-failure assumptions."
+        },
+        {
+          "q": "Can queue type be changed in place freely?",
+          "a": "Do not assume so; plan migration and verify supported procedures for the deployed release."
+        }
+      ],
+      "trap": "Comparing queue types by name without workload, failure-domain and version-specific semantics.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify queue-type guarantees, limitations and migration support against deployed RabbitMQ documentation.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-040",
+      "topic": "RabbitMQ ordering",
+      "question": "Why can a RabbitMQ queue fail to preserve the business ordering an application expects?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A queue can deliver in enqueue order under constrained conditions, but multiple consumers, redelivery, priorities, requeueing and asynchronous handlers can change completion order. Even if one consumer receives messages sequentially, concurrent work inside the application may finish out of order. If entity transitions require order, partition work by entity or serialize processing and include a sequence/version check so stale updates are rejected. I would define whether the promise concerns enqueue, delivery or completed side effects; those are different. Test consumer failure and retry paths, not only the happy-path queue display.",
+      "keywords": [
+        "enqueue order",
+        "delivery order",
+        "completion order",
+        "multiple consumers",
+        "redelivery",
+        "sequence check"
+      ],
+      "followups": [
+        {
+          "q": "Does one queue guarantee global business order?",
+          "a": "No; routing, concurrent processing and retries can alter the observed completion sequence."
+        },
+        {
+          "q": "How can stale updates be detected?",
+          "a": "Use an entity sequence or version and enforce monotonic application of state transitions."
+        }
+      ],
+      "trap": "Equating broker delivery order with end-to-end effect order.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check ordering caveats for selected queue type, consumer count and RabbitMQ version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-041",
+      "topic": "RabbitMQ multiple consumers",
+      "question": "What trade-offs arise when several consumers read from one RabbitMQ queue?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Multiple consumers can increase parallel work and allow capacity to survive an individual consumer failure, but they divide deliveries rather than broadcast every message to each worker. Completion order can differ from delivery order, and unequal prefetch or processing speeds can make work distribution uneven. Scaling consumers helps only until the queue, downstream dependency or broker becomes the bottleneck. I would set bounded concurrency and prefetch, make handlers duplicate-safe, monitor unacknowledged counts and oldest-message age, and confirm that the business does not require strict serialization for each entity.",
+      "keywords": [
+        "competing consumers",
+        "parallelism",
+        "prefetch",
+        "completion order",
+        "bottleneck",
+        "idempotency"
+      ],
+      "followups": [
+        {
+          "q": "How do you broadcast to separate services?",
+          "a": "Route a publication to distinct queues, typically with bindings, rather than sharing one competing-consumer queue."
+        },
+        {
+          "q": "What if one message type needs ordering?",
+          "a": "Use a serialized ownership strategy or separate lanes keyed to the ordering domain."
+        }
+      ],
+      "trap": "Expecting every consumer attached to one queue to receive every message.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-042",
+      "topic": "RabbitMQ single active consumer",
+      "question": "When is a single-active-consumer pattern useful, and what availability cost does it introduce?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A single active consumer can serialize delivery from a queue while allowing standby consumers to take over after the active one disappears, which is useful when concurrent handling would violate a workflow's ordering requirement. It intentionally limits normal processing parallelism to one active reader for that queue, and failover still involves detection and in-flight redelivery. It does not serialize side effects launched asynchronously by the active consumer. I would compare this with partitioned queues or per-key serial executors, and test takeover, duplicate delivery and throughput against the required recovery objective.",
+      "keywords": [
+        "single active consumer",
+        "serialization",
+        "standby",
+        "failover",
+        "redelivery",
+        "throughput"
+      ],
+      "followups": [
+        {
+          "q": "Does it guarantee exactly-once handling?",
+          "a": "No. The active consumer can fail after an effect but before acknowledgement, causing redelivery."
+        },
+        {
+          "q": "Can it scale across many independent keys?",
+          "a": "Not within one serialized queue; partitioning into independent ordered lanes may provide parallelism."
+        }
+      ],
+      "trap": "Claiming a single active reader removes crash duplicates or application-level concurrency.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify feature availability, failover behavior and ordering guarantees for the server/client versions used.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-043",
+      "topic": "RabbitMQ message priority",
+      "question": "What should an application consider before using RabbitMQ message priorities?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Priority allows selected messages to be preferred for delivery, but exact support and cost depend on queue type and server version. It can starve low-priority work if high-priority messages arrive continuously, and it does not preempt a message already being processed. A priority field supplied by an untrusted producer should not let that caller bypass service policy. I would define a small, business-owned priority scale, measure fairness and backlog age per class, and verify the queue's priority behavior. Separate queues may be clearer when isolation and independent capacity matter more than opportunistic ordering.",
+      "keywords": [
+        "priority",
+        "starvation",
+        "queue type",
+        "fairness",
+        "preemption",
+        "policy"
+      ],
+      "followups": [
+        {
+          "q": "Does priority interrupt an active handler?",
+          "a": "No. It influences eligible delivery selection, not work already executing."
+        },
+        {
+          "q": "Can priorities replace separate service-level queues?",
+          "a": "Not always; distinct queues provide stronger isolation and independent scaling."
+        }
+      ],
+      "trap": "Assuming priority guarantees deadlines or cannot starve lower-priority work.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify supported priority range and queue-type behavior for the deployed RabbitMQ version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-044",
+      "topic": "RabbitMQ exclusive and temporary queues",
+      "question": "When are temporary or exclusive RabbitMQ queues appropriate, and what data-loss expectation follows?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A temporary, auto-deleting or connection-scoped queue can suit transient reply paths, notifications or ephemeral subscriptions where losing queued data after the owner disconnects is acceptable. It is a poor fit for durable business work that must survive client restarts. Queue exclusivity and deletion behavior also affect which connections can consume or declare it, so recovery may require recreating bindings and handling a new queue identity. I would state the lifecycle and loss contract explicitly, secure declaration permissions, and avoid storing durable command work in an automatically deleted destination.",
+      "keywords": [
+        "temporary queue",
+        "exclusive",
+        "auto-delete",
+        "lifecycle",
+        "reply path",
+        "durability"
+      ],
+      "followups": [
+        {
+          "q": "Can an auto-delete queue be used for a durable work backlog?",
+          "a": "Usually not if messages must remain available after the owning consumer disconnects."
+        },
+        {
+          "q": "What changes when the queue is recreated?",
+          "a": "Queue identity and bindings may change; clients must rediscover and re-establish the intended route."
+        }
+      ],
+      "trap": "Treating ephemeral queue declarations as durable storage simply because the messages are persistent.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check exclusive and auto-delete lifecycle rules for the selected RabbitMQ client and server version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-045",
+      "topic": "RabbitMQ queue backlog",
+      "question": "How would you investigate a RabbitMQ queue whose depth keeps increasing?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "First determine whether enqueue rate exceeds successful acknowledgement rate and whether the growth is broad or isolated to a queue. Compare ready and unacknowledged counts, oldest-message age, consumer count, delivery and redelivery rates, handler latency, publisher confirms and broker disk or memory alarms. Then inspect downstream dependency health and recent deployment changes. Adding consumers helps only if the handler is the bottleneck and dependencies can accept the extra load. I would preserve evidence, apply backpressure or bounded scaling, and avoid purging or requeueing blindly. Confirm recovery by checking that age and depth decline without increasing failures.",
+      "keywords": [
+        "ready messages",
+        "unacknowledged",
+        "oldest age",
+        "ack rate",
+        "consumer latency",
+        "broker alarms"
+      ],
+      "followups": [
+        {
+          "q": "What if unacknowledged count is high but ready depth is low?",
+          "a": "Consumers may be holding too much work, blocked, or stalled before acknowledgement; inspect handler state and prefetch."
+        },
+        {
+          "q": "Why not add consumers immediately?",
+          "a": "They can overload a shared database or API and worsen the queue if downstream capacity is the true limit."
+        }
+      ],
+      "trap": "Purging backlog or scaling workers before identifying whether consumers, dependencies or broker resources are limiting progress.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; operational framing reflects resume incident experience without asserting a specific RabbitMQ incident."
+    },
+    {
+      "id": "JH-S10-046",
+      "topic": "Kafka consumer lag",
+      "question": "What does Kafka consumer lag measure, and what does it not tell you?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "Consumer lag estimates the distance between a partition's current end position and a group's committed or processed position, depending on the monitoring source. It indicates backlog, but a raw record count does not reveal how old the work is, how expensive each record is, or whether the consumer is making progress. A rapidly growing lag can signal throughput mismatch; stable lag may still violate latency objectives if arrivals are delayed. I would combine per-partition lag with oldest-event age, consume rate, processing latency and dependency health, then compare against the service objective and retention window.",
+      "keywords": [
+        "partition lag",
+        "committed position",
+        "end offset",
+        "oldest age",
+        "throughput",
+        "retention"
+      ],
+      "followups": [
+        {
+          "q": "Can lag be negative or temporarily inconsistent?",
+          "a": "Monitoring snapshots and offset definitions can differ; interpret the tool's calculation and refresh behavior."
+        },
+        {
+          "q": "Why inspect per-partition lag?",
+          "a": "A hot or stuck partition can be hidden by a healthy aggregate."
+        }
+      ],
+      "trap": "Treating one aggregate lag number as a complete measure of user-visible delay.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify how the selected monitoring tool defines lag and whether it uses committed or current consumer position.]"
+      ],
+      "notes": "Unverified pattern; operational framing draws only on the resume's stated Kafka production support."
+    },
+    {
+      "id": "JH-S10-047",
+      "topic": "Kafka broker outage",
+      "question": "What should a producer and consumer expect during a Kafka partition-leader outage?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The partition may temporarily lack an available leader while the cluster elects an eligible replica, so requests can fail or wait during recovery. Producers need bounded retries and a clear delivery timeout; consumers may pause fetching that partition while continuing others, depending on client behavior. Whether acknowledged data survives depends on replication, acknowledgement policy and which replicas remain eligible. I would distinguish a partition-specific outage from a whole-cluster outage, inspect leader and ISR state, and avoid declaring success based only on client retry. After recovery, verify lag drains and application effects remain duplicate-safe.",
+      "keywords": [
+        "partition leader",
+        "election",
+        "eligible replica",
+        "producer retry",
+        "consumer pause",
+        "ISR"
+      ],
+      "followups": [
+        {
+          "q": "Does every broker failure interrupt every topic?",
+          "a": "Not necessarily; impact depends on which leaders and replicas the failed broker hosted."
+        },
+        {
+          "q": "Can a producer timeout prove data loss?",
+          "a": "No. The result may be ambiguous; reconcile by event identity or application state."
+        }
+      ],
+      "trap": "Promising uninterrupted service or zero loss without stating replication and acknowledgement assumptions.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check leader-election and client retry behavior for the actual cluster configuration and Kafka release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-048",
+      "topic": "Kafka unclean leader election",
+      "question": "What durability and availability choice is involved in unclean leader election?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "If no in-sync replica is available, electing an out-of-sync replica can restore write availability sooner but may discard records that existed only on the former leader. Refusing that election protects the stronger in-sync boundary but can leave the partition unavailable until an eligible replica returns. This is a deliberate durability-versus-availability trade-off, not a routine performance knob. I would base it on the business loss tolerance, replication health and recovery objective, then document the operational procedure for the no-ISR case. The exact configuration and behavior are release-dependent and must be checked before changes.",
+      "keywords": [
+        "unclean election",
+        "out-of-sync replica",
+        "data loss",
+        "availability",
+        "ISR",
+        "recovery policy"
+      ],
+      "followups": [
+        {
+          "q": "Does choosing the safer election policy guarantee no loss?",
+          "a": "No; it constrains one failure path but cannot prevent every correlated or operator-induced loss."
+        },
+        {
+          "q": "Should on-call enable it during an outage casually?",
+          "a": "No. Follow an approved recovery decision because the action can sacrifice acknowledged data."
+        }
+      ],
+      "trap": "Describing unclean election as a free failover improvement.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify current broker setting names, defaults and election semantics for the deployed Kafka release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-049",
+      "topic": "Kafka producer buffer exhaustion",
+      "question": "Why can a Kafka producer report buffer exhaustion, and how should an application respond?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The producer buffers records while waiting for broker acknowledgements; if sends arrive faster than batches drain, the bounded buffer fills and new sends may block or fail according to client timeout behavior. This often points to broker unavailability, network trouble, throttling or sustained producer overload, not simply a buffer size that is too small. I would inspect send latency, request errors, throughput, broker health and application queue depth. Apply bounded upstream backpressure and define whether work is durably retained before increasing memory. Larger buffers can postpone failure while increasing memory pressure and recovery delay.",
+      "keywords": [
+        "producer buffer",
+        "broker acknowledgements",
+        "backpressure",
+        "send latency",
+        "memory",
+        "overload"
+      ],
+      "followups": [
+        {
+          "q": "Should buffer memory always be increased?",
+          "a": "No. Find why drain rate fell and ensure additional memory fits process limits."
+        },
+        {
+          "q": "What happens if send blocks an application thread?",
+          "a": "It consumes capacity and can propagate latency; set and monitor a bounded producer wait policy."
+        }
+      ],
+      "trap": "Treating buffer exhaustion as a problem solved by unlimited heap or retries.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify producer buffer timeout and exception semantics for the exact Kafka client version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-050",
+      "topic": "Kafka consumer offset retention",
+      "question": "Why can an inactive consumer group lose its ability to resume at its old committed position?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Group offsets are broker-managed metadata and can expire under configured retention rules when a group is inactive. Even if the offset remains, topic data before the earliest retained position may already have expired. A returning consumer can therefore encounter a missing or out-of-range position and follow its reset policy. I would distinguish offset retention from topic data retention, set both from the longest supported outage or replay requirement, and alert before recovery becomes impossible. For important workflows, test a long idle interval and document the chosen reset behavior rather than assuming old progress lasts forever.",
+      "keywords": [
+        "group offset retention",
+        "topic retention",
+        "inactive group",
+        "out-of-range",
+        "reset policy",
+        "replay"
+      ],
+      "followups": [
+        {
+          "q": "Does keeping offsets preserve the messages?",
+          "a": "No. Topic retention independently determines whether the referenced records remain available."
+        },
+        {
+          "q": "What if the group returns after data expires?",
+          "a": "It cannot consume expired history from that log; use a separate archive or recovery source if required."
+        }
+      ],
+      "trap": "Conflating retained group metadata with retained event data.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm group-offset retention and out-of-range handling settings for the deployed broker/client.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-051",
+      "topic": "Kafka topic deletion",
+      "question": "What safeguards should surround deletion or recreation of a Kafka topic?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Topic deletion can remove retained history and interrupt producers and consumers, while recreation with the same name may not restore offsets, schema assumptions or the old data. Some clusters also make deletion asynchronous or control it through broker policy. I would require ownership, environment and topic-name checks, verify backups or replay sources, drain or pause dependent workloads, and obtain an explicit approval for destructive operations. Infrastructure automation should avoid accidental replacement and should detect drift. For a migration, create and validate a replacement path first rather than treating delete-and-recreate as a harmless reset.",
+      "keywords": [
+        "topic deletion",
+        "retained history",
+        "consumer offsets",
+        "approval",
+        "automation",
+        "replay source"
+      ],
+      "followups": [
+        {
+          "q": "Can a topic with the same name restore its old log?",
+          "a": "No; a newly created topic is not the former data set."
+        },
+        {
+          "q": "What should automation protect against?",
+          "a": "Unintended destructive replacement, wrong environment, and drift between declared and actual topology."
+        }
+      ],
+      "trap": "Deleting production history to fix a consumer issue before preserving evidence and recovery options.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify deletion policy and asynchronous behavior against the cluster's broker configuration.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-052",
+      "topic": "Kafka ACLs",
+      "question": "How would you apply least privilege to Kafka producers and consumers?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:OAuth"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Give each workload an authenticated principal and only the operations and topic or group resources it needs. A producer usually needs write access to named topics, while a consumer needs read access to its topics and appropriate group resource permissions; administration should be separate from runtime identity. Avoid shared credentials across unrelated services and rotate secrets through a managed process. Test both allowed and denied actions so least privilege remains functional. Authorization is enforced by broker configuration and may differ by mechanism, so I would verify the actual principal mapping and ACL behavior without assuming defaults.",
+      "keywords": [
+        "principal",
+        "least privilege",
+        "topic ACL",
+        "group permission",
+        "credential rotation",
+        "deny test"
+      ],
+      "followups": [
+        {
+          "q": "Why separate producer and consumer identities?",
+          "a": "It limits blast radius and lets operators revoke one capability without disabling unrelated workloads."
+        },
+        {
+          "q": "Does encryption authenticate a client?",
+          "a": "Not by itself; transport encryption and client authentication/authorization are separate controls."
+        }
+      ],
+      "trap": "Using a broad administrator principal in application runtime because it is operationally convenient.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify supported authorization resources and principal mapping for the configured Kafka security mechanism.]"
+      ],
+      "notes": "Unverified defensive pattern."
+    },
+    {
+      "id": "JH-S10-053",
+      "topic": "Kafka quotas and throttling",
+      "question": "How can broker quotas affect a healthy Kafka producer or consumer?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A configured quota can throttle client traffic to protect shared broker capacity or enforce tenant budgets. The client may experience higher request latency and reduced throughput even when its own process and network appear healthy. Retries can accumulate buffers and consumer lag if the workload cannot catch up after throttling. I would correlate client throttle metrics with broker quota configuration, principal identity and neighboring workloads, then use capacity planning rather than disabling controls reflexively. Quotas should be monitored and sized with burst behavior and service objectives in mind; the exact quota dimensions depend on cluster setup.",
+      "keywords": [
+        "quota",
+        "throttling",
+        "principal",
+        "request latency",
+        "producer buffer",
+        "consumer lag"
+      ],
+      "followups": [
+        {
+          "q": "Does a throttle necessarily indicate a broker failure?",
+          "a": "No. It may be intentional policy; inspect quota metrics and broker health together."
+        },
+        {
+          "q": "What happens if retries build up?",
+          "a": "Buffers and lag can grow, so the application needs bounded backpressure and capacity alerts."
+        }
+      ],
+      "trap": "Diagnosing all increased latency as network or broker failure without checking throttling policy.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check quota types, metrics and client throttle reporting for the deployed Kafka release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-054",
+      "topic": "Kafka observability",
+      "question": "Which Kafka signals help distinguish a broker bottleneck from slow application processing?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "Compare the producer send rate and latency, broker request latency and resource pressure, consumer fetch rate, per-partition lag and application processing time. If the broker responds normally but a consumer's processing duration rises with a downstream database, the handler is a stronger suspect. If many clients see elevated request latency alongside broker CPU, disk or network saturation, investigate cluster capacity and replication. Correlate metrics with deploys and error logs, and preserve partition-level detail. For the actual incident, use the known Grafana/Prometheus/Loki experience only where it applies; do not claim a particular Kafka root cause without evidence.",
+      "keywords": [
+        "send latency",
+        "broker request latency",
+        "partition lag",
+        "processing time",
+        "resource pressure",
+        "correlation"
+      ],
+      "followups": [
+        {
+          "q": "Why is aggregate throughput insufficient?",
+          "a": "It can hide one hot partition or one consumer doing much slower work."
+        },
+        {
+          "q": "What confirms a downstream bottleneck?",
+          "a": "Correlated handler latency and dependency saturation/errors, while broker fetch and request behavior remain comparatively healthy."
+        }
+      ],
+      "trap": "Blaming Kafka or the application from one metric without tracing latency through the path.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; monitoring experience is present on the resume, but no specific Kafka incident internals are asserted."
+    },
+    {
+      "id": "JH-S10-055",
+      "topic": "Kafka backpressure",
+      "question": "How should a Kafka pipeline apply backpressure when downstream processing slows?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Bound the application work queue and worker concurrency so fetched records cannot grow without limit in memory. When workers saturate, slow polling or pause eligible partitions using the supported client API while continuing the group protocol safely. Do not commit offsets for work that has not reached its durable completion boundary. The broker retains data only within its retention policy, so prolonged backpressure can become a recovery-window risk. I would monitor queue depth, oldest age and per-partition lag, and set an overload policy that protects the downstream system while keeping replay capacity explicit.",
+      "keywords": [
+        "bounded work queue",
+        "pause partitions",
+        "polling",
+        "offset commit",
+        "retention window",
+        "downstream capacity"
+      ],
+      "followups": [
+        {
+          "q": "Can pausing a partition mean the consumer stops all group activity?",
+          "a": "Not necessarily; continue required client polling and verify the API's group-liveness behavior."
+        },
+        {
+          "q": "What if backlog exceeds retention?",
+          "a": "The missing range cannot be replayed from that topic, so retention and recovery planning must cover outages."
+        }
+      ],
+      "trap": "Buffering every fetched event in an unbounded executor queue while commits continue.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify pause/resume, poll and group-liveness behavior for the chosen consumer API version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-056",
+      "topic": "Kafka schema deserialization failures",
+      "question": "How should a consumer respond to a record it cannot deserialize?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "First preserve the raw record and identify whether the issue is malformed bytes, an unknown schema, a missing registry dependency or an incompatible consumer rollout. Blindly retrying deterministic bad data blocks the partition without making progress. A safe quarantine path should capture topic, partition, offset, key, headers and a protected payload representation, then apply an explicit commit policy so the poison item is not silently skipped. Validate registry connectivity and compatibility separately from business handler errors. I would deploy compatible consumers before producers and test old retained messages as well as newly emitted records.",
+      "keywords": [
+        "raw record",
+        "deserialization",
+        "schema ID",
+        "registry outage",
+        "quarantine",
+        "offset policy"
+      ],
+      "followups": [
+        {
+          "q": "Is every deserialization exception permanent?",
+          "a": "No. A missing external schema service may be transient; distinguish infrastructure failures from invalid payloads."
+        },
+        {
+          "q": "Can a consumer commit past one malformed record safely?",
+          "a": "Only after the record is durably quarantined and the business ordering consequences are accepted."
+        }
+      ],
+      "trap": "Logging an error and advancing the offset without retaining enough data to diagnose or replay.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check serializer/registry exception behavior and schema compatibility policy for the selected client.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-057",
+      "topic": "Kafka connectivity recovery",
+      "question": "How should a Kafka client recover from a temporary network partition?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A network break can leave request outcomes ambiguous, interrupt metadata refresh and trigger consumer group changes. Use the client's reconnection and retry behavior with bounded request and delivery deadlines, and make producer and consumer work safe to repeat. Application-level retries should use backoff and a deadline rather than multiplying unbounded retries beneath library retries. On recovery, confirm metadata refresh, successful sends or reconciled outcomes, partition ownership and lag drain. I would distinguish DNS, routing, firewall, TLS and broker failures from a generic timeout using client logs and network telemetry, without logging secrets.",
+      "keywords": [
+        "network partition",
+        "ambiguous request",
+        "metadata refresh",
+        "bounded retry",
+        "backoff",
+        "reconciliation"
+      ],
+      "followups": [
+        {
+          "q": "Should retry be layered in both client and application?",
+          "a": "Only with coordinated budgets; nested unlimited retries can amplify load and exceed the request deadline."
+        },
+        {
+          "q": "Does connectivity recovery prove a timed-out send failed?",
+          "a": "No. The send may have reached the broker; reconcile using stable event identity."
+        }
+      ],
+      "trap": "Retrying every timeout immediately and assuming the original operation had no effect.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Review networking, TLS and retry configuration for the deployed Kafka client and cluster.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-058",
+      "topic": "RabbitMQ flow control",
+      "question": "What can RabbitMQ flow control or blocked publishing indicate, and how should producers react?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Observability",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The broker may slow or block publishers when memory, disk or other resource thresholds are reached, or when a connection is otherwise constrained. The producer must not treat a successful local method call as proof that the broker can accept unlimited work. Observe connection-blocked notifications, confirm latency, broker alarms and queue growth; then apply bounded backpressure to callers or durably retain work upstream. Blind retry loops can increase pressure. I would identify the specific broker alarm, protect process memory, and verify that the client resumes cleanly after unblocking without losing or duplicating ambiguous publications.",
+      "keywords": [
+        "flow control",
+        "blocked connection",
+        "memory alarm",
+        "disk alarm",
+        "publisher confirm",
+        "backpressure"
+      ],
+      "followups": [
+        {
+          "q": "Should a producer open unlimited connections when blocked?",
+          "a": "No. That can amplify resource pressure; follow the broker/client recovery design and bound concurrency."
+        },
+        {
+          "q": "What must be checked after unblock?",
+          "a": "Outstanding confirm outcomes, application backlog, duplicate handling and broker resource recovery."
+        }
+      ],
+      "trap": "Treating broker flow control as a transient warning to ignore while continuing unbounded sends.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify blocked-connection callbacks and alarm behavior for the RabbitMQ client and server version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-059",
+      "topic": "Kafka delivery semantics",
+      "question": "How do you explain at-most-once, at-least-once and exactly-once processing without overclaiming?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "At-most-once can lose work but avoids retry duplicates when progress is advanced before the effect. At-least-once favors retry after uncertain completion and therefore requires duplicate-safe effects. Exactly-once is meaningful only after naming the boundary: Kafka transactions can atomically coordinate supported Kafka output and input offsets, but an external database or HTTP call is not automatically enrolled. I would state the failure windows, transaction boundary, idempotency key and recovery behavior. For external effects, an inbox/outbox or transactional state change can help, but its guarantees depend on the database transaction and relay design.",
+      "keywords": [
+        "at-most-once",
+        "at-least-once",
+        "Kafka transaction",
+        "external side effect",
+        "idempotency",
+        "failure window"
+      ],
+      "followups": [
+        {
+          "q": "Which mode is usually chosen for durable business processing?",
+          "a": "Often at-least-once with idempotent effects, because retries avoid silently discarding work."
+        },
+        {
+          "q": "Does an idempotent handler make transport exactly-once?",
+          "a": "No; it makes repeated effects converge for a defined identity, while delivery can still repeat."
+        }
+      ],
+      "trap": "Using exactly-once as a product-wide promise without defining which systems and operations are included.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify transactional processing limits and client isolation settings for the Kafka release in use.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-060",
+      "topic": "Database-to-Kafka publication",
+      "question": "How can an application avoid losing a Kafka event when its database transaction succeeds?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Postgres",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Writing the database and publishing to Kafka as two independent operations creates a crash window: one may succeed while the other does not. An outbox records the event in the same database transaction as the business change; a separate relay publishes pending rows and marks progress only after broker confirmation. The relay can still publish duplicates if it crashes between confirmation and marking, so consumers need event identity and idempotency. I would define retention, ordering per entity, relay retries and outbox cleanup, then monitor oldest unpublished age. This is a pattern, not an automatic distributed transaction.",
+      "keywords": [
+        "outbox row",
+        "database transaction",
+        "relay",
+        "publisher confirm",
+        "duplicate publication",
+        "consumer idempotency"
+      ],
+      "followups": [
+        {
+          "q": "Does outbox guarantee only one Kafka record?",
+          "a": "Not by itself; a relay may publish again after an ambiguous confirmation or crash."
+        },
+        {
+          "q": "What is the main atomic boundary?",
+          "a": "The business write and outbox insert share the database transaction; Kafka publication happens later."
+        }
+      ],
+      "trap": "Claiming a transactional outbox removes duplicates or requires no relay recovery design.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; included as a messaging handoff contract rather than a general distributed-systems design question."
+    },
+    {
+      "id": "JH-S10-061",
+      "topic": "RabbitMQ duplicate delivery",
+      "question": "Why should a RabbitMQ consumer assume a message can be delivered more than once?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A consumer can complete a side effect and fail before its acknowledgement reaches the broker, leaving the delivery eligible for redelivery. Connection loss, consumer cancellation and broker recovery can also make the outcome uncertain. The broker's delivery tag is scoped to a channel delivery, not a durable business idempotency key. Include a stable event identifier and record completed handling in the same database transaction as the business update, or make the operation naturally idempotent. I would test crashes on both sides of the acknowledgement and define how duplicates are observable without repeating non-idempotent actions.",
+      "keywords": [
+        "redelivery",
+        "acknowledgement loss",
+        "delivery tag",
+        "event identity",
+        "idempotency",
+        "crash testing"
+      ],
+      "followups": [
+        {
+          "q": "Can a delivery tag deduplicate across reconnects?",
+          "a": "No. It identifies a delivery within its channel context, not a permanent message identity."
+        },
+        {
+          "q": "What if the business operation is naturally idempotent?",
+          "a": "Then repeating the same state-setting action can be safe, but verify that all side effects share that property."
+        }
+      ],
+      "trap": "Assuming a broker delivery tag or manual ack guarantees the business command runs exactly once.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-062",
+      "topic": "RabbitMQ connections and channels",
+      "question": "Why do RabbitMQ applications use channels, and how should they handle channel-level failure?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A connection is the network session to the broker, while channels multiplex protocol operations over that connection and maintain delivery and acknowledgement context. A protocol exception can close one channel without necessarily closing the whole connection. Recovery must recreate channel state, declarations, bindings, consumers and confirm tracking as appropriate; unacknowledged deliveries may be redelivered. Avoid sharing a channel unsafely across concurrent threads unless the client explicitly supports it. I would distinguish connection recovery from channel recovery in metrics and logs, and design callbacks to be idempotent so repeated topology setup is safe.",
+      "keywords": [
+        "connection",
+        "channel",
+        "multiplexing",
+        "protocol exception",
+        "redelivery",
+        "recovery"
+      ],
+      "followups": [
+        {
+          "q": "Does a channel error always close the connection?",
+          "a": "Not necessarily; scope depends on the protocol error and client/server behavior."
+        },
+        {
+          "q": "Can all application threads share one channel?",
+          "a": "Follow the client library's concurrency contract; use isolated channels when concurrent protocol operations are unsafe."
+        }
+      ],
+      "trap": "Rebuilding only the socket and assuming consumers, confirms and channel-scoped state came back automatically.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check channel thread-safety and automatic-recovery behavior for the exact RabbitMQ client release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-063",
+      "topic": "RabbitMQ acknowledgements after cancellation",
+      "question": "What should a consumer do with in-flight RabbitMQ deliveries when it is cancelled or shutting down?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:CICD",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Stop accepting new deliveries, then finish or safely cancel work already received within a bounded shutdown deadline. Acknowledge only tasks whose side effects reached the intended durable boundary; leave unfinished work unacknowledged so broker redelivery can recover it, while ensuring the channel is closed according to the client lifecycle. If a task completed but its acknowledgement is uncertain, the handler must tolerate redelivery. I would coordinate shutdown with the service's deployment grace period, cap in-flight concurrency, and test termination during database work and during acknowledgement to expose both loss and duplicate windows.",
+      "keywords": [
+        "consumer cancellation",
+        "in-flight work",
+        "shutdown deadline",
+        "acknowledgement",
+        "redelivery",
+        "graceful stop"
+      ],
+      "followups": [
+        {
+          "q": "Should shutdown acknowledge all deliveries to finish quickly?",
+          "a": "No. Acknowledging incomplete effects can permanently lose work."
+        },
+        {
+          "q": "What if the process deadline expires?",
+          "a": "Allow unacknowledged work to be redelivered and ensure repeated effects are safe."
+        }
+      ],
+      "trap": "Treating a cancellation notification as proof all application tasks stopped or completed.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify cancellation callback and channel-close behavior for the deployed RabbitMQ client version.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-064",
+      "topic": "RabbitMQ virtual hosts",
+      "question": "What isolation does a RabbitMQ virtual host provide, and what does it not isolate?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A virtual host provides a namespace for exchanges, queues, bindings and related permissions, allowing applications or environments to avoid name collisions and apply separate access rules. It is not a separate broker process or guaranteed resource boundary: CPU, memory, disk, cluster availability and some operational limits are shared. Credentials and permissions must be scoped to the intended vhost, and clients must connect to the correct one. I would use vhosts to organize trust and lifecycle boundaries while still using broker-level capacity controls and monitoring to prevent one tenant from exhausting shared resources.",
+      "keywords": [
+        "virtual host",
+        "namespace",
+        "permissions",
+        "shared resources",
+        "tenant isolation",
+        "capacity"
+      ],
+      "followups": [
+        {
+          "q": "Does a vhost isolate disk or CPU?",
+          "a": "Not as an independent physical broker; infrastructure resources remain shared."
+        },
+        {
+          "q": "Why is naming the correct vhost important?",
+          "a": "A client can authenticate successfully yet declare or consume from a different namespace than intended."
+        }
+      ],
+      "trap": "Treating vhost separation as complete resource or failure isolation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm vhost permission and resource-limit behavior against the deployed RabbitMQ release and configuration.]"
+      ],
+      "notes": "Unverified defensive operations pattern."
+    },
+    {
+      "id": "JH-S10-065",
+      "topic": "RabbitMQ TLS",
+      "question": "What does TLS protect for a RabbitMQ connection, and what authorization remains necessary?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:OAuth"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "TLS protects confidentiality and integrity of the transport and, when configured for mutual authentication, can authenticate a client certificate to the broker. The broker must still map the authenticated identity to permissions for the intended virtual host, exchanges, queues and operations. A trusted server certificate must be validated by the client; disabling hostname or chain checks defeats important peer authentication. Certificate rotation, protocol versions and cipher choices should follow the organization's supported policy. I would test both trusted and rejected peers, least-privilege authorization and renewal before expiry, and avoid logging private key material.",
+      "keywords": [
+        "TLS",
+        "server validation",
+        "client certificate",
+        "identity mapping",
+        "vhost permissions",
+        "rotation"
+      ],
+      "followups": [
+        {
+          "q": "Does encryption grant access to a queue?",
+          "a": "No. Authentication and authorization determine the permitted operations separately."
+        },
+        {
+          "q": "Is accepting any server certificate safe inside a private network?",
+          "a": "No. It removes peer identity validation and leaves the connection vulnerable to impersonation."
+        }
+      ],
+      "trap": "Equating encrypted transport with authenticated, authorized messaging.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Check TLS listener, client-authentication and certificate-mapping configuration for the deployed RabbitMQ release.]"
+      ],
+      "notes": "Unverified defensive security pattern."
+    },
+    {
+      "id": "JH-S10-066",
+      "topic": "RabbitMQ cluster versus federation",
+      "question": "How do clustering, federation and shovel solve different RabbitMQ connectivity needs?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A cluster groups broker nodes into one broker deployment with shared operational topology and node-failure behavior determined by queue type. Federation connects exchanges or queues across broker boundaries with looser coupling, while a shovel moves messages between endpoints through a configured forwarding process. These choices differ in latency, autonomy, network partition behavior, topology ownership and duplicate risk. None should be treated as a magical global queue. I would begin with the failure and administrative boundaries, then verify delivery semantics, loop prevention, credentials and recovery behavior for the selected feature and RabbitMQ version.",
+      "keywords": [
+        "cluster",
+        "federation",
+        "shovel",
+        "broker boundary",
+        "network partition",
+        "duplicate risk"
+      ],
+      "followups": [
+        {
+          "q": "Does clustering automatically create a globally replicated queue?",
+          "a": "No; queue type and placement determine data replication and availability."
+        },
+        {
+          "q": "What should a cross-broker bridge monitor?",
+          "a": "Source and destination rates, link health, backlog age, retries and duplicate or loop conditions."
+        }
+      ],
+      "trap": "Using clustering, federation and shovel as interchangeable terms for replication.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify current supported feature behavior and queue-type interactions for the deployed RabbitMQ release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-067",
+      "topic": "Messaging correlation",
+      "question": "How should correlation and trace context travel through asynchronous messaging?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:RabbitMQ",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Propagate a stable correlation identifier and supported trace context in agreed message metadata, then extract it when the consumer starts a new processing span. A message may be delayed, retried or handled by another process, so logs should include event identity and broker coordinates without exposing payload secrets. Trace context is diagnostic input, not authorization, and should be validated and bounded. Retries may create multiple spans for one event; distinguish event identity from individual processing attempts. I would test propagation across producer, broker and consumer and ensure sampling does not erase operational metrics needed for queue health.",
+      "keywords": [
+        "correlation ID",
+        "trace context",
+        "event identity",
+        "processing attempt",
+        "message headers",
+        "redaction"
+      ],
+      "followups": [
+        {
+          "q": "Can a trace ID authorize access?",
+          "a": "No. Observability metadata is not an authenticated permission claim."
+        },
+        {
+          "q": "Should every retry reuse the same trace span?",
+          "a": "No; preserve causal linkage but represent each processing attempt appropriately in the tracing model."
+        }
+      ],
+      "trap": "Treating a caller-supplied correlation header as trusted identity or logging full sensitive payloads.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify the tracing library's messaging propagation convention and broker instrumentation support in use.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-068",
+      "topic": "Kafka consumer group identity",
+      "question": "What happens when a Kafka application changes its consumer group ID?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A new group ID has independent committed offsets, so it typically behaves like a new subscriber and applies the configured initial-position policy rather than resuming the old group's progress. That can replay retained data, start later than expected or create a second full processing stream. The old group metadata remains subject to retention. I would treat group ID changes as data migrations: document intended replay, check idempotent side effects and capacity, and coordinate deployment so old and new groups do not unintentionally compete or duplicate business actions.",
+      "keywords": [
+        "group ID",
+        "independent offsets",
+        "initial position",
+        "replay",
+        "duplicate processing",
+        "migration"
+      ],
+      "followups": [
+        {
+          "q": "Does a renamed group inherit the old offset automatically?",
+          "a": "No. Offset transfer requires an explicit supported migration; group IDs do not imply shared progress."
+        },
+        {
+          "q": "Why might a new group be intentional?",
+          "a": "It can create an independent subscription or controlled replay, if duplicate effects and load are handled."
+        }
+      ],
+      "trap": "Changing the group name as a harmless deployment detail.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Confirm offset-reset behavior and group migration tooling for the deployed Kafka release.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-069",
+      "topic": "Kafka topic governance",
+      "question": "What topic-level choices should be agreed before a production event stream is created?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Define the owner, event contract, key and ordering domain, expected throughput, partition and replication strategy, retention or compaction policy, access controls and schema evolution rules. Establish naming and environment conventions so test data or one team's consumer cannot collide with production. Document who can create or alter topics and how changes are reviewed and rolled out. These settings affect replay, storage, availability and downstream parallelism, so defaults should not silently become the contract. I would automate validated provisioning and review actual broker policies, while leaving capacity numbers as measured assumptions that need monitoring.",
+      "keywords": [
+        "ownership",
+        "event contract",
+        "partitioning",
+        "retention",
+        "ACL",
+        "schema evolution",
+        "automation"
+      ],
+      "followups": [
+        {
+          "q": "Why document the partition key?",
+          "a": "It encodes the ordering and distribution decision that consumers may depend on."
+        },
+        {
+          "q": "Should applications create topics automatically?",
+          "a": "Only under a controlled policy; implicit creation can hide naming and configuration errors."
+        }
+      ],
+      "trap": "Creating a production topic with defaults and no owner, retention, access or replay decision.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: Verify broker auto-creation and topic-policy enforcement for the target environment.]"
+      ],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S10-070",
+      "topic": "Kafka versus RabbitMQ",
+      "question": "How would you choose between Kafka and RabbitMQ for a new asynchronous workflow?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E2",
+      "frequency": "seen in 2 sources",
+      "companies": [
+        {
+          "name": "Impetus",
+          "sources": [
+            "S008"
+          ],
+          "year": null
+        },
+        {
+          "name": "Randstad",
+          "sources": [
+            "S015"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:RabbitMQ",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Start from the message contract and recovery need. Kafka is a partitioned retained log suited to replayable streams, independent consumer groups and high-throughput ordered partitions. RabbitMQ routes deliveries through exchanges and queues, with acknowledgements, queue-oriented work distribution and flexible routing. Either can support durable asynchronous processing, and either can be misconfigured. Compare per-entity ordering, replay window, consumer behavior, routing, latency, operations, retention cost and team expertise. I would model failure and duplicate handling before choosing, then validate load and recovery on the intended topology instead of selecting by a generic throughput slogan.",
+      "keywords": [
+        "retained log",
+        "exchange routing",
+        "consumer groups",
+        "work queue",
+        "replay",
+        "ordering",
+        "operations"
+      ],
+      "followups": [
+        {
+          "q": "Is Kafka only for analytics?",
+          "a": "No. It can support operational event streams when its partitioned-log and retention model fits."
+        },
+        {
+          "q": "Is RabbitMQ only for request-response?",
+          "a": "No. It supports asynchronous work queues and routed messaging; select features from the needed contract."
+        }
+      ],
+      "trap": "Claiming one broker is universally faster, more reliable or a drop-in substitute for the other.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern. Reported in user-provided interview notes, item 8.1 (Impetus, Randstad)."
+    },
+    {
+      "id": "JH-S10-071",
+      "topic": "Consumer lag",
+      "question": "Producers are faster than consumers. How do you handle growing lag?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Impetus",
+          "sources": [
+            "S008"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:RabbitMQ"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "First measure consumer lag with a tool such as Burrow or the Kafka exporter, and alert on it. Scale consumers horizontally up to the number of partitions in Kafka, adding partitions if you are at the limit; in RabbitMQ add competing consumers. Increase per-consumer throughput with concurrency settings, batch listeners and bulk database writes, and remove per-message round trips, taking care of ordering. Apply back-pressure with bounded queues, prefetch limits and producer throttling. Watch max.poll.interval.ms, because a slow handler triggers rebalances that worsen lag. If consumers are faster than producers, the consumer simply waits in poll() using no CPU, and idle instances can be scaled down, for example with lag-based autoscaling.",
+      "keywords": [
+        "measure consumer lag",
+        "scale up to partition count",
+        "batching and concurrency",
+        "back-pressure",
+        "max.poll.interval.ms",
+        "lag-based autoscaling"
+      ],
+      "followups": [
+        {
+          "q": "Why does adding consumers beyond the partition count not help?",
+          "a": "Each partition is read by one consumer in a group, so extra consumers sit idle."
+        },
+        {
+          "q": "How can a slow handler worsen lag?",
+          "a": "If it exceeds max.poll.interval.ms the consumer is removed and a rebalance pauses processing for the group."
+        }
+      ],
+      "trap": "Adding consumers without checking the partition count or why the handler is slow.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 8.2 (Impetus). Model answer written for this handbook, not copied from the notes. Related: JH-S10-016, JH-S19-055."
+    },
+    {
+      "id": "JH-S10-072",
+      "topic": "Offsets",
+      "question": "What is a Kafka offset, and how do committed offsets and lag relate?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "EY",
+          "sources": [
+            "S014"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "An offset is a record's sequential position within a partition, and a consumer group tracks its progress per topic and partition. The current position is the next record to read, the committed offset is the last acknowledged position stored in the internal __consumer_offsets topic, and the log-end offset is the newest record; lag is the log-end offset minus the committed offset. Auto-commit on a timer can commit before processing finishes and lose messages, so committing manually after processing gives at-least-once delivery. auto.offset.reset (earliest, latest or none) decides where to start when no committed offset exists. A consumer can seek to an offset or timestamp to replay records.",
+      "keywords": [
+        "per-partition sequence",
+        "committed versus current offset",
+        "__consumer_offsets",
+        "lag definition",
+        "manual commit after processing",
+        "auto.offset.reset"
+      ],
+      "followups": [
+        {
+          "q": "Why can auto-commit lose messages?",
+          "a": "It may commit offsets for records whose processing has not finished, so a crash skips them."
+        },
+        {
+          "q": "What does auto.offset.reset control?",
+          "a": "Where a group starts when it has no valid committed offset: earliest, latest or fail with none."
+        }
+      ],
+      "trap": "Describing offsets as global message ids. They are per partition and meaningful only within it.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 8.4 (EY). Model answer written for this handbook, not copied from the notes. Related: JH-S10-014, JH-S10-002, JH-S10-050, JH-S10-068."
+    }
+  ]
+}

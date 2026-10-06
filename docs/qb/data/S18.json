@@ -1,0 +1,2851 @@
+{
+  "section": "S18",
+  "section_title": "Java machine-coding exercises",
+  "questions": [
+    {
+      "id": "JH-S18-001",
+      "topic": "LRU cache implementation",
+      "question": "Implement a bounded, thread-safe LRU cache with lookup, replacement and deterministic eviction tests.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I use an access-ordered LinkedHashMap and protect all accesses with one monitor because get changes recency as well as reading. A put replaces or inserts the value, then removes the oldest entry if capacity is exceeded. The constructor rejects nonpositive capacity and the API rejects null keys and values so a null lookup consistently means absent. Expected lookup and update cost is constant time with ordinary hash distribution, while a key snapshot costs linear time and space; total retained entries are bounded by capacity. This intentionally favors a simple correctness argument over high write concurrency. The tests cover access-driven eviction, replacement, ordering and invalid capacity, but they are not a concurrency stress proof.",
+      "keywords": [
+        "access-order map",
+        "synchronized get",
+        "bounded capacity",
+        "eviction",
+        "expected O(1)",
+        "edge tests"
+      ],
+      "followups": [
+        {
+          "q": "Why lock get?",
+          "a": "Access-order lookup mutates the ordering structure, so it is not a read-only operation."
+        },
+        {
+          "q": "What is missing for a production cache?",
+          "a": "Weight limits, expiry, metrics, loader behavior and stronger performance testing; a mature cache library may be preferable."
+        }
+      ],
+      "trap": "Treating get on an access-ordered map as safe to run concurrently without coordination.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-001/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Invalid capacity rejected.\nLRU keys: [gamma, alpha]\nLRU assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified interview pattern. Code executed locally; complexity and limitations are stated."
+    },
+    {
+      "id": "JH-S18-002",
+      "topic": "TTL cache implementation",
+      "question": "Implement expire-after-write lookup with a controllable clock and test the exact expiry boundary.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Redis"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Each entry stores its value and creation tick. A lookup compares elapsed monotonic time with the configured TTL and removes expired entries; replacement resets the creation tick. Injecting a LongSupplier clock lets the test advance time without sleeping. Expected map lookup and insertion are constant time, while explicit expiry sweeping is linear in retained entries. Synchronizing operations keeps lookup, expiry checks and replacement coordinated in this small implementation. TTL alone does not bound memory because unread expired entries remain until a sweep, and live entries are unbounded; a production design needs capacity and cleanup policy. The elapsed-time arithmetic assumes a monotonic clock and practical intervals shorter than signed nanosecond wraparound.",
+      "keywords": [
+        "expire after write",
+        "monotonic clock",
+        "boundary test",
+        "lazy expiry",
+        "O(n) sweep",
+        "capacity policy"
+      ],
+      "followups": [
+        {
+          "q": "Why not use wall-clock time for local elapsed TTL?",
+          "a": "Clock adjustments can change apparent elapsed time. Monotonic ticks are more appropriate for process-local durations."
+        },
+        {
+          "q": "Does expiration imply secure revocation?",
+          "a": "Not automatically. Authorization or token revocation may require authoritative checks independent of the local TTL."
+        }
+      ],
+      "trap": "Claiming a TTL makes the cache memory-bounded without an eviction or cleanup policy.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-002/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "TTL boundary, replacement and purge assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified interview pattern. Local deterministic tests executed; production scheduling is intentionally absent."
+    },
+    {
+      "id": "JH-S18-003",
+      "topic": "Stream aggregation implementation",
+      "question": "Aggregate paid order amounts by customer, preserving duplicate contributions and detecting numeric overflow.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "The solution filters paid orders, maps each customer to its integer-cent amount and merges duplicate customer keys with Math.addExact. A TreeMap provides deterministic customer ordering, so for n orders and k customers the main aggregation costs O(n log k) time and O(k) space. Integer minor units avoid floating-point rounding in this simplified single-currency model, but real money modeling also needs currency and scale rules. Checked addition rejects overflow rather than silently wrap the total. Tests cover duplicate customer rows, ignored unpaid orders, empty input and overflow. The example assumes validated non-null orders and customer identifiers; boundary validation belongs in a separate input contract.",
+      "keywords": [
+        "filter",
+        "toMap merge",
+        "Math.addExact",
+        "minor units",
+        "TreeMap",
+        "O(n log k)",
+        "overflow"
+      ],
+      "followups": [
+        {
+          "q": "Why not sum floating-point currency?",
+          "a": "Binary floating-point cannot exactly represent many decimal fractions; choose a deliberate monetary representation and rounding policy."
+        },
+        {
+          "q": "Does merging duplicate keys always mean adding?",
+          "a": "No. The merge function must follow the business contract; this exercise explicitly defines totals."
+        }
+      ],
+      "trap": "Using a duplicate-key collector without a merge rule or silently overflowing a long total.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-003/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Overflow rejected.\nPaid totals in cents: {alpha=350, beta=200}\nAggregation assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified pattern; GAP follows Stream API assessment. Executed locally."
+    },
+    {
+      "id": "JH-S18-004",
+      "topic": "Producer-consumer with BlockingQueue",
+      "question": "Implement a bounded producer-consumer handoff with BlockingQueue, a stop signal, and checks that the consumer finishes and drains submitted work.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I use an ArrayBlockingQueue so the handoff has explicit capacity and producers apply backpressure when it fills. The consumer takes values, processes ordinary items, and exits on a dedicated stop marker. The example submits two integers, then the marker, and joins with a timeout so completion is bounded. Queue insertion and removal are O(1), and storage is O(capacity). This is a single-consumer demonstration: production code must define interruption, multiple-consumer shutdown markers, failure propagation, and whether the marker can collide with valid data. A typed message or separate shutdown protocol avoids that ambiguity.",
+      "keywords": [
+        "ArrayBlockingQueue",
+        "bounded handoff",
+        "backpressure",
+        "stop marker",
+        "interrupt",
+        "shutdown"
+      ],
+      "followups": [
+        {
+          "q": "What happens when the bounded queue is full?",
+          "a": "A blocking put waits for capacity; offer can instead fail or wait for a chosen timeout."
+        },
+        {
+          "q": "How should multiple consumers stop?",
+          "a": "Coordinate shutdown explicitly, commonly with one poison message per consumer or a lifecycle protocol."
+        }
+      ],
+      "trap": "Using an unbounded queue and claiming the consumer is protected from overload, or forgetting to unblock it during shutdown.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-004/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "BlockingQueue sum: 5\nProducer-consumer assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local example executed with bounded completion check."
+    },
+    {
+      "id": "JH-S18-005",
+      "topic": "Immutable monetary value object",
+      "question": "Create an immutable money value object that normalizes a currency code, rejects invalid codes and mixed-currency addition, and detects overflow.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I represent money as a currency code and an integer amount in minor units, rather than binary floating point. A record gives immutable value-based equality. Its compact constructor requires a currency, normalizes it with Locale.ROOT, and checks the expected three-letter shape. Addition verifies both currencies match, then uses Math.addExact so overflow is reported rather than wrapped. Each operation is O(1). This sample does not encode currency-specific decimal scales, rounding, formatting, or full ISO currency validation. A production monetary model must define those rules and avoid assuming every currency has two fraction digits.",
+      "keywords": [
+        "immutable record",
+        "minor units",
+        "currency validation",
+        "Locale.ROOT",
+        "Math.addExact",
+        "value equality"
+      ],
+      "followups": [
+        {
+          "q": "Why store minor units instead of double?",
+          "a": "Binary floating point cannot exactly represent many decimal fractions; integer units avoid that representation error for a defined scale."
+        },
+        {
+          "q": "Is a three-letter regex full currency validation?",
+          "a": "No. It checks shape only; production code needs an authoritative currency registry and explicit scale rules."
+        }
+      ],
+      "trap": "Adding values with different currencies or using double without a rounding and precision policy.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-005/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Mixed currency rejected.\nInvalid currency rejected.\nImmutable value object: Money[currency=INR, minorUnits=200]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local example executed."
+    },
+    {
+      "id": "JH-S18-006",
+      "topic": "Enum singleton",
+      "question": "Implement a singleton with Java enum semantics and demonstrate that repeated access returns the same instance and state.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "For a simple singleton, I use a single-element enum. The JVM initializes the constant as part of class initialization, which is safely coordinated, and callers retrieve the same INSTANCE instead of constructing instances themselves. The example checks reference identity and reads its fixed state. Access is O(1), with no application-level synchronization. This suits a stateless or process-local object, but it does not create a cluster-wide singleton, guarantee uniqueness across separate class loaders, or solve lifecycle and dependency-injection concerns. In a managed application I would usually let the container own the service lifecycle.",
+      "keywords": [
+        "enum singleton",
+        "class initialization",
+        "identity",
+        "thread safety",
+        "class loader",
+        "container lifecycle"
+      ],
+      "followups": [
+        {
+          "q": "Why is enum often preferred over a lazy holder?",
+          "a": "It is concise and handles serialization and reflective construction protections better than common hand-written patterns."
+        },
+        {
+          "q": "Does it guarantee one instance across a cluster?",
+          "a": "No. It is one instance per defining class loader in a JVM; distributed coordination is separate."
+        }
+      ],
+      "trap": "Calling an in-process singleton globally unique or ignoring class-loader boundaries.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-006/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Enum singleton identity and state assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local example executed."
+    },
+    {
+      "id": "JH-S18-007",
+      "topic": "Token-bucket rate limiter",
+      "question": "Implement a synchronized token bucket with a fake clock, bounded capacity, periodic refill, and deterministic acquisition checks.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Resilience",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The bucket starts full up to its configured capacity. On synchronized acquire, I read an injected clock, calculate complete refill periods, add tokens while capping at capacity, advance the refill boundary, and consume one token if available. A fake clock makes the burst and exact refill boundary deterministic without sleeping. Acquisition is O(1) and state is O(1), excluding arithmetic edge cases. This implementation refills in discrete periods, not continuously, and has no distributed coordination. Production use needs overflow-safe time arithmetic, a documented rate and burst contract, and shared state when multiple processes must enforce one limit.",
+      "keywords": [
+        "token bucket",
+        "burst capacity",
+        "fake clock",
+        "synchronized state",
+        "discrete refill",
+        "distributed limit"
+      ],
+      "followups": [
+        {
+          "q": "How does a token bucket differ from a fixed window?",
+          "a": "It allows a bounded burst and replenishes capacity over time; a fixed window resets its count at boundaries."
+        },
+        {
+          "q": "What changes for a fleet-wide quota?",
+          "a": "Coordinate shared state or deliberately partition the quota; a synchronized local object is per process."
+        }
+      ],
+      "trap": "Claiming an in-memory bucket enforces one global limit or ignoring refill arithmetic overflow.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-007/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Token bucket capacity and fake-clock refill assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic fake-clock example executed."
+    },
+    {
+      "id": "JH-S18-008",
+      "topic": "Log parsing and error aggregation",
+      "question": "Parse pipe-delimited log rows, reject malformed input, filter error events, and count errors by service in deterministic order.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Observability",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I split each line at most twice so the message may itself contain the delimiter, then validate that level and service are present. Parsed rows are immutable records. A stream filters ERROR rows and groups by service with counting; a TreeMap makes output deterministic. For n rows and k services, aggregation is O(n log k) with ordered-map storage O(k), while parsing is linear in input size. This is an in-memory example, not a production log pipeline: it lacks escaping rules, timestamps, structured schemas, streaming limits, and a richer malformed-record policy. Those contracts must be set before processing operational logs.",
+      "keywords": [
+        "split limit",
+        "input validation",
+        "Stream API",
+        "groupingBy",
+        "TreeMap",
+        "O(n log k)"
+      ],
+      "followups": [
+        {
+          "q": "Why limit the split to three fields?",
+          "a": "It preserves later delimiter characters in the message instead of treating them as extra columns."
+        },
+        {
+          "q": "How would you handle a large log file?",
+          "a": "Process incrementally with bounded buffering and avoid collecting every parsed row in memory."
+        }
+      ],
+      "trap": "Splitting without a field limit and silently accepting malformed records or losing message text.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-008/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Malformed log line rejected.\nError counts: {auth=1, billing=2}\nLog parsing assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local example executed."
+    },
+    {
+      "id": "JH-S18-009",
+      "topic": "Bounded ThreadPoolExecutor",
+      "question": "Configure a single-worker ThreadPoolExecutor with a bounded queue and rejection policy, then verify overload is rejected and accepted work completes.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Framework"
+      ],
+      "harsh_status": "GAP",
+      "answer": "I configure ThreadPoolExecutor with one worker, a one-slot ArrayBlockingQueue, and AbortPolicy. A latch holds the first task while a second waits in the queue; submitting a third task deterministically exercises rejection. Releasing the worker, shutting down, and awaiting termination checks accepted work completion. Worker count and queue capacity bound active and queued tasks, so retained work is O(queue capacity plus workers). Rejection is explicit, but this sample does not decide whether callers retry, shed load, or block. Production sizing must account for task duration, downstream capacity, shutdown behavior, and surfaced task failures.",
+      "keywords": [
+        "ThreadPoolExecutor",
+        "bounded queue",
+        "AbortPolicy",
+        "backpressure",
+        "shutdown",
+        "task failure"
+      ],
+      "followups": [
+        {
+          "q": "Why not use an unbounded work queue?",
+          "a": "It can accumulate work without bound during overload, increasing memory use and latency."
+        },
+        {
+          "q": "What does awaitTermination guarantee?",
+          "a": "It waits up to a timeout; callers must still inspect task outcomes and handle timeout."
+        }
+      ],
+      "trap": "Treating thread count alone as a capacity limit while leaving the work queue unbounded.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-009/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Bounded executor rejected overflow and completed accepted tasks."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Bounded latch-driven local example executed."
+    },
+    {
+      "id": "JH-S18-010",
+      "topic": "Deadlock-safe account transfer",
+      "question": "Implement opposing account transfers without lock-order deadlock, preserve total funds, and reject negative amounts.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I reject negative amounts first. To prevent two transfers acquiring the same monitors in opposite order, I order accounts by stable ID and always lock the lower ID first. Under both locks, I check the source balance, then debit and credit within one critical section. A transfer is O(1), and this global order removes the circular-wait pattern for this pair. The sample's int balances can overflow and IDs must be unique and stable. A production transfer also needs transactional persistence, authorization, currency rules, and recovery semantics beyond in-memory synchronization.",
+      "keywords": [
+        "global lock order",
+        "nested monitors",
+        "atomic transfer",
+        "deadlock",
+        "invariant",
+        "overflow"
+      ],
+      "followups": [
+        {
+          "q": "Why must account ordering be stable?",
+          "a": "Every thread must derive the same order for a pair regardless of transfer direction."
+        },
+        {
+          "q": "Does locking make the operation durable?",
+          "a": "No. It coordinates threads only in this process; persistence and cross-process transfers need another protocol."
+        }
+      ],
+      "trap": "Locking source and destination in caller order, allowing opposite transfers to form a cycle.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-010/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Negative transfer rejected.\nOpposite-direction transfers finished; total cents: 2000"
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Bounded two-thread stress example executed."
+    },
+    {
+      "id": "JH-S18-011",
+      "topic": "Resource pool lease lifecycle",
+      "question": "Build a small resource pool that returns closeable leases, prevents use after close, and returns a resource at most once.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The pool stores available resources in a bounded ArrayBlockingQueue. Acquisition polls and returns null when exhausted; successful acquisition transfers ownership into a Lease. The lease rejects access after close and clears its reference before returning the resource, so repeated close is harmless. Queue operations are O(1), with O(pool size) retained resources. This example omits blocking acquisition, resource creation and validation, shutdown, and concurrent lifecycle policy. A production pool should discard a broken resource rather than return it as healthy, and callers should use try-with-resources to close leases reliably, including when work throws.",
+      "keywords": [
+        "resource ownership",
+        "AutoCloseable",
+        "try-with-resources",
+        "bounded queue",
+        "idempotent close",
+        "use after close"
+      ],
+      "followups": [
+        {
+          "q": "Why clear the lease reference before returning the resource?",
+          "a": "It marks the lease closed before another close can return the same resource again."
+        },
+        {
+          "q": "Should every resource be returned after an exception?",
+          "a": "No. If its state may be corrupted, invalidate and replace it instead of reusing it."
+        }
+      ],
+      "trap": "Returning a resource on every close without tracking lease state, enabling duplicate checkout.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-011/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Closed lease rejected; resource returned once."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local lifecycle example executed."
+    },
+    {
+      "id": "JH-S18-012",
+      "topic": "Idempotency key registry",
+      "question": "Implement an in-memory idempotency registry that replays the first result for an identical request and rejects key reuse for different input.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:REST",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I store each idempotency key with the original request and result. An equal replay returns the saved result without invoking the action again; a different request on the same key is rejected as a conflict. The synchronized method makes lookup, action, and insertion atomic in this small implementation. HashMap lookup is expected O(1), but holding the monitor during the action serializes unrelated requests. This registry is process-local and unbounded. A real payment API needs durable storage, expiry, request canonicalization, concurrency design, and transaction coordination with the side effect; otherwise a crash can lose the record after an external effect happened.",
+      "keywords": [
+        "idempotency key",
+        "request fingerprint",
+        "replay result",
+        "conflict",
+        "durable store",
+        "side-effect atomicity"
+      ],
+      "followups": [
+        {
+          "q": "Why store the request with the result?",
+          "a": "It detects accidental reuse of a key for a semantically different operation."
+        },
+        {
+          "q": "Does this guarantee exactly-once execution across crashes?",
+          "a": "No. In-memory state is lost on restart; durable idempotency must coordinate transactionally with the side effect."
+        }
+      ],
+      "trap": "Calling an in-memory map durable exactly-once execution or replaying a result for a different request.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-012/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Conflicting idempotency key rejected.\nReplay returned receipt-1; action calls: 1"
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local replay example executed."
+    },
+    {
+      "id": "JH-S18-013",
+      "topic": "Size-bounded batch writer",
+      "question": "Implement a generic batch accumulator that flushes at a configured size, supports a final partial flush, and treats an empty flush as harmless.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL",
+        "R:Informatica",
+        "R:MuleSoft",
+        "R:Anaplan"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The batcher validates a positive limit, appends each item, and flushes when the pending list reaches that size. Flush copies pending values into an immutable batch and clears the accumulator; an empty flush does nothing. This example retains completed batches for inspection, so total memory is O(n) across all input. A real writer that discards successful batches can keep pending memory to O(limit). Appending is amortized O(1), and each item is copied once during flush. The code does not perform I/O or define retries, partial writes, ordering, or backpressure; those belong in the writer contract.",
+      "keywords": [
+        "batch size",
+        "partial flush",
+        "immutable snapshot",
+        "input validation",
+        "amortized O(1)",
+        "backpressure"
+      ],
+      "followups": [
+        {
+          "q": "Why copy pending values before clearing?",
+          "a": "The emitted batch must remain stable while the mutable accumulator is reused."
+        },
+        {
+          "q": "What if writing a batch fails?",
+          "a": "Define retry and acknowledgement semantics so records are neither lost nor duplicated."
+        }
+      ],
+      "trap": "Clearing or reusing the same mutable list after handing it to an asynchronous writer.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-013/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Invalid batch limit rejected.\nFlushed batches: [[1, 2], [3]]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local batching example executed."
+    },
+    {
+      "id": "JH-S18-014",
+      "topic": "Deduplicating delayed scheduler",
+      "question": "Implement a delayed scheduler keyed by job name so rescheduling replaces the current job and stale queue entries never execute.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I keep the latest task per key in a map and queue task records ordered by due time, then insertion sequence. Rescheduling updates the map and adds a record; when a record is due, it runs only if the map still points to that exact record. This identity check makes old entries stale without searching the heap. Scheduling is O(log n); due removal is O(log n), and map lookup is expected O(1). Stale records consume memory until their deadlines. This sample has no worker thread, cancellation result, overflow-safe deadline arithmetic, or persistence. A production scheduler needs explicit lifecycle, bounded storage, and failure handling for task execution.",
+      "keywords": [
+        "priority queue",
+        "due-time ordering",
+        "sequence tie-break",
+        "stale entry",
+        "map identity",
+        "O(log n)"
+      ],
+      "followups": [
+        {
+          "q": "Why not remove the old task from the heap?",
+          "a": "A standard priority queue lacks efficient keyed removal; lazy stale-entry checks simplify rescheduling."
+        },
+        {
+          "q": "How can stale-entry growth be bounded?",
+          "a": "Use an indexed heap, periodic compaction, or a scheduler with explicit cancellation and memory limits."
+        }
+      ],
+      "trap": "Running every due heap record without checking that it is still current for its key.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-014/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Deduplicated schedule ran latest task once: 2"
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Fake-clock deterministic scheduler example executed."
+    },
+    {
+      "id": "JH-S18-015",
+      "topic": "Fixed-window rate limiter",
+      "question": "Implement a synchronized fixed-window request limit with an injected clock and verify the exact reset boundary.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Resilience",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I map the clock value to a window number using floor division by the configured width. When the number changes, I reset the accepted count; otherwise I reject at the limit and increment for allowed requests. Synchronization keeps the window and counter update atomic. Each decision is O(1) time and O(1) space, and an injected clock tests the boundary without sleeping. Fixed windows can permit a burst around adjacent boundaries, and this state is local to one process. Production use must choose a suitable time source and distributed coordination strategy, and consider a token or sliding-window algorithm if boundary bursts are unacceptable.",
+      "keywords": [
+        "fixed window",
+        "floorDiv",
+        "synchronized counter",
+        "boundary reset",
+        "burst behavior",
+        "O(1)"
+      ],
+      "followups": [
+        {
+          "q": "Why use floorDiv instead of integer division?",
+          "a": "It gives consistent window indices for negative timestamps as well as positive ones."
+        },
+        {
+          "q": "What is the boundary-burst problem?",
+          "a": "A client may use the full allowance just before reset and another full allowance immediately after."
+        }
+      ],
+      "trap": "Assuming a fixed-window quota enforces a smooth rate without boundary bursts.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-015/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Fixed-window limit and window-boundary assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic fake-clock example executed."
+    },
+    {
+      "id": "JH-S18-016",
+      "topic": "Circuit breaker state machine",
+      "question": "Implement a circuit breaker with closed, open, and half-open states, a failure threshold, reset interval, and successful-probe recovery.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Resilience",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The breaker begins closed and permits calls. Failures increment a counter; reaching the threshold opens it and records the opening time. While open, permit rejects calls until the reset interval elapses, when state moves to half-open and allows a probe. Success closes the breaker and clears failures; failed probing reopens it. State transitions are O(1) with O(1) storage. This sample has no concurrency control, rolling failure window, slow-call policy, or limit on probes, so multiple callers could probe together. A production breaker needs thread-safe transitions and metrics aligned with dependency behavior; libraries also offer policies and observability that this small state machine lacks.",
+      "keywords": [
+        "closed",
+        "open",
+        "half-open",
+        "failure threshold",
+        "probe",
+        "reset interval"
+      ],
+      "followups": [
+        {
+          "q": "Why permit a half-open probe?",
+          "a": "It checks recovery without immediately restoring unrestricted traffic."
+        },
+        {
+          "q": "What is missing for concurrent callers?",
+          "a": "Atomic transitions and a policy limiting half-open probes, often with rolling statistics."
+        }
+      ],
+      "trap": "Treating half-open as closed and sending unrestricted traffic to a dependency that may remain unhealthy.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-016/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Circuit breaker open, probe-success and recovery assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Fake-clock state-transition example executed."
+    },
+    {
+      "id": "JH-S18-017",
+      "topic": "Sliding-window rate limiter",
+      "question": "Implement a synchronized sliding-window limiter that expires accepted timestamps at the exact boundary and rejects clock rollback.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Resilience",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I store accepted request times in an ArrayDeque ordered by arrival. Each synchronized decision rejects a clock value earlier than the previous one, removes timestamps whose age is at least the window width, and allows a request only while fewer than the limit remain. Each timestamp enters and leaves once, so work is amortized O(1) per decision and space is O(limit). A monotonic clock is preferable for elapsed time; injection makes tests deterministic. This exact log retains a timestamp per accepted event and is local to one process, unlike compact approximate or distributed alternatives. The boundary definition must match the API contract, especially whether an event exactly one window old still counts.",
+      "keywords": [
+        "sliding window",
+        "timestamp deque",
+        "expiry boundary",
+        "monotonic time",
+        "amortized O(1)",
+        "clock rollback"
+      ],
+      "followups": [
+        {
+          "q": "Why expire entries whose age equals the width?",
+          "a": "The implementation defines the active interval as strictly less than the width, so the boundary event has expired."
+        },
+        {
+          "q": "How does memory compare with a fixed counter?",
+          "a": "The exact log retains up to one timestamp per allowed event, so memory scales with the limit."
+        }
+      ],
+      "trap": "Silently accepting clock rollback or retaining events at an already-expired boundary.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-017/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Clock rollback rejected.\nSliding-window expiry and capacity assertions passed."
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Fake-clock deterministic example executed."
+    },
+    {
+      "id": "JH-S18-018",
+      "topic": "Capped exponential retry policy",
+      "question": "Calculate capped exponential retry delays for valid attempts, validate policy configuration, and avoid overflow during delay growth.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Resilience",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The policy treats attempt one as the initial call, so delays are valid only for attempts two through the maximum. Starting at the initial delay, each retry doubles the previous value but clamps at the configured maximum. Before multiplying, the implementation checks whether doubling would cross the cap, avoiding overflow in this bounded calculation. Computing attempt a takes O(a) time and O(1) space. This method returns a delay only; it does not invoke or sleep between calls, classify retryable failures, or enforce a deadline. A real policy should include jitter and consider server retry hints to reduce synchronized retry storms.",
+      "keywords": [
+        "exponential backoff",
+        "attempt numbering",
+        "maximum delay",
+        "overflow guard",
+        "jitter",
+        "retry classification"
+      ],
+      "followups": [
+        {
+          "q": "Why add jitter?",
+          "a": "It spreads client retries over time and reduces synchronized bursts against a shared dependency."
+        },
+        {
+          "q": "Should every failure be retried?",
+          "a": "No. Retry only transient failures and respect idempotency and deadline constraints."
+        }
+      ],
+      "trap": "Retrying indefinitely or retrying non-idempotent operations without considering duplicate effects.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-018/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Invalid retry attempt rejected.\nInvalid retry policy rejected.\nCapped retry delays: 100, 200, 350, 350 ms"
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local policy example executed."
+    },
+    {
+      "id": "JH-S18-019",
+      "topic": "Single-flight request coalescing",
+      "question": "Coalesce concurrent loads for the same key so callers share one in-flight result, propagate failures, and allow retry after failure.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Redis",
+        "R:Framework"
+      ],
+      "harsh_status": "SHAKY",
+      "answer": "For each key, I create a candidate CompletableFuture and use ConcurrentHashMap.putIfAbsent to elect one caller as loader. The winner computes and completes the future; other callers join that existing future. The winner removes only its own mapping in finally, so a failed load is not retained and a later call can retry. Map operations are expected O(1), while callers wait for the load. This coalesces overlapping requests but is not a value cache. The example lacks cancellation isolation, timeouts, recursion protection, and admission limits. Catching Throwable also deserves care because fatal JVM errors should not normally be treated as ordinary loader failures.",
+      "keywords": [
+        "putIfAbsent",
+        "in-flight future",
+        "request coalescing",
+        "failure propagation",
+        "conditional removal",
+        "not a cache"
+      ],
+      "followups": [
+        {
+          "q": "Why remove with remove(key, mine)?",
+          "a": "Conditional removal prevents an older load from deleting a newer future installed for that key."
+        },
+        {
+          "q": "Does single-flight cache successful values?",
+          "a": "No. This code removes the in-flight entry after completion; later reuse requires a separate cache."
+        }
+      ],
+      "trap": "Retaining failed futures forever or presenting in-flight deduplication as completed-result caching.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-019/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Loader failure propagated.\nConcurrent requests shared one load; calls: 1"
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Bounded two-caller concurrency example executed."
+    },
+    {
+      "id": "JH-S18-020",
+      "topic": "Atomic configuration snapshots",
+      "question": "Publish immutable configuration snapshots atomically and replace them only when the caller supplies the current expected version.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I represent configuration as an immutable record and keep the current snapshot in an AtomicReference. Readers get a stable reference without locking, so a held snapshot keeps its original values after replacement. An update checks the expected version, rejects a nonincreasing next version, then uses compareAndSet to publish only if the reference has not changed. Reads and a successful CAS are O(1). Another writer can make CAS fail, so callers need a retry or conflict policy. This example does not validate endpoint syntax or coordinate processes. All settings that must change coherently need to be part of the same immutable versioned object.",
+      "keywords": [
+        "immutable snapshot",
+        "AtomicReference",
+        "compareAndSet",
+        "expected version",
+        "stale update",
+        "lock-free read"
+      ],
+      "followups": [
+        {
+          "q": "Why immutable snapshots instead of updating fields individually?",
+          "a": "One reference publication lets readers observe a coherent configuration, not a mixture of old and new fields."
+        },
+        {
+          "q": "What should a caller do when compareAndSet returns false?",
+          "a": "Treat it as a concurrent conflict and reload, retry under a defined policy, or report rejection."
+        }
+      ],
+      "trap": "Checking a version and then publishing unconditionally, allowing a stale writer to overwrite a newer snapshot.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-020/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Nonincreasing config version rejected.\nAtomic config snapshot: Config[version=2, endpoint=service, timeoutMillis=250]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern. Deterministic local snapshot and stale-update example executed."
+    },
+    {
+      "id": "JH-S18-021",
+      "topic": "CSV record state machine",
+      "question": "Parse a single CSV record with quoted commas and escaped quotes, rejecting malformed quoting.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I scan the record once while tracking unquoted, quoted and just-closed-quote states. A delimiter ends an unquoted field; inside quotes it is data. A doubled quote represents one literal quote, and unexpected text after a closing quote is rejected. The tests cover embedded delimiters, escaped quotes, empty fields and malformed quoting. Processing is O(n) time and O(n) output space. This is a deliberately limited single-record exercise, not a full CSV file reader: it does not handle records spanning input lines, encoding or a configurable dialect. Production ingestion should normally use an established parser with those contracts defined.",
+      "keywords": [
+        "state machine",
+        "quoted delimiter",
+        "escaped quote",
+        "validation",
+        "O(n)",
+        "CSV dialect"
+      ],
+      "followups": [
+        {
+          "q": "Why is splitting on commas insufficient?",
+          "a": "A comma within quotes belongs to a field, so parsing requires quote-state awareness."
+        },
+        {
+          "q": "Does accepting a record prove its business fields are valid?",
+          "a": "No. CSV syntax validation is separate from schema, type and domain validation."
+        }
+      ],
+      "trap": "Claiming this one-record parser supports every CSV file convention.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-021/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Unclosed CSV quote rejected.\nTrailing CSV text rejected.\nCSV fields: [42, Doe, Jane, said \"hello\"]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; intentionally limited parser exercise."
+    },
+    {
+      "id": "JH-S18-022",
+      "topic": "Rolling percentile window",
+      "question": "Maintain the last N latency samples and calculate a nearest-rank percentile with input validation.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I retain samples in an ArrayDeque with a fixed count capacity, evicting the oldest sample on insertion when full. A percentile request copies and sorts the current window, then selects the nearest-rank position using the requested fraction. Insertion is amortized O(1), percentile calculation is O(N log N), and storage plus a query snapshot is O(N). Empty windows, negative latencies and nonfinite or out-of-range percentile fractions are rejected. This sample is single-threaded and count-windowed, not a time-windowed distributed histogram. Its exact retained-sample percentile is not automatically comparable with aggregated percentiles from other instances.",
+      "keywords": [
+        "bounded deque",
+        "nearest rank",
+        "sorting",
+        "percentile fraction",
+        "O(N log N)",
+        "count window"
+      ],
+      "followups": [
+        {
+          "q": "Can you average instance p95 values to get global p95?",
+          "a": "Not generally. The underlying distributions and weights matter; merge suitable distributions or samples instead."
+        },
+        {
+          "q": "What changes for high-frequency queries?",
+          "a": "Use a more suitable histogram or order-statistic structure with an explicit accuracy and memory contract."
+        }
+      ],
+      "trap": "Treating a fixed sample count as a fixed duration or claiming the implementation is thread-safe.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-022/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Negative latency rejected.\nNon-finite percentile rejected.\nRolling p95 after eviction: 30 ms"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; single-threaded sample."
+    },
+    {
+      "id": "JH-S18-023",
+      "topic": "Order transition implementation",
+      "question": "Implement an order lifecycle that rejects illegal transitions from terminal states.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Patterns",
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "I model the finite states with an enum and centralize the allowed transitions in one method. The method checks the transition before changing the field, so an invalid request leaves the prior state intact. The example permits creation to payment or cancellation, payment to shipping or cancellation, and rejects further transitions from the terminal states. Each transition takes O(1) time and the object stores O(1) state. This only enforces a single-threaded in-memory rule. A real order service also needs authorization, conditional persistence, side-effect coordination and an explicit policy for duplicate requests or compensating actions rather than treating an enum as a transaction protocol.",
+      "keywords": [
+        "enum",
+        "transition guard",
+        "terminal state",
+        "unchanged on failure",
+        "O(1)",
+        "conditional persistence"
+      ],
+      "followups": [
+        {
+          "q": "Does shipping imply that cancellation is never possible in every business?",
+          "a": "No. These are exercise rules; real cancellation may require a return or compensation workflow."
+        },
+        {
+          "q": "What is missing under concurrent calls?",
+          "a": "An atomic transition protocol is needed so two callers cannot both act on stale state."
+        }
+      ],
+      "trap": "Presenting enum validation as a durable multi-worker state machine.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-023/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Illegal terminal transition rejected.\nValid order lifecycle reached: SHIPPED"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; GAP follows design-pattern assessment."
+    },
+    {
+      "id": "JH-S18-024",
+      "topic": "Inventory reservation implementation",
+      "question": "Implement synchronized stock reservation and release without overselling or over-releasing.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The inventory stores on-hand and reserved counts by SKU. A synchronized reservation computes availability and checks the requested quantity before updating the reserved count. Release validates that the quantity is positive and no greater than the amount held, removing a zero reservation. Expected map work is O(1) per operation and retained state is O(number of SKUs). Initial stock is validated, and tests cover insufficient stock and invalid release without altering valid state. The monitor coordinates only this object in one JVM. The sample does not track reservation owners, expiration or durable orders, so a production reservation service needs stronger identity and persistence semantics.",
+      "keywords": [
+        "availability invariant",
+        "synchronized update",
+        "reservation",
+        "release validation",
+        "SKU",
+        "expected O(1)"
+      ],
+      "followups": [
+        {
+          "q": "Can any caller release any reservation here?",
+          "a": "The sample has no owner model; a real API must bind a reservation identifier and authorization to the release."
+        },
+        {
+          "q": "Does the monitor prevent overselling across replicas?",
+          "a": "No. Shared authoritative persistence must enforce the invariant across processes."
+        }
+      ],
+      "trap": "Calling a per-JVM lock a complete distributed inventory solution.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-024/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Oversell rejected without changing stock.\nOver-release rejected.\nNegative initial stock rejected.\nAvailable book units: 4"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; in-memory demonstration."
+    },
+    {
+      "id": "JH-S18-025",
+      "topic": "Keyset pagination implementation",
+      "question": "Paginate an ordered in-memory catalog using an exclusive last-seen key instead of an offset.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I use a NavigableMap to obtain the portion strictly after the cursor, then collect at most the requested page size and return the last key only when more records remain. This makes the continuation boundary explicit and avoids scanning an offset prefix. For a TreeMap, seeking is O(log n) and returning k records is O(k), with O(k) result storage. The tests cover multiple pages and an invalid size. Keys must be unique and stable. This example does not freeze a snapshot while data changes, authenticate the cursor or implement multi-column ordering; a real API must define those visibility and cursor-integrity contracts separately.",
+      "keywords": [
+        "exclusive cursor",
+        "NavigableMap",
+        "stable key",
+        "page size",
+        "O(log n + k)",
+        "snapshot contract"
+      ],
+      "followups": [
+        {
+          "q": "What if the sort column is not unique?",
+          "a": "Add a stable tie-breaker and encode the full ordered position in the cursor."
+        },
+        {
+          "q": "Does keyset paging prevent all missed concurrent inserts?",
+          "a": "No. Inserts before the cursor may not be visited; snapshot and traversal semantics must be explicit."
+        }
+      ],
+      "trap": "Claiming keyset pagination automatically produces a consistent snapshot of changing data.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-025/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Invalid page size rejected.\nStable keyset pages: [a, b] then [c]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; assumes validated ordered-map input."
+    },
+    {
+      "id": "JH-S18-026",
+      "topic": "Composable validation implementation",
+      "question": "Collect all validation failures in deterministic order rather than fail at the first check.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Patterns"
+      ],
+      "harsh_status": "GAP",
+      "answer": "I pass a list of validation functions, each returning an error message or null, and evaluate every check in order. The result contains the original value and an immutable error list. If there are m constant-cost checks, execution is O(m), with O(e) error storage; actual cost includes whatever each check does. Each validator must handle the agreed input domain, including null when permitted, so an early error does not make later validators crash. The example checks only simple text properties and is not a complete email validator. Production validation also needs stable error codes, safe messages and a policy for expensive or dependent checks.",
+      "keywords": [
+        "validation functions",
+        "error accumulation",
+        "deterministic order",
+        "immutable result",
+        "null contract",
+        "O(m)"
+      ],
+      "followups": [
+        {
+          "q": "When is fail-fast preferable?",
+          "a": "When later checks are unsafe or expensive after a fundamental prerequisite fails; define stages rather than blindly run everything."
+        },
+        {
+          "q": "Should validators perform writes?",
+          "a": "Usually not. Keep validation repeatable and side-effect-free, especially if it may run more than once."
+        }
+      ],
+      "trap": "Describing a missing-at-sign check as complete email validation.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-026/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Collected validation errors: [too short, missing @]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; simplified input validation."
+    },
+    {
+      "id": "JH-S18-027",
+      "topic": "Outbox replay simulation",
+      "question": "Simulate a lost publication acknowledgement and demonstrate deduplicated receiver state after replay.",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Kafka",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The simulation keeps pending events ordered by a local sequence and sends their stable event IDs into a receiver set. A deliberately lost acknowledgement leaves one event pending even though the receiver saw it. Replaying that event adds no duplicate receiver state because the set is keyed by event identity. A relay scan costs O(n) plus collection operations, and storage grows with pending events and retained deduplication IDs. This demonstrates an acknowledgement-loss window, not a real transactional outbox: there is no durable database, broker or atomic business update. The sample also allows later events to be acknowledged first, so strict delivery ordering is not guaranteed.",
+      "keywords": [
+        "lost acknowledgement",
+        "stable event ID",
+        "replay",
+        "deduplication",
+        "pending event",
+        "durability boundary"
+      ],
+      "followups": [
+        {
+          "q": "Does the receiver set make external effects idempotent?",
+          "a": "Not automatically. A real consumer must coordinate deduplication with its business effect in a suitable transaction."
+        },
+        {
+          "q": "Can deduplication IDs be retained forever?",
+          "a": "That is unbounded storage; retention must match replay guarantees and business requirements."
+        }
+      ],
+      "trap": "Calling an in-memory replay simulation a durable exactly-once implementation.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-027/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Idempotent receiver events after ack-loss replay: [evt-1, evt-2, evt-3]; deliveries=1+2"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; simulation limitations explicit."
+    },
+    {
+      "id": "JH-S18-028",
+      "topic": "Concurrent keyed metrics",
+      "question": "Implement per-key counters with ConcurrentHashMap and LongAdder, and verify totals after workers finish.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I atomically create an adder per key and increment it outside the mapping function. Several workers start behind a latch, perform a known number of increments and signal completion before the test checks the total. The map offers expected constant-time lookup, while LongAdder spreads contention across internal cells; memory depends on key count and cell allocation. Reading sum during updates is not an atomic snapshot, so this suits statistics rather than exact admission control. The exported map is also not a globally simultaneous view of all counters. The sample has no key-cardinality bound, so production metrics require controlled label sets and cleanup policy.",
+      "keywords": [
+        "computeIfAbsent",
+        "LongAdder",
+        "latch",
+        "quiescent total",
+        "weak snapshot",
+        "cardinality"
+      ],
+      "followups": [
+        {
+          "q": "Why wait for workers before checking the exact total?",
+          "a": "After all increments finish, the quiescent total can be asserted; concurrent sum has a weaker snapshot contract."
+        },
+        {
+          "q": "Would a user ID be a safe unbounded key?",
+          "a": "No. Unbounded labels can retain excessive state; choose bounded dimensions or a deliberate eviction policy."
+        }
+      ],
+      "trap": "Using LongAdder.sum as a strict atomic quota check while updates continue.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-028/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Concurrent keyed count: 4000"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; bounded worker test, not a general stress proof."
+    },
+    {
+      "id": "JH-S18-029",
+      "topic": "Versioned in-memory store",
+      "question": "Implement an expected-version update that refuses stale writes without changing the stored value.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Hibernate"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Each row stores a value with a version. The synchronized update reads the row, compares its version with the caller's expectation and replaces it with an incremented version only on a match. Missing rows and stale versions return failure, and duplicate inserts are rejected. Map operations are expected O(1), with O(n) retained rows; the monitor serializes this small store's operations. The code illustrates optimistic conflict semantics but uses local synchronization internally and has no database persistence. Values must be immutable or otherwise owned safely because wrapping a mutable value does not prevent callers from modifying it outside the version check. Version overflow is detected rather than silently wrapped.",
+      "keywords": [
+        "expected version",
+        "stale write",
+        "atomic replacement",
+        "duplicate insert",
+        "immutable value",
+        "overflow"
+      ],
+      "followups": [
+        {
+          "q": "Does this throw JPA OptimisticLockException?",
+          "a": "No. It is a plain Java simulation returning a boolean, not a JPA provider."
+        },
+        {
+          "q": "What must a retry do?",
+          "a": "Reload current state and reapply the valid operation; repeating the same stale expected version cannot succeed."
+        }
+      ],
+      "trap": "Mutating a referenced value directly and assuming its wrapper version tracks that mutation.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-029/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Duplicate insert rejected.\nStored version after stale-write rejection: Versioned[version=2, value=v2]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; links to assessed optimistic-locking gap without claiming JPA execution."
+    },
+    {
+      "id": "JH-S18-030",
+      "topic": "Snapshot listener dispatcher",
+      "question": "Implement listener dispatch where removing a listener during publication affects later publications, not the current snapshot.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Patterns",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "CopyOnWriteArrayList gives each traversal a stable array snapshot, so listener removal during one publication changes later traversals but not the current one. The dispatcher catches RuntimeException from each listener and counts failures while continuing to the next listener. Publication is O(n) plus callback work, and mutations copy O(n) references. This favors infrequent registration changes and many reads. Callbacks still run synchronously, and concurrent publishers do not make the listener objects themselves thread-safe. The example deliberately counts failures rather than silently claiming delivery succeeded; production code needs a useful bounded reporting policy and should not assume the listener-removal API revokes already-started delivery.",
+      "keywords": [
+        "CopyOnWriteArrayList",
+        "snapshot traversal",
+        "listener removal",
+        "failure isolation",
+        "O(n)",
+        "synchronous callback"
+      ],
+      "followups": [
+        {
+          "q": "Does removing a listener stop an in-progress callback?",
+          "a": "No. Removal affects future traversal snapshots; cancellation of an already-running callback is a separate contract."
+        },
+        {
+          "q": "Are all Throwables swallowed?",
+          "a": "No. The sample catches RuntimeException; do not imply that arbitrary fatal failures are safely handled."
+        }
+      ],
+      "trap": "Equating thread-safe listener storage with thread-safe listener behavior.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-030/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Listener failure isolated; active listeners: 2"
+      },
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S18-031",
+      "topic": "Bounded retry state machine",
+      "question": "Implement a retry queue that dead-letters a job after a fixed number of failed attempts.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Resilience",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The worker removes a ready job, evaluates its outcome and either completes it or creates a new attempt count. A failed job returns to the ready queue only while its attempt count is below the bound; otherwise it moves to the dead-letter queue. With j jobs and at most a attempts, draining performs O(j times a) predicate calls and queue operations, excluding predicate cost. This is a single-threaded, in-memory simulation with immediate retries, no persistence, delay or capacity bound. It treats a false result as failure; a thrown predicate exception is not translated into retry state. Production behavior needs explicit classification, backoff and recovery ownership.",
+      "keywords": [
+        "attempt counter",
+        "ready queue",
+        "dead letter",
+        "bounded attempts",
+        "failure classification",
+        "backoff"
+      ],
+      "followups": [
+        {
+          "q": "Does bounding attempts bound memory?",
+          "a": "No. The number of submitted and retained dead-letter jobs remains unbounded unless admission and retention are controlled."
+        },
+        {
+          "q": "When should a record not be retried?",
+          "a": "Permanent validation or authorization failures usually need correction or rejection rather than repeated attempts."
+        }
+      ],
+      "trap": "Presenting a retry-count bound as a complete overload and durability strategy.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-031/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Invalid retry bound rejected.\nDead-lettered after bounded attempts: [Job[id=event-a, attempts=3]]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; finite deterministic simulation."
+    },
+    {
+      "id": "JH-S18-032",
+      "topic": "Ordered feed merge",
+      "question": "Merge several timestamp-sorted log feeds with deterministic tie-breaking and bounded merge-state memory.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Observability",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I put the next record from each nonempty feed into a priority queue ordered by timestamp and source index. Removing the smallest record advances only its source, keeping at most one queued record per feed. For n total records and k feeds, this costs O(n log k) time, O(k) merge state and O(n) space for this materialized result. Each input must already be sorted, and its source identifiers must match the outer feed positions used by the implementation. The stored offset is not independently validated. This demonstrates deterministic merging of available finite data, not event-time completeness for late-arriving streams or clock synchronization across services.",
+      "keywords": [
+        "priority queue",
+        "k-way merge",
+        "timestamp order",
+        "source tie-break",
+        "O(n log k)",
+        "sorted-input contract"
+      ],
+      "followups": [
+        {
+          "q": "Can this merge unbounded live feeds unchanged?",
+          "a": "No. It needs buffering, watermarks and late-data policy, plus a streaming output contract."
+        },
+        {
+          "q": "Why keep one candidate per source?",
+          "a": "Under sorted input, later records cannot precede the current head, so only each head needs to compete in the heap."
+        }
+      ],
+      "trap": "Treating deterministic timestamp sorting as proof of real causal order across machines.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-032/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Stable merged feed: [a, b, d, e]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; validated source indexes and sorted input are preconditions."
+    },
+    {
+      "id": "JH-S18-033",
+      "topic": "Deadline budget object",
+      "question": "Represent a request deadline and derive a smaller child budget using a controllable clock.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Resilience",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The object stores an expiry tick and a clock supplier. Remaining time is clamped at zero, and a child deadline uses no more than the parent's remaining budget or the requested child maximum. Tests use small nonnegative fake-clock values to verify clamping, expiration and invalid negative budgets deterministically. Operations take O(1) time and space. This educational arithmetic is not a general overflow-safe System.nanoTime abstraction: the constructor rejects negative expiry values and large arithmetic or wraparound requires a stronger contract. It also only represents a budget; callers must pass that budget to real waits and transport timeouts, and underlying cancellation remains separate.",
+      "keywords": [
+        "deadline",
+        "remaining budget",
+        "child clamp",
+        "fake clock",
+        "expiration",
+        "O(1)",
+        "overflow limitation"
+      ],
+      "followups": [
+        {
+          "q": "Does this object stop a running request?",
+          "a": "No. It supplies information and a check; the I/O client or task must enforce its deadline and cancellation policy."
+        },
+        {
+          "q": "Can raw monotonic ticks be sent to another host?",
+          "a": "Not as a shared absolute time; clock origins are process or platform specific."
+        }
+      ],
+      "trap": "Claiming the fake-clock arithmetic is universally safe for arbitrary signed monotonic-clock values.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-033/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Expired request rejected.\nNegative child budget rejected.\nChild deadline remaining: 0 ns"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; timing arithmetic limits explicit."
+    },
+    {
+      "id": "JH-S18-034",
+      "topic": "Thread-local context wrapper",
+      "question": "Wrap task submission to capture a trace identifier and restore the execution thread's previous context afterward.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I capture the submitting thread's trace value when creating the wrapped task. On execution, the wrapper saves the worker's prior value, installs or removes the captured context, runs the delegate and restores the prior state in finally. This also handles a direct executor, where the worker is actually the caller and unconditional clearing would erase legitimate context. The single-value wrapper has O(1) overhead per task. The example verifies a present and absent context using direct execution, not a multi-threaded stress test. Real MDC maps should be copied under a clear ownership contract; security and transaction context are separate concerns and are not propagated by this trace wrapper.",
+      "keywords": [
+        "submission capture",
+        "ThreadLocal",
+        "previous state",
+        "finally restoration",
+        "direct executor",
+        "context isolation"
+      ],
+      "followups": [
+        {
+          "q": "Why not capture only when the worker thread is created?",
+          "a": "Pooled workers outlive individual requests, so thread-creation context can be stale or unrelated."
+        },
+        {
+          "q": "What happens if the task throws?",
+          "a": "The finally block restores prior context, while the exception follows the delegate executor's task-failure contract."
+        }
+      ],
+      "trap": "Clearing context unconditionally and breaking nested or caller-runs execution.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-034/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Captured trace restored and absent context cleared."
+      },
+      "verify": [],
+      "notes": "Unverified pattern; direct-executor tests only."
+    },
+    {
+      "id": "JH-S18-035",
+      "topic": "Replay-safe balance journal",
+      "question": "Implement an in-memory balance journal that rejects overdrafts and conflicting reuse of an entry ID.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Under one monitor, I first check whether the entry ID was already posted. An identical replay returns without changing the balance; a different entry with the same ID is rejected. For a new entry, checked addition computes the proposed balance and an overdraft check happens before either the balance or journal map is updated. Expected map work is O(1), with O(accounts plus entries) memory. This is a local balance journal, not a complete double-entry ledger: it has no balancing accounts, durability, tenant authorization or crash-safe commit. Tests verify replay, conflict and that an overdraft rejection does not reserve the failed entry ID.",
+      "keywords": [
+        "idempotent posting",
+        "entry identity",
+        "checked addition",
+        "overdraft",
+        "atomic local update",
+        "journal limitation"
+      ],
+      "followups": [
+        {
+          "q": "Does synchronized make postings durable?",
+          "a": "No. It coordinates local threads; a real journal needs transactional persistence and recovery."
+        },
+        {
+          "q": "Why distinguish this from double-entry accounting?",
+          "a": "A single-account delta store does not enforce balanced debits and credits across accounting entries."
+        }
+      ],
+      "trap": "Calling this map-based demonstration a production financial ledger.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-035/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Conflicting idempotency key rejected.\nOverdraft rejected without journal entry.\nLedger balance after replay-safe posting: 400"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; educational balance model only."
+    },
+    {
+      "id": "JH-S18-036",
+      "topic": "Per-key serial task chaining",
+      "question": "Chain tasks per key so a failed predecessor does not permanently block later work for that key.",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The executor stores a tail future per key. Submission appends a continuation after the current tail, normalizing a predecessor failure so the next task can still run, and conditionally removes only that same tail on completion. Map bookkeeping is expected O(1) per submission, while pending futures retain O(number of queued tasks) state. This sample tests sequential submission with a direct executor and is not a general concurrency or fairness proof. It has no admission bound and can invoke task code while the submission monitor is held under a direct executor. Same-key reentrant submission needs a stronger design or an explicit prohibition; production use should avoid implying unsupported callback semantics.",
+      "keywords": [
+        "tail future",
+        "per-key ordering",
+        "failure normalization",
+        "conditional removal",
+        "pending state",
+        "reentrancy limit"
+      ],
+      "followups": [
+        {
+          "q": "Does this guarantee order across replicas?",
+          "a": "No. The tails exist in one process; distributed key ownership is separate."
+        },
+        {
+          "q": "Does removing any key entry on completion work?",
+          "a": "No. A later tail may already be installed; remove only the mapping that still refers to the completed tail."
+        }
+      ],
+      "trap": "Claiming the direct-executor test proves unrestricted reentrant or highly concurrent submission correctness.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-036/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Per-key order preserved across task failure: 12b3"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; same-key reentrant task submission is outside this sample's contract."
+    },
+    {
+      "id": "JH-S18-037",
+      "topic": "Bounded diagnostic event buffer",
+      "question": "Retain only the newest N diagnostic events while counting drops and returning stable snapshots.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A synchronized deque stores the newest events up to capacity. Adding to a full buffer removes the oldest event and increments a drop counter before appending. Snapshot returns an immutable list copy, so later structural changes do not alter a previously returned snapshot. Adds are amortized O(1), snapshots cost O(N), and the buffer retains O(N) references. This is intentionally lossy diagnostic storage, not an audit trail or durable queue. The element objects are not deeply copied, and count capacity does not bound their payload bytes. A long-running system would also decide how to handle counter overflow and report drops without recursively overloading the same buffer.",
+      "keywords": [
+        "bounded deque",
+        "drop oldest",
+        "drop counter",
+        "snapshot copy",
+        "O(N) memory",
+        "diagnostic loss"
+      ],
+      "followups": [
+        {
+          "q": "Can this store required audit records safely?",
+          "a": "Not if they must be durable and lossless. Its explicit policy discards old events."
+        },
+        {
+          "q": "Does an immutable snapshot freeze mutable event objects?",
+          "a": "No. The list structure is immutable, but retained element references still need a safe ownership contract."
+        }
+      ],
+      "trap": "Calling a fixed event count a strict byte-memory bound or a durable audit guarantee.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-037/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Invalid buffer capacity rejected.\nRetained events: [b, c]; dropped: 1"
+      },
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S18-038",
+      "topic": "Read-write locked catalog",
+      "question": "Protect a mutable catalog with a read-write lock and return a snapshot unaffected by later updates.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Writers acquire the write lock, while lookups and snapshot copying acquire the read lock. Every acquisition is paired with unlock in finally. Copying while holding the read lock prevents participating writers from changing the map during that copy; returning an immutable map prevents the caller from mutating its structure. Expected lookup and update map work is O(1), while a snapshot costs O(n) time and memory and holds the read lock for that duration. The test checks old versus new snapshots and a missing key, not throughput or starvation. Input contracts should reject unsupported null keys consistently because Map.copyOf does not accept null entries.",
+      "keywords": [
+        "read lock",
+        "write lock",
+        "finally",
+        "snapshot",
+        "writer exclusion",
+        "O(n) copy"
+      ],
+      "followups": [
+        {
+          "q": "Is this always faster than synchronized?",
+          "a": "No. Lock overhead and snapshot duration can dominate; benchmark the actual read/write mix."
+        },
+        {
+          "q": "Why print through a TreeMap in the test?",
+          "a": "It makes output deterministic; the snapshot map itself does not promise iteration order."
+        }
+      ],
+      "trap": "Claiming concurrent readers make snapshot creation free or assuming an immutable map's iteration order.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-038/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Consistent catalog snapshot: {a=1, b=2}"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; deterministic printed ordering, not a concurrency stress proof."
+    },
+    {
+      "id": "JH-S18-039",
+      "topic": "Partial batch validation report",
+      "question": "Partition input rows into accepted IDs and rejected IDs with reasons, preserving encounter order.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The function visits each row and invokes a supplied validation function. A null error means acceptance; otherwise it records the row ID with the reason. The result uses immutable list copies so callers cannot change the report structure afterward. With n rows and constant-cost validation, time and report storage are O(n). Encounter order is retained separately for accepted and rejected rows. This is validation partitioning, not successful delivery to an external bulk API: accepted means the local predicate passed. It assumes valid row objects and a predicate that returns normally; thrown exceptions, duplicate IDs, confidential error text and very large inputs require explicit policies.",
+      "keywords": [
+        "row identity",
+        "validation predicate",
+        "partial report",
+        "encounter order",
+        "immutable lists",
+        "O(n)"
+      ],
+      "followups": [
+        {
+          "q": "Does accepted mean persisted?",
+          "a": "No. The sample only validates. A real integration must report actual per-item external outcomes separately."
+        },
+        {
+          "q": "What if IDs repeat?",
+          "a": "Decide whether they represent duplicate input, separate occurrences or an invalid batch; the current sample preserves them without deduplication."
+        }
+      ],
+      "trap": "Reporting locally validated rows as successfully processed by the downstream system.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-039/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Accepted 2, rejected 1: [2:empty]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; no external bulk operation executed."
+    },
+    {
+      "id": "JH-S18-040",
+      "topic": "Process-local sequence allocation",
+      "question": "Allocate increasing event sequence numbers only after validating a nonblank payload.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The sequencer validates the payload before incrementing an AtomicLong and returning an immutable event record. Rejecting a blank value first means that validation failure does not consume a number in this example. Allocation is O(1), and the sequencer itself retains O(1) state. The atomic counter coordinates allocation across threads in this JVM, but not the order in which consumers later observe or finish processing events. It is also not durable across restart and eventually wraps on overflow; the sample does not implement an overflow or multi-process identity policy. I would distinguish local monotonic allocation from a global, gap-free, persisted business sequence.",
+      "keywords": [
+        "AtomicLong",
+        "validation before allocation",
+        "immutable event",
+        "local sequence",
+        "observation order",
+        "overflow"
+      ],
+      "followups": [
+        {
+          "q": "Can two service replicas use this for globally unique IDs?",
+          "a": "Not without an additional namespace or distributed allocation design; each starts with independent state."
+        },
+        {
+          "q": "Does allocation order guarantee completion order?",
+          "a": "No. Scheduling and downstream processing can reorder completion after a number is allocated."
+        }
+      ],
+      "trap": "Calling the counter a durable global sequence or assuming it remains strictly increasing after overflow.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-040/Main.java",
+        "executed": true,
+        "java": "Temurin 21.0.12.1",
+        "output": "Blank event rejected.\nOrdered events: [Event[sequence=1, payload=created], Event[sequence=2, payload=paid]]"
+      },
+      "verify": [],
+      "notes": "Unverified pattern; scoped to the sample's process and practical counter range."
+    },
+    {
+      "id": "JH-S18-041",
+      "topic": "Coding exercise",
+      "question": "Implement a HashMap from scratch with chaining, power-of-two resizing and null-key support, and show that keys sharing one hash code stay retrievable.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E2",
+      "frequency": "seen in 2 sources",
+      "companies": [
+        {
+          "name": "Wissen",
+          "sources": [
+            "S007"
+          ],
+          "year": null
+        },
+        {
+          "name": "Morgan Stanley (Synechron)",
+          "sources": [
+            "S009"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Store an array of node chains whose length is a power of two. Spread the hash with h xor (h unsigned-shifted right by 16), then pick the bucket with (length minus 1) and hash. put walks the chain comparing the stored hash first and then equals, replacing the value on a match and otherwise prepending a node. After each insertion, if size exceeds 0.75 times the table length, allocate a table twice as large and relink every node into its new bucket, reusing the stored hash instead of recomputing it. get and remove walk the same chain. Average operations are O(1); a degenerate hashCode makes them O(n), which the colliding-key test demonstrates.",
+      "keywords": [
+        "bucket array",
+        "index equals length minus 1 and hash",
+        "hash spreading",
+        "chaining",
+        "resize at load factor 0.75",
+        "hash then equals",
+        "null key"
+      ],
+      "followups": [
+        {
+          "q": "Why must the table length be a power of two?",
+          "a": "So the bucket index can be computed with a bit mask instead of a modulo, and resizing splits each chain cleanly."
+        },
+        {
+          "q": "What does real HashMap add beyond this?",
+          "a": "Treeified bins above eight entries, tail insertion and split-in-place resizing, plus modification-count checks for iterators."
+        }
+      ],
+      "trap": "Recomputing hashes during resize or forgetting to compare the stored hash before equals, which is both slower and easy to get wrong.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-041/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "put existing key returns old value: 1\nget a = 10, get b = 2, get missing = null\nnull key = 99\nremove b = 2, size = 2\nsize after 20 more inserts = 22, capacity = 32\nfive keys sharing one hash all retrievable: true"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 2.7 (Wissen, Morgan Stanley (Synechron)). Model answer written for this handbook, not copied from the notes. Related: JH-S02-001, JH-S02-022. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-042",
+      "topic": "Coding exercise",
+      "question": "Count how many times each string occurs in a list using streams, and show the loop-based equivalent and a word count over sentences.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E2",
+      "frequency": "seen in 2 sources",
+      "companies": [
+        {
+          "name": "Yash",
+          "sources": [
+            "S011"
+          ],
+          "year": null
+        },
+        {
+          "name": "Accolite",
+          "sources": [
+            "S010"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "With streams, collect with groupingBy(Function.identity(), counting()), which yields a Map of word to Long count. The loop equivalent calls merge(word, 1, Integer::sum) on a map, which is shorter than getOrDefault plus put. To sort by count descending, stream the entries, sort with comparingByValue reversed, and collect into a LinkedHashMap so the order is preserved; add a tie-break on the key for deterministic output. For sentences, flatMap each line into words with split, normalise with toLowerCase and group the same way. All variants are O(n) over the words, plus the sort cost when ordering the result.",
+      "keywords": [
+        "groupingBy and counting",
+        "Function.identity",
+        "Map.merge",
+        "LinkedHashMap for sorted result",
+        "flatMap for sentences",
+        "tie-break for determinism"
+      ],
+      "followups": [
+        {
+          "q": "Why collect into a LinkedHashMap after sorting?",
+          "a": "A plain HashMap does not keep the sorted order, so the result would lose it."
+        },
+        {
+          "q": "What changes for case-insensitive counting?",
+          "a": "Normalise with toLowerCase, or toLowerCase(Locale.ROOT), before grouping."
+        }
+      ],
+      "trap": "Returning a HashMap after sorting entries and assuming the order survives.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-042/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "groupingBy + counting: {java=3, kafka=1, spring=2}\nloop with merge:       {java=3, kafka=1, spring=2}\nsorted by count desc:  {java=3, spring=2, kafka=1}\nword count from lines: {and=2, java=2, kafka=1, spring=1}"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, items 3.1 and 10.14 (Yash, Accolite). Model answer written for this handbook, not copied from the notes. Related: JH-S03-011. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-043",
+      "topic": "Coding exercise",
+      "question": "Sum the salaries of one department with streams, then compute totals and summary statistics for every department.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Capgemini",
+          "sources": [
+            "S012"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Filter the employee stream by department, map to the primitive salary with mapToDouble and call sum, which avoids boxing. To get totals for every department in one pass, use groupingBy on the department with summingDouble as the downstream collector. When you also need count, minimum, average and maximum, summarizingDouble returns a DoubleSummaryStatistics per group in one traversal. Use a TreeMap factory when you need deterministic key order. For money, prefer BigDecimal or integer minor units, because double accumulates rounding error; the exercise uses double to focus on the collector shape. Complexity is O(n).",
+      "keywords": [
+        "filter then mapToDouble sum",
+        "groupingBy with summingDouble",
+        "summarizingDouble",
+        "downstream collector",
+        "BigDecimal for money"
+      ],
+      "followups": [
+        {
+          "q": "Why use mapToDouble instead of map then reduce?",
+          "a": "The primitive stream avoids boxing and exposes sum directly."
+        },
+        {
+          "q": "Why avoid double for salaries in real code?",
+          "a": "Binary floating point cannot represent many decimals exactly, so use BigDecimal or integer minor units."
+        }
+      ],
+      "trap": "Summing boxed Doubles with reduce or using floating point for money without comment.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-043/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "IT total: 160000.0\nFinance total: 80000.0\nHR total: 105000.0\nIT total: 160000.0\nHR count=2 min=50000.0 avg=52500.0 max=55000.0"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 3.3 (Capgemini). Model answer written for this handbook, not copied from the notes. Related: JH-S03-009, JH-S03-011. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-044",
+      "topic": "Coding exercise",
+      "question": "Remove all adjacent duplicate pairs from an array using a stack, cascading until none remain.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "Scan the array once with a stack. If the incoming value equals the top, pop instead of pushing, which cancels the pair; otherwise push it. Because cancellation exposes new neighbours, the effect cascades without any second pass: in 1,2,2,3,3,1 the pairs 2,2 and 3,3 cancel and then the two 1s meet and cancel, leaving nothing. A stack that pushes on the head returns elements newest-first, so reverse the copy to restore the original order. Each element is pushed and popped at most once, giving O(n) time and O(n) space. The string version is LeetCode 1047.",
+      "keywords": [
+        "stack",
+        "pop when equal to top",
+        "cascading cancellation",
+        "single pass",
+        "reverse the stack at the end",
+        "O(n) time and space"
+      ],
+      "followups": [
+        {
+          "q": "Why does one pass suffice?",
+          "a": "The stack always holds the already-reduced prefix, so a new element only ever needs comparing with its top."
+        },
+        {
+          "q": "What does 1,1,1 reduce to?",
+          "a": "A single 1: the first two cancel and the third is pushed onto the empty stack."
+        }
+      ],
+      "trap": "Repeatedly rescanning the array until nothing changes, which is O(n squared) and unnecessary.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-044/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "[1, 2, 2, 3, 3, 1] -> []\n[1, 2, 5, 4, 2, 3] -> [1, 2, 5, 4, 2, 3]\n[1, 1, 1] -> [1]\n[] -> []"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.1 (company not recorded). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-045",
+      "topic": "Coding exercise",
+      "question": "Count the islands in a grid of 0s and 1s using DFS, and show the BFS variant.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "Scan every cell. When you find an unvisited land cell, increment the count and flood-fill the whole island so it is never counted again. DFS flood-fill recurses in four directions and marks cells visited by sinking them to 0, which mutates the input, so work on a copy or use a visited array. BFS does the same with a queue and avoids deep recursion on very large grids, where DFS can overflow the stack. Both run in O(rows times columns) time; space is O(rows times columns) in the worst case for the stack or queue. Use union-find when the grid arrives incrementally, and add diagonal directions for eight-way connectivity.",
+      "keywords": [
+        "scan and flood fill",
+        "DFS recursion",
+        "BFS queue",
+        "visited marking",
+        "stack overflow on large grids",
+        "union-find alternative"
+      ],
+      "followups": [
+        {
+          "q": "How do you avoid mutating the input?",
+          "a": "Use a boolean visited array or work on a copy of the grid."
+        },
+        {
+          "q": "What changes for diagonal connectivity?",
+          "a": "Add the four diagonal offsets to the direction list."
+        }
+      ],
+      "trap": "Counting every land cell instead of flood-filling, or recursing on a huge grid and overflowing the stack.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-045/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "DFS (mutates a copy): 3\nBFS (visited array):  3\ninput grid left untouched: true"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.2 (company not recorded). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-046",
+      "topic": "Coding exercise",
+      "question": "Find the duplicate in an array of n+1 values drawn from 1 to n using the sum formula, then the cycle-detection alternative.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "When exactly one value is duplicated once, the array sum minus n times n plus one over two is the duplicate; accumulate in a long to avoid overflow. That trick fails if the duplicate repeats more than twice or several values are duplicated. Floyd's tortoise and hare treats each value as a pointer to the next index, so a duplicate creates a cycle: advance a slow and a fast pointer until they meet, restart one from the start, and move both one step at a time to find the cycle entrance, which is the duplicate. It runs in O(n) time and O(1) space without modifying the array. A HashSet solves the general case in O(n) space. An XOR over 1..n and the array finds a single missing number.",
+      "keywords": [
+        "sum formula",
+        "long to avoid overflow",
+        "Floyd cycle detection",
+        "O(1) space",
+        "no array modification",
+        "XOR for missing number"
+      ],
+      "followups": [
+        {
+          "q": "When does the sum formula break?",
+          "a": "If the duplicate occurs more than twice or more than one value repeats, the sum no longer isolates it."
+        },
+        {
+          "q": "Why does Floyd's method find the duplicate?",
+          "a": "Two indices pointing to the same value create a cycle whose entrance is that duplicated value."
+        }
+      ],
+      "trap": "Using the sum formula without stating its assumptions, or summing in an int that can overflow.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-046/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "sum formula on {1,2,3,3,4,5}: 3\nFloyd on {1,3,4,2,2}:         2\nFloyd on {3,1,3,4,2}:         3\nXOR missing in {1,2,4,5}, n=5: 3"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.3 (company not recorded). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-047",
+      "topic": "Coding exercise",
+      "question": "Group a list of words into anagram groups.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Randstad",
+          "sources": [
+            "S015"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "Words are anagrams when they contain the same letters, so map each word to a canonical key and group by that key. One key is the word's characters sorted, giving O(n times k log k) for n words of length k. For lowercase letters, a 26-slot count of each letter, joined into a string, is a faster key at O(n times k). Use a map from key to list, with computeIfAbsent, and return the map's values. A LinkedHashMap keeps groups in first-seen order so the output is deterministic. The two key styles must never be mixed in one map, and the count key needs a separator so counts like 1 and 11 cannot collide.",
+      "keywords": [
+        "canonical key",
+        "sorted characters",
+        "letter-count key",
+        "computeIfAbsent",
+        "LinkedHashMap order",
+        "O(n k log k) versus O(n k)"
+      ],
+      "followups": [
+        {
+          "q": "When is the count key better than the sorted key?",
+          "a": "For long words, because it avoids the log factor of sorting each word."
+        },
+        {
+          "q": "Why include a separator in the count key?",
+          "a": "Without one, counts such as 1 then 11 and 11 then 1 produce the same string."
+        }
+      ],
+      "trap": "Comparing every pair of words, which is O(n squared), or building count keys without separators.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-047/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "sorted-string key: [[eat, tea, ate], [tan, nat], [bat]]\nletter-count key:  [[eat, tea, ate], [tan, nat], [bat]]"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.4 (Randstad). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-048",
+      "topic": "Coding exercise",
+      "question": "Find the minimum and maximum of an array using about 3n/2 comparisons.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Randstad",
+          "sources": [
+            "S015"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "The naive method compares each element with both the minimum and maximum, about 2(n minus 1) comparisons. The pairwise method processes elements two at a time: compare the pair with each other, then compare only the smaller with the current minimum and the larger with the current maximum, three comparisons per two elements. For even n, seed the minimum and maximum from the first pair, costing one comparison, for a total of 3n/2 minus 2. For odd n, seed with the first element and process the rest in pairs, for 3(n minus 1)/2 comparisons. The time is still O(n); the gain is a constant factor in comparisons, which matters when comparisons are expensive.",
+      "keywords": [
+        "pairwise comparison",
+        "3n/2 minus 2",
+        "even and odd seeding",
+        "naive 2(n-1)",
+        "still O(n)",
+        "constant-factor gain"
+      ],
+      "followups": [
+        {
+          "q": "Is the pairwise method asymptotically faster?",
+          "a": "No. Both are O(n); it only reduces the number of comparisons by about a quarter."
+        },
+        {
+          "q": "How do you seed an odd-length array?",
+          "a": "Use the first element as both minimum and maximum and process the remaining elements in pairs."
+        }
+      ],
+      "trap": "Claiming an asymptotic improvement. The benefit is fewer comparisons, not a lower complexity class.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-048/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "[3, 5, 1, 9, 2, 8] min=1 max=9 pairwise comparisons=7 naive=10\n[7, 2, 9, 4, 6, 1, 5] min=1 max=9 pairwise comparisons=9 naive=12"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.5 (Randstad). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-049",
+      "topic": "Coding exercise",
+      "question": "Find the length of the longest run of consecutive integers in an unsorted array in O(n) time.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Wissen",
+          "sources": [
+            "S007"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "Sorting works in O(n log n), but a hash set gives O(n). Put every number in a set. Then, for each number, only start counting if its predecessor, the number minus one, is absent, because that number is the head of a run. From a head, walk upward while the next value is present and track the longest length. The head check is what keeps the total linear: each number is visited once as a possible head and at most once while extending a run. Duplicates collapse in the set. Time is O(n) and space is O(n). If the question means the longest increasing contiguous subarray, a single pass comparing neighbours is enough.",
+      "keywords": [
+        "hash set",
+        "start only at run heads",
+        "check n minus 1 absent",
+        "walk upward",
+        "O(n) total",
+        "duplicates collapse"
+      ],
+      "followups": [
+        {
+          "q": "Why is the nested while loop not O(n squared)?",
+          "a": "It only runs from run heads, so every element is walked at most once overall."
+        },
+        {
+          "q": "What changes if the question means a contiguous subarray?",
+          "a": "It becomes a single scan counting steps where each element exceeds the previous one."
+        }
+      ],
+      "trap": "Omitting the head check, which makes the algorithm quadratic on long runs.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-049/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "[100,4,200,1,3,2] -> 4\n[0,3,7,2,5,8,4,6,0,1] -> 9\n[] -> 0"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.6 (Wissen). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-050",
+      "topic": "Coding exercise",
+      "question": "Solve fixed-size and variable-size sliding-window problems in O(n).",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Wissen",
+          "sources": [
+            "S007"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "A fixed window of size k keeps a running value: add the entering element and drop the leaving one each step, as in the maximum sum of any k consecutive elements. A variable window expands the right edge every step and shrinks the left edge while a condition is violated or satisfied, as in the longest substring without repeating characters, tracked with a map of last-seen indices, or the shortest subarray whose sum reaches a target, shrinking while the sum is still large enough. Each index enters and leaves the window at most once, so both forms are O(n). State that explicitly in an interview. Variable windows with a sum condition require non-negative numbers.",
+      "keywords": [
+        "fixed window add and drop",
+        "variable window expand and shrink",
+        "last-seen index map",
+        "each index enters and leaves once",
+        "O(n)",
+        "non-negative requirement"
+      ],
+      "followups": [
+        {
+          "q": "Why is the shrinking loop still linear?",
+          "a": "The left pointer only moves forward, so total pointer movement is at most 2n."
+        },
+        {
+          "q": "When does the shortest-subarray window fail?",
+          "a": "With negative numbers, because shrinking no longer reliably reduces the sum."
+        }
+      ],
+      "trap": "Recomputing the window sum from scratch each step, which is O(n times k).",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-050/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "fixed window, max sum of size 3 in [5,3,1,4,7,9]: 20\ndynamic window, longest unique substring 'abcabcbb': 3\ndynamic window, longest unique substring 'pwwkew': 3\ndynamic window, shortest subarray with sum >= 7 in [2,3,1,2,4,3]: 2"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.7 (Wissen). Model answer written for this handbook, not copied from the notes. Related: JH-S18-015, JH-S18-017. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-051",
+      "topic": "Coding exercise",
+      "question": "Decide whether some subset of an array sums to a target, list all such subsets, and solve the two-element case.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Accolite",
+          "sources": [
+            "S010"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "For existence, use a boolean array dp where dp[t] means some subset sums to t, with dp[0] true. For each number, update t from the target down to that number, so each number is used at most once; iterating upward would allow reuse and solve a different problem. That is O(n times target) time and O(target) space, pseudo-polynomial. To list all subsets, use backtracking that includes or excludes each element, pruning when the remaining sum is negative; it is exponential in the worst case. For exactly two elements, a hash map of seen values finds the complement in one pass, O(n). Negative numbers invalidate the simple pruning and the array-indexed DP.",
+      "keywords": [
+        "boolean DP over sums",
+        "iterate downward for 0/1 knapsack",
+        "backtracking include or exclude",
+        "pseudo-polynomial",
+        "two-sum with hash map",
+        "negatives break pruning"
+      ],
+      "followups": [
+        {
+          "q": "Why iterate the target downward?",
+          "a": "So each element is used once; iterating upward would let the same element be reused."
+        },
+        {
+          "q": "Is O(n times target) polynomial?",
+          "a": "Only pseudo-polynomial, because it depends on the numeric value of the target, not the bits needed to write it."
+        }
+      ],
+      "trap": "Iterating the DP upward, which silently solves unbounded subset sum instead.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-051/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "any subset sums to 9: true\nany subset sums to 30: false\nall subsets that sum to 9: [[3, 4, 2], [4, 5]]\ntwo-sum indices in [2,7,11,15] for 9: [0, 1]"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.8 (Accolite). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-052",
+      "topic": "Coding exercise",
+      "question": "Generate all permutations of a string, including a version that avoids duplicate results.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Accolite",
+          "sources": [
+            "S010"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "The swap-based backtracking fixes a position, swaps each remaining character into it, recurses on the next position and swaps back to restore the array. It produces n factorial permutations in O(n times n factorial) time counting the copy of each result. When characters repeat, the same permutation appears several times. Sort the characters first, then use a used array and skip a character equal to its predecessor when that predecessor is not currently used, so equal characters are placed in a fixed order. Alternatively collect into a LinkedHashSet, which is simpler but still generates the duplicates before discarding them. The unique form generates only distinct permutations.",
+      "keywords": [
+        "backtracking with swap",
+        "swap back to restore",
+        "n factorial results",
+        "sort then skip duplicates",
+        "used array",
+        "LinkedHashSet alternative"
+      ],
+      "followups": [
+        {
+          "q": "Why swap back after the recursive call?",
+          "a": "To restore the original order so the next iteration starts from the same state."
+        },
+        {
+          "q": "How many distinct permutations does aab have?",
+          "a": "Three: aab, aba and baa, instead of the six produced by naive generation."
+        }
+      ],
+      "trap": "Forgetting the backtracking swap, or using a Set and calling it efficient even though duplicates are still generated.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-052/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "abc by swapping (6): [abc, acb, bac, bca, cba, cab]\naab unique (3): [aab, aba, baa]"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.9 (Accolite). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-053",
+      "topic": "Coding exercise",
+      "question": "Find all divisors of a number faster than testing every value up to n.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Randstad",
+          "sources": [
+            "S015"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "Divisors come in pairs: if d divides n, so does n divided by d, and one of the pair is at most the square root of n. Loop i from 1 while i times i is at most n, using a long to avoid overflow. For each i that divides n, record i and its partner n divided by i, but add the partner only if it differs from i, so a perfect square's root is not listed twice. Reverse the list of large divisors and append it to get ascending order. This is O(square root of n) instead of O(n); for 97 it needs nine iterations instead of ninety-seven.",
+      "keywords": [
+        "divisor pairs",
+        "loop to square root",
+        "avoid double-counting the root",
+        "long for i times i",
+        "O(sqrt n)",
+        "ordering the result"
+      ],
+      "followups": [
+        {
+          "q": "Why stop at the square root?",
+          "a": "Every divisor above it has a partner below it, so the lower half finds them all."
+        },
+        {
+          "q": "How do you avoid listing the root of a perfect square twice?",
+          "a": "Add the partner only when it differs from i."
+        }
+      ],
+      "trap": "Looping to n, or listing the square root twice for perfect squares.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-053/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "36 -> [1, 2, 3, 4, 6, 9, 12, 18, 36] | same result: true | loop iterations 36 vs 6\n28 -> [1, 2, 4, 7, 14, 28] | same result: true | loop iterations 28 vs 5\n97 -> [1, 97] | same result: true | loop iterations 97 vs 9"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.10 (Randstad). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-054",
+      "topic": "Coding exercise",
+      "question": "Rearrange the digits of a number into the smallest possible number in O(n), with and without leading zeros.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Accolite",
+          "sources": [
+            "S010"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "Counting sort fits because there are only ten possible digits. Count how often each digit occurs in one pass, then emit digits from 0 to 9 repeating each by its count. That is O(n) time and O(1) extra space for the ten counters, compared with O(n log n) for a general sort; 501224 becomes 012245 when leading zeros are allowed. If a leading zero is not allowed, place the smallest non-zero digit first and then the rest ascending, giving 102245, and return 0 when all digits are zero. For the largest number emit digits from 9 down to 0. Reversing digits, such as 234 to 432, is a different problem.",
+      "keywords": [
+        "counting sort on ten digits",
+        "O(n) time",
+        "O(1) space",
+        "smallest non-zero first",
+        "largest by descending digits",
+        "leading zero rule"
+      ],
+      "followups": [
+        {
+          "q": "Why is counting sort valid here?",
+          "a": "The key range is fixed at ten digits, so counting beats comparison sorting."
+        },
+        {
+          "q": "How do you handle a no-leading-zero rule?",
+          "a": "Pick the smallest non-zero digit as the first digit, then append the remaining digits in ascending order."
+        }
+      ],
+      "trap": "Sorting the characters with a comparison sort and calling it O(n), or ignoring the leading-zero rule.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-054/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "501224 smallest (zeros allowed): 012245\n501224 smallest (no leading zero): 102245\n501224 largest: 542210\n234 smallest: 234"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.11 (Accolite). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-055",
+      "topic": "Coding exercise",
+      "question": "Compute the minimum ASCII delete sum needed to make two strings equal (LeetCode 712).",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Randstad",
+          "sources": [
+            "S015"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [],
+      "harsh_status": "UNTESTED",
+      "answer": "Define dp[i][j] as the minimum delete cost to make the first i characters of s1 equal the first j characters of s2. If the two last characters match, nothing is deleted and dp[i][j] equals dp[i-1][j-1]. Otherwise take the cheaper of deleting the last character of s1, dp[i-1][j] plus its ASCII value, or deleting the last character of s2, dp[i][j-1] plus its ASCII value. The base cases are the cumulative ASCII sums of one string against an empty string. Time and space are O(m times n), and space can fall to O(n) with two rows. Equivalently, it is the total ASCII sum minus twice the best common subsequence by ASCII weight.",
+      "keywords": [
+        "dp over prefixes",
+        "match carries diagonal",
+        "delete from either string",
+        "ASCII-weighted cost",
+        "base case against empty string",
+        "LCS relationship"
+      ],
+      "followups": [
+        {
+          "q": "What are the base cases?",
+          "a": "Against an empty string the cost is the sum of ASCII values of all characters of the other string."
+        },
+        {
+          "q": "How is it related to the longest common subsequence?",
+          "a": "It is the total ASCII sum minus twice the maximum ASCII-weighted common subsequence."
+        }
+      ],
+      "trap": "Deleting greedily or counting deleted characters instead of ASCII values.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-055/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "sea, eat -> 231\ndelete, leet -> 403\nabc, abc -> 0"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.12 (Randstad). Model answer written for this handbook, not copied from the notes. Code compiled and run; recorded output is the real program output."
+    },
+    {
+      "id": "JH-S18-056",
+      "topic": "Coding exercise",
+      "question": "Given employees and departments, find the department with the most employees and list its distinct designations.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Machine-coding",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Accolite",
+          "sources": [
+            "S010"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Count employees per department id with groupingBy and counting. Pick the entry with the highest count using max over the entry set; define a tie-break, for example the smallest department id, because HashMap iteration order would otherwise make ties arbitrary. Look up the department name from the department list, using orElse for a missing id. Then filter the employees by that id, map to designation, call distinct and collect to a list. The one-shot alternative groups designations by department with mapping. In SQL the same question is a JOIN, GROUP BY, ORDER BY count descending and LIMIT 1, but note that LIMIT hides ties. The stream version is O(n).",
+      "keywords": [
+        "groupingBy counting",
+        "max over entries",
+        "tie-break rule",
+        "lookup by id",
+        "distinct designations",
+        "SQL equivalent"
+      ],
+      "followups": [
+        {
+          "q": "What does the max call do on ties?",
+          "a": "It returns one of the tied entries, so without an explicit tie-break the result may depend on map order."
+        },
+        {
+          "q": "Why can LIMIT 1 in SQL be misleading?",
+          "a": "It returns one row even when several departments share the top count."
+        }
+      ],
+      "trap": "Ignoring ties, so the answer changes with iteration order.",
+      "fs_link": null,
+      "code": {
+        "path": "code/S18/JH-S18-056/Main.java",
+        "executed": true,
+        "java": "OpenJDK 21.0.10 (Ubuntu build)",
+        "output": "headcount by department id: {1=3, 2=2, 3=1}\nlargest department: Engineering with designations [Developer, Tester]"
+      },
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 10.13 (Accolite). Model answer written for this handbook, not copied from the notes. Related: JH-S03-011, JH-S09-018. Code compiled and run; recorded output is the real program output."
+    }
+  ]
+}

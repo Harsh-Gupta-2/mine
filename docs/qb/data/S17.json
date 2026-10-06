@@ -1,0 +1,2359 @@
+{
+  "section": "S17",
+  "section_title": "Production troubleshooting",
+  "questions": [
+    {
+      "id": "JH-S17-001",
+      "topic": "Incident narrative",
+      "question": "Walk through a P1 incident you investigated, separating symptoms, hypotheses, evidence and verified root cause.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Observability"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "I supported P1 root-cause analysis using Grafana, Prometheus and Loki for a healthcare supply-chain client. I would begin with [[HARSH TO FILL: customer impact and incident timeline]], then explain the strongest symptom and the first hypothesis it suggested. I would show how [[HARSH TO FILL: particular metric, trace or log evidence]] ruled hypotheses in or out. Mitigation and root-cause repair are different steps, so I would describe each and the risk of the chosen action. I would finish with [[HARSH TO FILL: verified cause, regression coverage, monitoring change and follow-up ownership]]. I would not invent recovery times or claim sole ownership where the response was collaborative.",
+      "keywords": [
+        "impact",
+        "timeline",
+        "hypothesis",
+        "evidence",
+        "mitigation",
+        "root cause",
+        "prevention"
+      ],
+      "followups": [
+        {
+          "q": "What if the first hypothesis was wrong?",
+          "a": "Describe what contradicted it and how that changed the next investigation, using the actual incident evidence."
+        },
+        {
+          "q": "How do you demonstrate the fix worked?",
+          "a": "Use the real outcome metrics, targeted reproduction and recurrence monitoring, with dates and measurement limits supplied by Harsh."
+        }
+      ],
+      "trap": "Telling a tool list instead of a causal incident story, or inventing outage duration and individual ownership.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Resume-only skeleton. Personal missing details intentionally retained."
+    },
+    {
+      "id": "JH-S17-002",
+      "topic": "Connection pool exhaustion",
+      "question": "Requests time out waiting for database connections. How do you distinguish leaks from slow queries or excessive concurrency?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:Hibernate",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would inspect active, idle and pending connection metrics, acquisition time and transaction duration, then correlate them with database sessions and thread stacks. Connections held for long queries, lock waits or remote calls inside a transaction can exhaust the pool without a leak. A leak suggests resources remain checked out after their operation should have ended; diagnostic traces and lifecycle review can help locate the owner. Increasing the pool can exceed the database's useful concurrency and worsen contention, so I would first find the holding time and arrival pattern. Mitigation may require admission control or shortening transaction scope, followed by a targeted fix and load test.",
+      "keywords": [
+        "pending acquisition",
+        "holding time",
+        "transaction scope",
+        "database sessions",
+        "leak ownership",
+        "admission control"
+      ],
+      "followups": [
+        {
+          "q": "Can an HTTP call inside a transaction contribute?",
+          "a": "Yes. It can hold a database connection idle while waiting on another dependency, increasing pool occupancy."
+        },
+        {
+          "q": "Does a larger pool always increase throughput?",
+          "a": "No. Beyond database capacity it can increase contention, memory and tail latency."
+        }
+      ],
+      "trap": "Assuming every pool timeout is a connection leak and increasing capacity before identifying the resource owner.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting pattern."
+    },
+    {
+      "id": "JH-S17-003",
+      "topic": "Event backlog diagnosis",
+      "question": "Consumer lag rises while errors stay low. What would you investigate?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Lag measures a gap in progress, not automatically an exception rate. I would compare incoming volume with completed processing, then break down lag by partition and inspect record age. A hot partition, slow downstream database, long retries, rebalances or stalled offset progression can create backlog while code reports few errors. I would inspect worker utilization and downstream timings rather than immediately add consumers, because partitions and dependency capacity limit useful parallelism. I also distinguish fetched records from safely completed records. Recovery planning needs catch-up throughput above the continuing arrival rate, while respecting downstream limits. The oldest event's business deadline may matter more than the raw backlog count.",
+      "keywords": [
+        "arrival rate",
+        "completion rate",
+        "partition skew",
+        "record age",
+        "rebalance",
+        "catch-up capacity"
+      ],
+      "followups": [
+        {
+          "q": "Why can low CPU coexist with high lag?",
+          "a": "Consumers may be waiting on I/O, rate limits or synchronization rather than performing computation."
+        },
+        {
+          "q": "Is skipping offsets an acceptable quick repair?",
+          "a": "Only under an explicit authorized data-loss or recovery policy; it can silently discard required work."
+        }
+      ],
+      "trap": "Adding consumers without checking partition skew, offset progress or downstream saturation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no real offsets or operational data changed."
+    },
+    {
+      "id": "JH-S17-004",
+      "topic": "CPU saturation",
+      "question": "Java service CPU doubles after a release, but request volume is flat. How would you isolate the cause?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare CPU by instance and time with deployment markers, then capture thread stacks or a profile during the spike. A hot loop or changed algorithm should show runnable application frames; GC pressure should correlate with allocation and collection metrics; legitimate workload growth should appear in request mix or throughput. I also check whether sampling or sidecar CPU changed. As mitigation I can roll back or limit the affected route if impact is rising. The fix is verified by reproducing the profile signature and comparing CPU per completed request after the targeted code change, not merely seeing one quiet interval.",
+      "keywords": [
+        "CPU per request",
+        "thread profile",
+        "runnable threads",
+        "allocation rate",
+        "deployment marker",
+        "rollback"
+      ],
+      "followups": [
+        {
+          "q": "Why inspect CPU per completed request?",
+          "a": "It separates code efficiency regression from a change in total workload volume."
+        },
+        {
+          "q": "Would a thread dump prove CPU cause?",
+          "a": "A dump is a point-in-time clue; repeated samples or profiling give stronger evidence of sustained hot frames."
+        }
+      ],
+      "trap": "Blaming traffic or garbage collection from a CPU chart without correlating profiles and workload.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-005",
+      "topic": "Heap growth",
+      "question": "Old-generation usage rises after traffic returns to normal and never falls. How do you distinguish a leak from cache growth?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Observability",
+        "R:Redis"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I correlate post-GC live set, allocation rate and heap occupancy with traffic and cache cardinality. A cache that grows with distinct keys suggests an unbounded retention policy; a leak may show unexpected dominators or retained object paths after workload stabilizes. I capture a heap dump only with capacity and privacy controls, then compare retained types and ownership. Mitigation may cap or evict a cache, but indiscriminate clearing can cause a database stampede. I verify the fix by a soak test at stable traffic: live set should plateau within the designed bound and key growth should follow the eviction policy.",
+      "keywords": [
+        "post-GC live set",
+        "heap dump",
+        "retained dominator",
+        "cache cardinality",
+        "bounded eviction",
+        "soak test"
+      ],
+      "followups": [
+        {
+          "q": "Does rising heap usage alone prove a leak?",
+          "a": "No. The heap may be expanding normally; retained live data after collection and its owners are more diagnostic."
+        },
+        {
+          "q": "What risk does a heap dump carry?",
+          "a": "It can consume disk and expose sensitive data, so collection and access need operational controls."
+        }
+      ],
+      "trap": "Clearing all caches as a permanent repair without proving retained ownership or protecting the database.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-006",
+      "topic": "GC pause latency",
+      "question": "p99 latency spikes coincide with long garbage-collection pauses. What evidence distinguishes the trigger from the symptom?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I align request traces, GC logs, allocation rate, pause duration and heap occupancy on one timeline. If pauses precede the latency spike across instances, collection is a plausible direct cause; if a traffic or payload change first drives allocation, that may be the trigger. I compare pause type and frequency rather than tuning flags from one event. Mitigation can reduce request admission or revert the allocation-heavy path while capacity remains. I verify with the same workload and supported JVM metrics that allocation or pause contribution fell without moving latency into longer concurrent work or raising memory risk.",
+      "keywords": [
+        "GC log",
+        "pause timeline",
+        "allocation rate",
+        "heap occupancy",
+        "trigger versus symptom",
+        "controlled workload"
+      ],
+      "followups": [
+        {
+          "q": "Should you immediately increase heap size?",
+          "a": "Not without checking container limits and live-set behavior; more heap can postpone pressure or worsen pause and OOM risk."
+        },
+        {
+          "q": "What proves GC caused user latency?",
+          "a": "Correlated request spans and pause intervals across affected instances, with competing network and dependency delays ruled out."
+        }
+      ],
+      "trap": "Changing collector settings before identifying allocation pressure, heap sizing and container constraints.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario; JVM behavior is version and collector dependent."
+    },
+    {
+      "id": "JH-S17-007",
+      "topic": "Executor task failures",
+      "question": "A background job reports success, yet expected work is missing and no exception appears in application logs. What do you inspect?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency",
+        "R:Framework",
+        "R:Observability"
+      ],
+      "harsh_status": "GAP",
+      "answer": "I first trace how the task is submitted and how its result is observed. With an ExecutorService, an exception from a submitted task can be retained by its Future and remain unseen if nobody calls get or records completion; execute and submit also differ in how failures reach handlers. I inspect completed, failed and queued task counts plus the actual task outcome. Mitigation is to surface failures to the job state and alert path, not to retry blindly. I verify with a test task that throws: the run must become failed, the exception must be observable, and no success checkpoint may advance.",
+      "keywords": [
+        "submit versus execute",
+        "Future.get",
+        "task outcome",
+        "failure handler",
+        "checkpoint safety",
+        "throwing-task test"
+      ],
+      "followups": [
+        {
+          "q": "Does an uncaught-exception handler always see submitted task failures?",
+          "a": "No. A Future can capture the exception; the submission and result-observation path matters."
+        },
+        {
+          "q": "What is the minimum regression test?",
+          "a": "Submit a task that throws and assert the scheduler records failure and withholds success progress."
+        }
+      ],
+      "trap": "Treating a returned Future as evidence that its task succeeded without observing its outcome.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified Java scenario; supplied ThreadPoolExecutor exception-swallowing GAP retained."
+    },
+    {
+      "id": "JH-S17-008",
+      "topic": "Spring proxy self-invocation",
+      "question": "A method annotated for transactions behaves as if no transaction exists when called from another method in the same bean. Why?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Spring",
+        "R:Hibernate",
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "In proxy-based Spring transaction management, interception occurs when a call crosses the configured proxy. A self-call through this does not normally re-enter that proxy, so the annotation may not be applied to the inner method. I verify the call path and transaction state at the boundary, while ruling out proxy configuration or a different transaction manager. A safe repair is to move the transactional operation to a separately injected bean or redesign the boundary; exposing the proxy is a more coupled option. I test commit and rollback behavior through the real Spring context, because a unit test invoking the method directly cannot prove proxy interception.",
+      "keywords": [
+        "proxy boundary",
+        "self-invocation",
+        "transaction state",
+        "bean boundary",
+        "rollback test",
+        "Spring context"
+      ],
+      "followups": [
+        {
+          "q": "Does adding the annotation twice fix self-invocation?",
+          "a": "No. The internal call still bypasses the proxy that applies the advice."
+        },
+        {
+          "q": "How do you verify the repair?",
+          "a": "Exercise it through the application context and assert both transaction behavior and rollback on failure."
+        }
+      ],
+      "trap": "Assuming an annotation is active for every call regardless of how the method is reached.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify proxy mode and transaction configuration against the deployed Spring version and application setup."
+      ],
+      "notes": "Unverified pattern; supplied Spring-proxy GAP retained."
+    },
+    {
+      "id": "JH-S17-009",
+      "topic": "Spring circular dependency",
+      "question": "A deployment fails at startup after two services begin depending on each other. How do you diagnose and fix the cycle?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Spring",
+        "R:Microservices"
+      ],
+      "harsh_status": "GAP",
+      "answer": "I inspect the bean creation path and constructor dependency graph to identify the cycle, then check whether a recent wiring or configuration change introduced it. A circular reference may have been hidden by an older setup, but enabling it is not a design repair and behavior varies with Spring version and bean scope. I break the cycle by extracting a shared responsibility, reversing a dependency, or replacing direct calls with an explicit event or interface boundary. Mitigation is rollback if startup blocks service. I verify a clean application-context startup and focused tests for both collaborators, with no circular-reference escape hatch required.",
+      "keywords": [
+        "bean graph",
+        "constructor cycle",
+        "responsibility extraction",
+        "dependency direction",
+        "startup rollback",
+        "context test"
+      ],
+      "followups": [
+        {
+          "q": "Would lazy injection solve the design problem?",
+          "a": "It may defer creation and mask the cycle, but does not remove the coupled responsibilities."
+        },
+        {
+          "q": "Why check the Spring version?",
+          "a": "Circular-reference handling defaults and behavior can vary; confirm actual runtime configuration."
+        }
+      ],
+      "trap": "Turning on circular references without documenting the lifecycle and dependency problem it conceals.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Check circular-reference behavior and configuration for the exact Spring Boot and Framework versions in production."
+      ],
+      "notes": "Unverified pattern; supplied circular-dependency GAP retained."
+    },
+    {
+      "id": "JH-S17-010",
+      "topic": "Transaction rollback rules",
+      "question": "An API returns an error after a database write, but the row remains committed. How would you test the transaction boundary?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Spring",
+        "R:Postgres",
+        "R:Hibernate"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I establish whether the write and failing operation are inside the same transaction and whether the exception crosses the transactional boundary. In Spring, rollback rules differ for exception types and can be bypassed by self-invocation or caught-and-suppressed failures. I inspect transaction logs or a test transaction manager and reproduce with the exact exception class. Mitigation may require a deliberate rollback rule or moving error handling outside the transaction, while avoiding a transaction around slow remote calls. I verify by an integration test that queries committed state after the request fails, not by checking only the returned status code.",
+      "keywords": [
+        "transaction boundary",
+        "exception type",
+        "rollback rule",
+        "caught exception",
+        "committed state",
+        "integration test"
+      ],
+      "followups": [
+        {
+          "q": "Does every exception roll back by default?",
+          "a": "No; framework defaults and configured rollback rules matter, so inspect the exact exception and setup."
+        },
+        {
+          "q": "Can an HTTP 500 prove rollback?",
+          "a": "No. The response and durable database outcome are separate observations."
+        }
+      ],
+      "trap": "Assuming an error response automatically reverses any database work performed earlier.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Confirm transaction rollback defaults and custom rules for the exact Spring version and exception hierarchy."
+      ],
+      "notes": "Unverified troubleshooting scenario; this rollback detail was not separately rated in the supplied mock assessment."
+    },
+    {
+      "id": "JH-S17-011",
+      "topic": "Optimistic locking conflict",
+      "question": "Two requests update the same entity and one receives an optimistic-lock exception. How do you distinguish expected conflict from a defect?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Hibernate",
+        "R:Postgres",
+        "R:Spring"
+      ],
+      "harsh_status": "GAP",
+      "answer": "With a version column, the update is conditional on the version originally read; if another transaction changes it first, the affected-row check detects stale state and the ORM raises an optimistic-lock failure. I measure conflict rate by entity and request pattern, then inspect whether clients submit stale representations, duplicate requests or legitimate concurrent edits. Mitigation can return a conflict for user resolution or retry a freshly read, safely mergeable operation. Blindly retrying the same stale state repeats failure or overwrites intent. I verify version increments and conflict behavior in a concurrent integration test, then confirm production conflict rates fall without lost updates.",
+      "keywords": [
+        "version column",
+        "stale state",
+        "conflict rate",
+        "fresh read",
+        "safe merge",
+        "concurrent test"
+      ],
+      "followups": [
+        {
+          "q": "Should every optimistic-lock failure be retried?",
+          "a": "No. Retry only when the operation can be recomputed safely from fresh state; otherwise surface a conflict."
+        },
+        {
+          "q": "What proves the fix did not lose updates?",
+          "a": "A concurrent test verifies one stale write is rejected and the final state follows the explicit conflict policy."
+        }
+      ],
+      "trap": "Retrying the same stale entity indefinitely or removing version checks to hide conflicts.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Check ORM version-field behavior and exception translation for the actual Hibernate and Spring versions."
+      ],
+      "notes": "Unverified pattern; supplied @Version and exception GAP retained."
+    },
+    {
+      "id": "JH-S17-012",
+      "topic": "Database deadlock",
+      "question": "A short write transaction suddenly fails with deadlock errors. What evidence guides the repair?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:MySQL",
+        "R:Hibernate",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I capture the database deadlock report or lock graph, transaction statements and affected keys, then compare competing transaction orders. A longer query, missing index or newly parallel workflow may increase overlap, but a timeout alone does not prove deadlock. The database usually aborts one participant; application retries must be bounded and rerun the whole transaction from fresh state. Mitigation may serialize a narrow key range or make lock acquisition order consistent. I verify with a concurrent reproduction and database deadlock counters, while checking throughput and lock wait time so the repair has not simply replaced deadlocks with a queue.",
+      "keywords": [
+        "deadlock graph",
+        "lock order",
+        "transaction retry",
+        "fresh transaction",
+        "key contention",
+        "concurrent reproduction"
+      ],
+      "followups": [
+        {
+          "q": "Can the failed statement alone be retried?",
+          "a": "Usually the transaction has been aborted; restart the complete unit of work according to database semantics."
+        },
+        {
+          "q": "Does adding an index always fix deadlocks?",
+          "a": "No. It may change lock footprint, but the cycle must be established from the lock graph first."
+        }
+      ],
+      "trap": "Blindly retrying inside an already-aborted transaction or tuning from timeout counts alone.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify deadlock-report and retry semantics for the deployed database engine and isolation level."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-013",
+      "topic": "Database query regression",
+      "question": "Database CPU rises after a query change while request volume is steady. How do you find the causal query?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:MySQL",
+        "R:Observability"
+      ],
+      "harsh_status": "GAP",
+      "answer": "I compare normalized query volume and execution time across the release boundary, then inspect plans and actual row counts for the changed query. A scan or poor join estimate is one hypothesis; lock waits, a new N+1 call pattern or a larger result set are alternatives. I confirm with database-level CPU and application traces rather than attributing aggregate CPU to the newest SQL by timing alone. Mitigation may roll back the query or cap affected traffic. I test the revised query with representative data and verify plan, rows examined, latency and database CPU per request under comparable load.",
+      "keywords": [
+        "query volume",
+        "execution plan",
+        "actual rows",
+        "N+1",
+        "lock waits",
+        "CPU per request"
+      ],
+      "followups": [
+        {
+          "q": "Why normalize query fingerprints?",
+          "a": "It groups parameter variations so the expensive statement shape is visible without logging sensitive values."
+        },
+        {
+          "q": "Does an index change prove the query is fixed?",
+          "a": "No. Recheck actual plans, rows and workload because the optimizer may choose another path."
+        }
+      ],
+      "trap": "Adding an index based on total database CPU without identifying the query and its access pattern.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Validate query syntax, plans and index behavior on the actual database engine and representative data."
+      ],
+      "notes": "Unverified pattern; supplied SQL-query-writing GAP retained."
+    },
+    {
+      "id": "JH-S17-014",
+      "topic": "Database lock wait",
+      "question": "Database sessions are active but API requests stall, and query CPU is low. What competing causes do you test?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:MySQL",
+        "R:Hibernate"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Low CPU with long requests points me toward waiting rather than expensive computation. I inspect database wait events, blockers and lock age, then map blocked sessions to request traces and transaction owners. A long transaction, forgotten cursor or DDL lock may be responsible; pool exhaustion can be a consequence rather than the first cause. I mitigate by stopping the offending workload or terminating a confirmed blocker under the database incident procedure. I verify the blocking chain clears and wait time falls, then shorten transaction scope or fix the owning path and add an alert for long-held transactions.",
+      "keywords": [
+        "wait events",
+        "blocking session",
+        "transaction age",
+        "request correlation",
+        "pool consequence",
+        "lock duration"
+      ],
+      "followups": [
+        {
+          "q": "Why not kill the first long-running session?",
+          "a": "It may be legitimate or the victim, so identify blocker relationships and operational impact first."
+        },
+        {
+          "q": "Could pool saturation be secondary?",
+          "a": "Yes. Threads waiting for locks retain connections, exhausting the pool even when the pool is healthy."
+        }
+      ],
+      "trap": "Increasing the connection pool when blocked transactions are holding existing connections.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Check wait-event names and session-inspection procedures for the production database version."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-015",
+      "topic": "SQL result mismatch",
+      "question": "A report count falls after a join refactor, but no query errors occur. How do you isolate the semantic change?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:MySQL",
+        "R:Incidents"
+      ],
+      "harsh_status": "GAP",
+      "answer": "I compare the old and new predicates, join types and row grain using a fixed data snapshot. Moving a right-side filter from ON to WHERE can remove unmatched rows; changed join cardinality can also duplicate or collapse aggregates. I build small fixtures for no match, multiple matches, null values and ties, then compare stable primary keys rather than totals alone. If the report is business-critical, restore the prior query or output while investigating. I verify the repair with a differential query over representative data and document the intended inclusion rules so a later optimization preserves semantics.",
+      "keywords": [
+        "join semantics",
+        "ON versus WHERE",
+        "row grain",
+        "stable keys",
+        "differential test",
+        "null cases"
+      ],
+      "followups": [
+        {
+          "q": "Why compare IDs as well as counts?",
+          "a": "Equal counts can hide one missing row and one extra row; key-level comparison locates the difference."
+        },
+        {
+          "q": "Does a LEFT JOIN guarantee unmatched rows remain?",
+          "a": "Only if later filters and joins preserve the nullable side rather than eliminating it."
+        }
+      ],
+      "trap": "Trusting a matching aggregate count as proof that two query results contain the same records.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified scenario; supplied SQL-query-writing GAP retained."
+    },
+    {
+      "id": "JH-S17-016",
+      "topic": "Connection pool saturation",
+      "question": "API threads wait for database connections, but the database reports spare capacity. What do you investigate?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:Hibernate",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare active, idle and pending pool counts with acquisition duration and connection hold time per request. Connections may be held during remote calls, blocked on locks, leaked, or pinned by a transaction boundary even when database CPU is low. I sample thread stacks and database sessions to map owners, then check whether every replica's pool total exceeds the server budget. Mitigation can limit admission or remove remote work from transactions. I verify that pending acquisition and hold-time distributions fall under the same load, while watching database saturation so increasing the pool does not move the bottleneck downstream.",
+      "keywords": [
+        "pending acquisition",
+        "hold time",
+        "thread stacks",
+        "remote call",
+        "replica pool budget",
+        "admission limit"
+      ],
+      "followups": [
+        {
+          "q": "Why count pools across replicas?",
+          "a": "Each process has its own pool, so aggregate possible connections can exceed the database capacity."
+        },
+        {
+          "q": "When is pool growth justified?",
+          "a": "Only after establishing database headroom and that useful work is waiting solely for insufficient pool capacity."
+        }
+      ],
+      "trap": "Treating database spare CPU as proof that more simultaneous connections are harmless.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-017",
+      "topic": "Long transaction scope",
+      "question": "A database transaction stays open while a downstream API is slow. What production effects and repair do you expect?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Spring",
+        "R:Postgres",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A remote wait inside a transaction can retain a connection and locks, increase contention, delay cleanup and make pool exhaustion more likely. I confirm the sequence through traces and transaction-age metrics, distinguishing it from a slow database statement. For mitigation I may reduce traffic or time out the dependency, but cancellation does not guarantee the database transaction closed immediately. The structural fix is usually to shorten the transaction and model cross-service work with an explicit state machine, outbox or compensation. I verify through traces that the database transaction ends before the remote wait and load-test lock duration and pool occupancy.",
+      "keywords": [
+        "transaction age",
+        "remote wait",
+        "connection retention",
+        "lock duration",
+        "outbox",
+        "trace verification"
+      ],
+      "followups": [
+        {
+          "q": "Can one transaction atomically cover a remote HTTP call?",
+          "a": "Not by an ordinary local database transaction; use explicit distributed-work coordination and compensation where needed."
+        },
+        {
+          "q": "What evidence confirms the scope changed?",
+          "a": "A trace or database session timeline shows commit before the downstream call, with shorter hold times under load."
+        }
+      ],
+      "trap": "Wrapping database and network calls in one long transaction and assuming local rollback controls remote effects.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-018",
+      "topic": "Cache invalidation race",
+      "question": "A user reads stale data immediately after a successful update, even though the cache key was deleted. What race do you test?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Redis",
+        "R:Postgres",
+        "R:Resilience"
+      ],
+      "harsh_status": "GAP",
+      "answer": "I trace the reader and writer ordering around database commit and cache invalidation. A reader may have loaded the old row before the update and repopulate the cache after the writer deletes it; replica lag can also make a post-commit read stale. I capture cache value version, database source and timing to distinguish them. Mitigation can bypass cache for read-after-write, use version-aware publication or coordinate invalidation, depending on consistency needs. I verify with a deterministic race test that pauses the old read before cache set, then confirms stale values cannot become current after the update.",
+      "keywords": [
+        "stale refill",
+        "write ordering",
+        "replica lag",
+        "cache version",
+        "read-after-write",
+        "race test"
+      ],
+      "followups": [
+        {
+          "q": "Does delete-after-commit eliminate every stale race?",
+          "a": "No. An earlier reader can publish its old value after the deletion."
+        },
+        {
+          "q": "What does a short TTL guarantee?",
+          "a": "Only a bound on some stale duration, not immediate consistency or correct behavior under all races."
+        }
+      ],
+      "trap": "Assuming cache eviction alone prevents a concurrent stale read from repopulating the key.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified scenario; supplied cache-invalidation GAP retained."
+    },
+    {
+      "id": "JH-S17-019",
+      "topic": "Cache outage stampede",
+      "question": "Redis becomes unavailable and database load spikes sharply. How do you restore service without causing a second collapse?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Redis",
+        "R:Postgres",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I confirm cache error rate and database query volume rise together, while checking whether a new application release or traffic shift contributed. A full cache bypass can create a stampede, so mitigation may shed noncritical reads, coalesce identical loads, use bounded local fallback or restore cache capacity gradually. I distinguish cache connection failures from misses and avoid retrying Redis on every request. After service returns, aggressive cold-cache refill can still overload the database. I verify database saturation and request latency normalize as cache hit ratio recovers, then test cache-loss behavior under load with explicit fallback limits.",
+      "keywords": [
+        "cache error rate",
+        "database saturation",
+        "request coalescing",
+        "bounded fallback",
+        "cold-cache refill",
+        "load test"
+      ],
+      "followups": [
+        {
+          "q": "Why distinguish cache miss from cache error?",
+          "a": "A miss is normal lookup behavior; an error can trigger retries and broad fallback load."
+        },
+        {
+          "q": "Should fallback cache every response locally?",
+          "a": "Only within a defined memory and staleness policy; unbounded per-instance caches create new risks."
+        }
+      ],
+      "trap": "Enabling unlimited database fallback and assuming recovery of Redis instantly removes the overload.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-020",
+      "topic": "Upstream API 5xx",
+      "question": "Your service's 5xx rate rises, but its own CPU and database metrics are normal. How do you isolate dependency failure?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:REST",
+        "R:Microservices",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I break down server errors by route and dependency span, compare upstream status and timeout counts with our own exceptions, and inspect whether failures cluster by region or credential. A dependency outage, DNS or TLS problem, and our response mapping are competing explanations. I mitigate by disabling optional work, applying bounded timeouts and limiting retries, while preserving a clear degraded response. I avoid returning success with incomplete required data. I verify the upstream path recovers and our error rate falls, then add a test for the observed failure and an alert on dependency-specific symptoms rather than only aggregate 5xx.",
+      "keywords": [
+        "dependency span",
+        "upstream status",
+        "route breakdown",
+        "bounded timeout",
+        "degraded response",
+        "specific alert"
+      ],
+      "followups": [
+        {
+          "q": "Why not retry every 5xx?",
+          "a": "It can amplify an upstream outage and may repeat side effects; classify operation safety and retry policy."
+        },
+        {
+          "q": "What if only one region is affected?",
+          "a": "Compare routing and dependency health by region before changing global traffic or credentials."
+        }
+      ],
+      "trap": "Assuming normal local CPU and database metrics mean the service itself is healthy.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-021",
+      "topic": "Timed-out API write",
+      "question": "A client times out during a payment-like write and retries, creating a duplicate operation. What should the service change?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:REST",
+        "R:Microservices",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The timeout leaves the client uncertain; the server may have committed even though the response was lost. I inspect request IDs, durable operation state and downstream acknowledgements to establish whether duplicates came from server retries or client replay. A stable idempotency key scoped to the authenticated caller and operation should be recorded atomically with the result, with conflict rules for reuse with a different payload. Mitigation includes stopping duplicate dispatch and reconciling existing operations. I verify concurrent same-key requests produce one durable effect and a replay returns the original outcome, including after a simulated lost response.",
+      "keywords": [
+        "unknown outcome",
+        "idempotency key",
+        "atomic result",
+        "caller scope",
+        "downstream acknowledgement",
+        "lost-response test"
+      ],
+      "followups": [
+        {
+          "q": "Is a request UUID enough?",
+          "a": "Only if it is stable across retries, authorized, persisted with the operation and bound to the request meaning."
+        },
+        {
+          "q": "What if the same key has a different body?",
+          "a": "Reject it as a conflict rather than silently reusing an unrelated prior result."
+        }
+      ],
+      "trap": "Treating a client timeout as proof the server did not commit the operation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified scenario."
+    },
+    {
+      "id": "JH-S17-022",
+      "topic": "Tail latency decomposition",
+      "question": "p50 latency is stable but p99 triples. How do you find which requests form the slow tail?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Observability",
+        "R:REST",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I segment latency by route, instance, tenant-safe dimensions and dependency span, then inspect traces from slow requests rather than averaging all traffic. A small set may hit retries, cache misses, lock waits, large payloads or a slow region while median requests remain unaffected. I confirm sampling does not systematically omit the tail and compare queue time with execution time. Mitigation should target the dominant segment, such as bounding retries or isolating a hot tenant. I verify the p99 distribution and affected cohort improve at comparable traffic, while checking that failures or timeouts did not merely remove slow requests from the success metric.",
+      "keywords": [
+        "latency distribution",
+        "slow traces",
+        "cohort segmentation",
+        "queue time",
+        "tail sampling",
+        "success bias"
+      ],
+      "followups": [
+        {
+          "q": "Why can average latency look healthy?",
+          "a": "Averages hide a small but important slow cohort; percentiles and request-level evidence expose it."
+        },
+        {
+          "q": "Can a falling p99 indicate a fix if timeouts rise?",
+          "a": "No. Failed slow requests may disappear from the latency sample; include error and timeout rates."
+        }
+      ],
+      "trap": "Optimizing median latency while the customer-impacting tail is caused by a distinct dependency or cohort.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-023",
+      "topic": "Container memory OOM",
+      "question": "A pod is OOM-killed while the JVM heap graph stays below its configured maximum. What do you inspect?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Docker",
+        "R:K8s",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The container limit covers more than Java heap: metaspace, thread stacks, direct buffers, native libraries and other processes consume memory too. I compare the platform's termination reason and container working set with JVM heap, native-memory evidence and thread count. A leak in off-heap buffers or a changed thread pool is a different hypothesis from heap retention. Mitigation may reduce concurrency or restore a prior memory profile while preserving node capacity. I verify under representative load that total container memory remains below the limit with headroom, not merely that heap occupancy looks safe. JVM container-awareness details depend on the runtime version and flags.",
+      "keywords": [
+        "container limit",
+        "native memory",
+        "direct buffers",
+        "thread stacks",
+        "termination reason",
+        "headroom"
+      ],
+      "followups": [
+        {
+          "q": "Does Xmx equal the pod memory budget?",
+          "a": "No. Other JVM and process memory also consumes the container limit."
+        },
+        {
+          "q": "What evidence separates heap from native growth?",
+          "a": "Correlate heap and native-memory metrics with container working set, thread count and termination events."
+        }
+      ],
+      "trap": "Raising the heap maximum to the container limit and leaving no space for native memory.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify container-awareness and memory-diagnostic options for the exact JDK build and deployment flags."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-024",
+      "topic": "Kubernetes restart loop",
+      "question": "A pod enters CrashLoopBackOff immediately after a deployment. What evidence separates startup failure from probe failure?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:K8s",
+        "R:CICD",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I inspect pod events, previous-container logs, exit code, restart timing and the probe that triggered termination. A missing secret or invalid configuration may exit before the server starts; an aggressive liveness probe can kill a slow but progressing startup; an OOM kill has a different termination signature. I compare the deployment diff and affected nodes or replicas. Mitigation is rollback or correcting the narrow configuration, not repeatedly deleting pods. I verify stable startup across fresh replicas, successful readiness and absence of restart events for an observation window. Probe semantics and manifest fields should be checked against the cluster version.",
+      "keywords": [
+        "pod events",
+        "previous logs",
+        "exit code",
+        "probe timing",
+        "OOM reason",
+        "fresh replica"
+      ],
+      "followups": [
+        {
+          "q": "Should liveness depend on every downstream service?",
+          "a": "Usually not; a dependency outage can cause restart loops instead of allowing recovery or controlled degradation."
+        },
+        {
+          "q": "What does readiness failure mean?",
+          "a": "The pod should not receive normal traffic; it is distinct from whether the process should be restarted."
+        }
+      ],
+      "trap": "Increasing all probe delays without determining whether startup, configuration or resource pressure caused failure.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Confirm probe behavior and supported manifest options against the deployed Kubernetes version."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-025",
+      "topic": "Autoscaling not helping",
+      "question": "Request latency rises and replicas scale out, but throughput does not. What bottleneck do you test next?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:K8s",
+        "R:AWS",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare per-pod throughput, queue depth and CPU with shared dependency saturation. If more replicas do not increase completions, the database connection budget, downstream quota, partition count or a shared lock may be the true limit. I verify whether new pods are ready and receiving traffic, and whether requests are simply waiting longer in queues. Mitigation can cap scaling to protect dependencies and apply admission control. I verify a controlled scale test raises completed throughput without increasing dependency errors or tail latency. CPU-only autoscaling may be ineffective when workers are blocked on I/O, so the scaling signal should match the constrained resource.",
+      "keywords": [
+        "completed throughput",
+        "shared dependency",
+        "queue depth",
+        "replica readiness",
+        "admission control",
+        "scale test"
+      ],
+      "followups": [
+        {
+          "q": "Why might low CPU still accompany slow requests?",
+          "a": "Threads can be blocked on I/O, locks or a saturated downstream service."
+        },
+        {
+          "q": "Should the autoscaler keep adding pods?",
+          "a": "Not if a shared dependency is saturated; cap or shed load until the dependency constraint is addressed."
+        }
+      ],
+      "trap": "Treating replica count as the bottleneck when all replicas compete for one constrained dependency.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-026",
+      "topic": "Release regression",
+      "question": "Errors rise only on newly deployed instances while old instances remain healthy. How do you mitigate and prove a regression?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:CICD",
+        "R:Incidents",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare error and latency by build version, route and dependency, while checking whether traffic or configuration also changed. A version-correlated spike is strong evidence but not proof if new instances landed on a different node or secret set. I pause rollout or shift traffic back to the known build according to the release procedure. Then I reproduce the failing request against the new artifact and inspect its diff. I verify rollback restores the baseline and the forward fix passes the same regression case, canary metrics and health checks before widening deployment. I preserve logs and artifact identity for the incident record.",
+      "keywords": [
+        "build correlation",
+        "configuration diff",
+        "rollout pause",
+        "known-good rollback",
+        "reproduction",
+        "canary verification"
+      ],
+      "followups": [
+        {
+          "q": "Why not immediately blame code?",
+          "a": "A release can coincide with configuration, node or dependency changes; compare those dimensions too."
+        },
+        {
+          "q": "What prevents a broad rollout of the fix?",
+          "a": "A canary with explicit error, latency and dependency gates before progressive traffic increase."
+        }
+      ],
+      "trap": "Deploying another unverified change during an incident without first stabilizing or preserving evidence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-027",
+      "topic": "Probe-induced outage",
+      "question": "A dependency outage causes healthy pods to restart repeatedly. How should readiness and liveness be separated?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:K8s",
+        "R:Microservices",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I check pod events against dependency failures and probe endpoints to see whether liveness is coupled to a downstream health check. Liveness should generally answer whether the process can make progress; readiness controls whether it should receive traffic. If a transient dependency failure marks every pod dead, restarts amplify load and erase useful state. Mitigation is to disable the restart trigger or restore dependency-independent liveness while keeping readiness honest about serving capability. I verify pods stay up during a simulated dependency outage, are removed from traffic when appropriate, and recover readiness when the dependency returns without a restart storm.",
+      "keywords": [
+        "liveness",
+        "readiness",
+        "dependency coupling",
+        "restart storm",
+        "traffic removal",
+        "fault injection"
+      ],
+      "followups": [
+        {
+          "q": "Should readiness always fail when one optional dependency is down?",
+          "a": "Only if the service cannot safely serve its contract without it; model optional functionality explicitly."
+        },
+        {
+          "q": "How do you test the probe design?",
+          "a": "Inject a dependency outage and observe traffic routing, process restarts and recovery behavior."
+        }
+      ],
+      "trap": "Using one broad health check for both traffic eligibility and process restart decisions.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Check actual probe configuration and semantics in the cluster's Kubernetes release."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-028",
+      "topic": "DNS and connection establishment",
+      "question": "One region sees connection timeouts before any HTTP response, while application logs show no upstream status. What do you compare?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:AWS",
+        "R:Linux",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "No HTTP status suggests failure during name resolution, routing, TCP connection or TLS setup rather than an application response. I compare DNS resolution, connection timing, route tables, security rules and certificate negotiation by region, then test from the affected runtime rather than my workstation. A recent network policy or endpoint change competes with a regional provider event. Mitigation can route around the region if health and data consistency permit. I verify resolution and connection establishment from affected pods and confirm request traces now reach the upstream. I avoid broad firewall changes without a narrow demonstrated path.",
+      "keywords": [
+        "DNS timing",
+        "TCP connect",
+        "TLS handshake",
+        "regional comparison",
+        "runtime reproduction",
+        "route policy"
+      ],
+      "followups": [
+        {
+          "q": "Why do application logs lack an upstream code?",
+          "a": "The request may not have completed the connection needed to receive an HTTP response."
+        },
+        {
+          "q": "Can a local curl test disprove a regional network fault?",
+          "a": "No. Test from the affected workload and network path."
+        }
+      ],
+      "trap": "Treating every connection timeout as an upstream server error and retrying without network evidence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-029",
+      "topic": "TLS certificate failure",
+      "question": "Only one integration starts failing certificate validation after rotation. What would you inspect before weakening TLS checks?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:AWS",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I capture the peer chain, hostname, expiry and trust-store behavior from the failing runtime, then compare successful integrations and recent certificate or secret rotations. A missing intermediate, hostname mismatch, stale trust bundle or wrong endpoint can resemble an expired certificate. I check system clock and proxy interception as alternatives. Mitigation is to restore the correct chain or trust configuration, never disable certificate validation. I verify the full chain and hostname from the deployed environment and exercise the integration after rotation. I confirm trust-store reload behavior for the actual client and runtime rather than assuming new certificates are picked up automatically.",
+      "keywords": [
+        "certificate chain",
+        "hostname",
+        "trust store",
+        "rotation",
+        "system clock",
+        "runtime verification"
+      ],
+      "followups": [
+        {
+          "q": "Does trusting the leaf certificate solve every rotation?",
+          "a": "It may make future rotations brittle; use the intended trusted chain and managed rotation policy."
+        },
+        {
+          "q": "Why test from the pod?",
+          "a": "The deployed trust store, proxy and runtime can differ from a developer machine."
+        }
+      ],
+      "trap": "Disabling hostname or certificate validation to restore connectivity.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify TLS client trust and trust-store reload behavior for the deployed JDK and HTTP client."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-030",
+      "topic": "Authentication failure spike",
+      "question": "A service's 401 responses rise after an identity-provider key rotation. How do you separate token defects from validation defects?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:JWT",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I bucket failures by issuer, key identifier, audience, expiry and validation stage using safe metadata, then compare the rotation time with key-cache refresh and identity-provider health. A newly signed token with an unavailable key differs from wrong audience, clock skew or an issuer mismatch. I reproduce using a non-sensitive test token and inspect trusted key retrieval, never logging bearer values. Mitigation can refresh the configured key set or roll back an incorrect issuer configuration while preserving signature checks. I verify valid new-key tokens pass and expired or wrong-audience controls remain rejected, then monitor 401 rates by failure reason.",
+      "keywords": [
+        "key identifier",
+        "JWKS refresh",
+        "audience",
+        "clock skew",
+        "safe token metadata",
+        "negative controls"
+      ],
+      "followups": [
+        {
+          "q": "Should an unknown key ID trigger arbitrary URL retrieval?",
+          "a": "No. Key retrieval must use configured trusted issuer metadata, not an untrusted token URL."
+        },
+        {
+          "q": "How do you confirm security was not weakened?",
+          "a": "Test valid rotated keys alongside expired, wrong-issuer and wrong-audience tokens that must still fail."
+        }
+      ],
+      "trap": "Accepting any signature or disabling JWT validation to suppress a post-rotation 401 spike.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Check identity-provider key-rotation and validation-cache behavior for the configured OAuth/OIDC library and issuer."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-031",
+      "topic": "Token refresh outage",
+      "question": "Only long-running integrations fail after several hours, while new runs authenticate successfully. What is your diagnostic path?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:ETL",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The duration pattern points toward token expiry or refresh handling, but I compare token age, refresh attempts, credential scope and provider responses before concluding. New runs may obtain fresh credentials while existing workers retain stale state or miss a rotation. I check whether refresh calls are serialized, whether secrets changed, and whether clock skew affects expiry decisions. Mitigation may renew credentials and pause affected work at a durable checkpoint. I verify a test run beyond the token lifetime, including concurrent refresh and refresh failure, then confirm no secret appears in logs. Exact grant behavior must match the configured identity provider.",
+      "keywords": [
+        "token age",
+        "refresh failure",
+        "credential rotation",
+        "worker cache",
+        "clock skew",
+        "long-duration test"
+      ],
+      "followups": [
+        {
+          "q": "Why might only existing runs fail?",
+          "a": "They may hold expired token state or a refresh context that new executions do not reuse."
+        },
+        {
+          "q": "Can you safely resume after reauthentication?",
+          "a": "Only from a durable checkpoint with replay-safe operations and reconciled uncertain writes."
+        }
+      ],
+      "trap": "Restarting all jobs from the beginning without checking duplicate side effects or durable progress.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify configured OAuth grant, refresh-token rotation and expiry semantics with the identity-provider documentation."
+      ],
+      "notes": "Unverified scenario; exact credential flow is not supplied."
+    },
+    {
+      "id": "JH-S17-032",
+      "topic": "SCIM duplicate provisioning",
+      "question": "A provisioning retry creates duplicate users after an earlier request timed out. How do you diagnose the identity and retry contract?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:SCIM",
+        "R:REST",
+        "R:Incidents"
+      ],
+      "harsh_status": "SHAKY",
+      "answer": "I compare the original and retried request, server response timing, tenant scope and persisted identity keys to determine whether the first create committed before the timeout. A match based only on email can collide or change meaning; resource ID and external identity need an explicit uniqueness and mapping policy. Mitigation is to stop further retries, reconcile existing records and make create handling deterministic under the documented SCIM contract. I verify concurrent duplicate requests produce one intended resource and a stable response, while a different tenant remains isolated. For Harsh's actual service, endpoints, persistence and response details remain [[HARSH TO FILL: verify implementation]].",
+      "keywords": [
+        "timeout uncertainty",
+        "external identity",
+        "resource ID",
+        "tenant scope",
+        "uniqueness",
+        "reconciliation"
+      ],
+      "followups": [
+        {
+          "q": "Is email always a safe idempotency key?",
+          "a": "No. It can change or collide; use the service's defined stable identity and uniqueness policy."
+        },
+        {
+          "q": "What response behavior should be checked?",
+          "a": "The actual SCIM operation and conflict semantics supported by the service; do not invent implementation details."
+        }
+      ],
+      "trap": "Assuming a timed-out SCIM create did not commit or matching users globally by email.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify SCIM endpoint behavior, identity mapping and duplicate handling against the service implementation and applicable protocol version."
+      ],
+      "notes": "Unverified scenario; supplied SCIM-flow SHAKY status retained and implementation details left open."
+    },
+    {
+      "id": "JH-S17-033",
+      "topic": "Kafka consumer rebalance",
+      "question": "Kafka processing pauses repeatedly with rebalance logs, but broker health is normal. What evidence identifies the consumer-side cause?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I align rebalance timestamps with poll intervals, processing duration, membership changes and partition assignment. Slow processing that prevents timely polling is one cause; rolling deployments, transient network loss or unstable membership are alternatives. I inspect per-partition work and commit timing, because committing before durable completion risks loss. Mitigation can reduce batch work, bound downstream calls or adjust consumer settings only after the observed cause is known. I verify fewer rebalances and uninterrupted completed offsets under representative load, while checking that a larger poll allowance does not mask a permanently stalled handler.",
+      "keywords": [
+        "rebalance timeline",
+        "poll interval",
+        "membership churn",
+        "processing duration",
+        "commit timing",
+        "partition assignment"
+      ],
+      "followups": [
+        {
+          "q": "Does normal broker health rule out Kafka as a factor?",
+          "a": "No. Client networking, group coordination and consumer processing can fail while brokers appear healthy."
+        },
+        {
+          "q": "Should offsets be committed before processing?",
+          "a": "Not when that can skip unfinished work; align commit with the chosen delivery and idempotency model."
+        }
+      ],
+      "trap": "Increasing consumer timeouts without measuring whether processing or membership churn caused rebalances.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified Kafka troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-034",
+      "topic": "Kafka duplicate effects",
+      "question": "A consumer restart causes duplicate database updates even though offsets are committed. What boundary do you inspect?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Postgres",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I trace the order of database commit and offset commit, and inspect whether the restart occurred between them. If the database write commits first but the offset does not, redelivery is expected; the handler needs an idempotent event key or a transaction strategy that covers the relevant stores. I compare event IDs and database effects to distinguish legitimate repeated events from duplicate delivery. Mitigation can deduplicate at the sink and repair already duplicated rows using an audited key. I verify by killing the consumer at each commit boundary and confirming one logical effect after replay. Kafka transactions do not automatically make an external database write atomic.",
+      "keywords": [
+        "offset boundary",
+        "database commit",
+        "redelivery",
+        "event key",
+        "sink dedupe",
+        "crash injection"
+      ],
+      "followups": [
+        {
+          "q": "Does enabling Kafka transactions include a relational database?",
+          "a": "Not automatically; cross-system atomicity needs explicit coordination or idempotent processing."
+        },
+        {
+          "q": "Why inject a restart?",
+          "a": "It exercises the exact crash windows that normal success-path tests do not cover."
+        }
+      ],
+      "trap": "Claiming exactly-once database effects from Kafka offset settings alone.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify consumer commit mode and any framework transaction behavior for the deployed Kafka client and integration stack."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-035",
+      "topic": "Kafka poison record",
+      "question": "One Kafka record repeatedly fails and blocks progress for its partition. How do you recover without hiding data loss?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I identify the failing record by topic, partition and offset, capture a safe error category, and determine whether the defect is data-specific or a systemic downstream outage. Retrying forever blocks later partition work; skipping silently loses ordered business data. A controlled dead-letter path can preserve the original record and failure metadata, but needs access controls, replay tooling and an explicit business policy. I pause or isolate the affected flow if necessary. I verify the repaired consumer processes the record or authorized quarantine, advances offsets only as intended, and can replay without duplicate effects.",
+      "keywords": [
+        "partition offset",
+        "data-specific failure",
+        "dead-letter",
+        "ordered work",
+        "authorized quarantine",
+        "replay"
+      ],
+      "followups": [
+        {
+          "q": "Should every deserialization error go to a dead-letter topic?",
+          "a": "Only with a defined retention, access, alerting and replay policy; malformed data can still be security-sensitive."
+        },
+        {
+          "q": "Can later records bypass the poison record?",
+          "a": "That changes ordering semantics; do so only when the business contract permits it."
+        }
+      ],
+      "trap": "Advancing the offset to restore throughput without recording and authorizing the data-loss decision.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify the deployed consumer framework's error-handler and offset-commit semantics before changing recovery behavior."
+      ],
+      "notes": "Unverified Kafka troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-036",
+      "topic": "Kafka producer delivery uncertainty",
+      "question": "A producer times out after sending an event and the caller retries. How do you determine whether duplicates or loss occurred?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Microservices",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A timeout can mean the broker did not receive the record, or it accepted it and the acknowledgement was lost. I inspect producer delivery callbacks, broker records and application retry keys, distinguishing duplicate publication from consumer-side replay. Producer idempotence and transaction settings have specific scope and do not deduplicate arbitrary new application events. Mitigation is to use a stable event identity and an outbox or durable publication state where database consistency matters. I verify by fault-injecting acknowledgement loss and checking the number of logical events and downstream effects, while confirming configuration against the deployed client version.",
+      "keywords": [
+        "acknowledgement loss",
+        "delivery callback",
+        "stable event ID",
+        "producer idempotence",
+        "outbox",
+        "fault injection"
+      ],
+      "followups": [
+        {
+          "q": "Does a producer retry prove the first send failed?",
+          "a": "No. The broker may have accepted it before the acknowledgement was lost."
+        },
+        {
+          "q": "Does broker idempotence deduplicate two app-level sends?",
+          "a": "Not necessarily; scope and producer identity matter, so use a stable business event key where required."
+        }
+      ],
+      "trap": "Generating a new event ID on every retry and assuming producer retries imply no duplicate record.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Check producer idempotence and delivery semantics for the exact Kafka client and broker configuration."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-037",
+      "topic": "Kafka partition skew",
+      "question": "Total Kafka lag is moderate, but one customer-facing workflow is badly delayed. What aggregate is hiding the incident?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A total lag metric can hide one hot partition or key while the rest of the group is caught up. I inspect per-partition lag and oldest-record age, then map the affected key distribution and processing time. A skewed key, poison record or downstream call specific to that entity are competing causes. Mitigation may isolate the key or apply a safe partitioning change, but repartitioning can alter ordering and requires migration planning. I verify the affected customer's event age improves and that per-key order and throughput remain correct. Adding consumers alone will not split one partition's serial work.",
+      "keywords": [
+        "per-partition lag",
+        "oldest event age",
+        "hot key",
+        "key distribution",
+        "ordering impact",
+        "customer cohort"
+      ],
+      "followups": [
+        {
+          "q": "Why might adding consumers not help?",
+          "a": "A partition is assigned as a unit; additional consumers cannot parallelize one partition's ordered stream."
+        },
+        {
+          "q": "Can changing the partition key be immediate?",
+          "a": "No. It can change ordering and routing, so plan migration and compatibility for existing records."
+        }
+      ],
+      "trap": "Using cluster-wide average lag to declare an affected workflow healthy.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified Kafka troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-038",
+      "topic": "RabbitMQ unacked messages",
+      "question": "RabbitMQ queue depth is stable but unacknowledged messages and consumer memory climb. What would you change?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Observability",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare delivery rate, acknowledgement rate, consumer count, prefetch and processing duration. Stable ready depth can conceal a large in-flight set if consumers prefetch heavily and process slowly or leak message references. I inspect consumer memory and downstream waits, then reduce prefetch or concurrency as immediate containment. Acknowledgements should follow durable processing if redelivery is required for safety. I verify unacked count and memory fall while throughput remains acceptable, and test consumer restart to confirm unacknowledged work is redelivered as expected. Broker and client acknowledgement semantics must be checked for the deployed versions.",
+      "keywords": [
+        "ready versus unacked",
+        "prefetch",
+        "acknowledgement timing",
+        "consumer memory",
+        "redelivery",
+        "throughput"
+      ],
+      "followups": [
+        {
+          "q": "Should a message be acked before the database commit?",
+          "a": "Not when a crash afterward would lose required work; align acknowledgement with durable effect or idempotency."
+        },
+        {
+          "q": "What does high prefetch risk?",
+          "a": "Large in-flight memory and uneven work distribution when consumers process slowly."
+        }
+      ],
+      "trap": "Watching only ready queue depth and missing a growing unacknowledged backlog.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify acknowledgment, prefetch and redelivery behavior for the deployed RabbitMQ client and broker versions."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-039",
+      "topic": "Retry amplification",
+      "question": "Several services retry a failing downstream call and traffic to it multiplies during the outage. How do you stop amplification?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Resilience",
+        "R:Microservices",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I map retries across the call chain and compare attempts with original requests, since independent retry policies multiply load. I identify whether failures are transient, throttled or permanent and which operations are safe to replay. Immediate mitigation is to reduce attempt budgets, shed optional work and protect the dependency with a circuit or concurrency limit. Each request needs an end-to-end deadline so retries cannot outlive value. I verify attempt count per logical request falls, upstream recovery improves and user-visible failures do not become silent data loss. The long-term fix centralizes retry ownership and tests outage behavior across service boundaries.",
+      "keywords": [
+        "attempt amplification",
+        "retry ownership",
+        "end-to-end deadline",
+        "circuit breaker",
+        "concurrency limit",
+        "logical request"
+      ],
+      "followups": [
+        {
+          "q": "Why can three attempts at each of two layers be worse than three?",
+          "a": "Nested retry loops can multiply physical calls for one logical request."
+        },
+        {
+          "q": "Should a circuit breaker replace all retries?",
+          "a": "No. They solve related but different problems; combine bounded retries with dependency protection as appropriate."
+        }
+      ],
+      "trap": "Adding retries to every layer independently as the default response to intermittent failures.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-040",
+      "topic": "Circuit breaker flapping",
+      "question": "A circuit breaker repeatedly opens and closes, causing intermittent failures after a dependency recovers. What do you inspect?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Resilience",
+        "R:Observability",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I inspect breaker state transitions, sampled call outcomes, rolling-window settings and dependency latency rather than treating the open state as the root cause. A probe rate that is too high can overload a recovering service; an overly sensitive threshold can react to a small traffic sample. I compare timeout and error classification to ensure local validation failures are not counted as dependency failures. Mitigation may limit half-open probes and isolate traffic. I verify state transitions under a controlled recovery test and check that successful probes correspond to sustained dependency health, not a single lucky response.",
+      "keywords": [
+        "state transitions",
+        "rolling window",
+        "half-open probes",
+        "error classification",
+        "recovery load",
+        "controlled test"
+      ],
+      "followups": [
+        {
+          "q": "Should every exception count as breaker failure?",
+          "a": "No. Classify local and expected business errors separately from dependency health failures."
+        },
+        {
+          "q": "What is a half-open state for?",
+          "a": "It allows limited probes to test recovery without immediately restoring full traffic."
+        }
+      ],
+      "trap": "Raising thresholds blindly without checking the error classes and probe load that drive transitions.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Confirm breaker configuration and event semantics for the actual resilience library version."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-041",
+      "topic": "Fallback correctness",
+      "question": "A fallback keeps an endpoint available during a dependency outage but returns outdated authorization data. How do you decide whether to retain it?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Resilience",
+        "R:OAuth",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I identify the data's security and freshness requirement before treating availability as success. Stale presentation data may be acceptable with a timestamp, but stale authorization can grant access after revocation and should usually fail closed or use a separately defined bounded policy. I inspect fallback hit rate, age and which decisions used it, then disable the unsafe path as immediate mitigation. The durable fix defines per-operation fallback semantics and exposes degraded state to callers. I verify both dependency-outage behavior and revocation scenarios, ensuring availability improvements do not permit access beyond the documented freshness bound.",
+      "keywords": [
+        "freshness bound",
+        "authorization decision",
+        "fail closed",
+        "fallback age",
+        "revocation test",
+        "degraded state"
+      ],
+      "followups": [
+        {
+          "q": "Can stale cache always improve availability safely?",
+          "a": "No. The impact depends on whether stale data affects presentation, financial state or access control."
+        },
+        {
+          "q": "What should a fallback response expose?",
+          "a": "A clear degraded state and freshness where allowed, without falsely presenting stale results as current."
+        }
+      ],
+      "trap": "Measuring fallback success only by uptime while ignoring stale security decisions.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified security and resilience scenario."
+    },
+    {
+      "id": "JH-S17-042",
+      "topic": "Trace context loss",
+      "question": "A distributed request has logs in every service but cannot be connected across a queue boundary. What do you investigate?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Observability",
+        "R:Kafka",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I inspect whether the producer injects trace context into message headers and whether the consumer extracts it before creating its processing span. Queue boundaries are asynchronous, so parent-child versus linked trace semantics should match the instrumentation model. I also check header preservation by serializers and intermediaries, sampling decisions and clock skew. Mitigation can add explicit correlation IDs where distributed tracing is unavailable, while avoiding sensitive payload identifiers. I verify one test message produces connected producer and consumer traces across restart and retry, and confirm malformed external context cannot create untrusted baggage or excessive cardinality.",
+      "keywords": [
+        "message headers",
+        "context injection",
+        "consumer extraction",
+        "span links",
+        "sampling",
+        "correlation ID"
+      ],
+      "followups": [
+        {
+          "q": "Should a queue consumer always use the producer as direct parent?",
+          "a": "Not necessarily; asynchronous processing may be better represented with a span link under the tracing model."
+        },
+        {
+          "q": "Can trace IDs be metric labels?",
+          "a": "No. They are high-cardinality identifiers; use traces or controlled logs instead."
+        }
+      ],
+      "trap": "Assuming a trace automatically crosses messaging without header propagation and consumer instrumentation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify propagation conventions and supported messaging instrumentation for the deployed OpenTelemetry libraries and broker client."
+      ],
+      "notes": "Unverified observability scenario."
+    },
+    {
+      "id": "JH-S17-043",
+      "topic": "Metric cardinality",
+      "question": "A monitoring bill spikes and dashboards slow after adding tenant labels, while incident visibility did not improve. How do you repair observability?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Observability",
+        "R:AWS",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I inspect active time-series count and identify labels with unbounded values such as user, request or arbitrary tenant IDs. Those dimensions multiply each metric series and can overwhelm ingestion and query costs. I remove high-cardinality labels from metrics, retaining bounded dimensions like route or outcome, and move targeted identifiers to access-controlled logs or traces. During the change I preserve critical aggregate alerts and verify the dashboards still distinguish affected services and cohorts. I measure series count and query latency after rollout, then add instrumentation review checks so future labels have an explicit cardinality budget.",
+      "keywords": [
+        "time-series cardinality",
+        "unbounded labels",
+        "bounded dimensions",
+        "logs and traces",
+        "series budget",
+        "query latency"
+      ],
+      "followups": [
+        {
+          "q": "Can tenant ID never be useful?",
+          "a": "It may be useful in controlled logs or sampled traces; metric suitability depends on bounded cardinality and system scale."
+        },
+        {
+          "q": "What metric dimensions are safer?",
+          "a": "Finite, controlled dimensions such as service, route template and outcome class, subject to a budget."
+        }
+      ],
+      "trap": "Adding raw tenant or request identifiers to every metric series for easier incident search.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-044",
+      "topic": "Alert symptom versus cause",
+      "question": "An alert fires for high CPU, but customers report failed logins while the service stays within its error-rate SLO. What do you do?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Observability",
+        "R:OAuth",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I treat the customer report as evidence even if the aggregate SLO is green, then segment login outcomes by identity provider, region and failure reason. A localized credential or redirect issue can be diluted in service-wide rates; high CPU may be unrelated background work. I compare traces and safe auth error categories, while checking whether sampling excludes failed flows. Mitigation targets the affected path, such as restoring a bad configuration, not CPU alone. I verify login success for the impacted cohort and add an alert on user-relevant auth failures. For a personal incident account I would use only the actual timeline and evidence available to me.",
+      "keywords": [
+        "customer cohort",
+        "auth failure reason",
+        "aggregate dilution",
+        "trace sampling",
+        "targeted mitigation",
+        "user outcome"
+      ],
+      "followups": [
+        {
+          "q": "Should you ignore a green SLO?",
+          "a": "No. Aggregates can conceal a small but severe cohort or a metric that omits failed attempts."
+        },
+        {
+          "q": "Why is CPU correlation insufficient?",
+          "a": "Two symptoms can share a time window without one causing the other; trace the failed request path."
+        }
+      ],
+      "trap": "Closing an incident because aggregate service indicators are green despite credible customer impact.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified diagnostic pattern; not presented as a specific personal incident."
+    },
+    {
+      "id": "JH-S17-045",
+      "topic": "Cloud quota exhaustion",
+      "question": "A cloud integration fails only during month-end bursts with quota errors. How do you distinguish a quota ceiling from network instability?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:AWS",
+        "R:ETL",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare provider error codes, request rate and quota metrics around the burst, then test the same operation at low volume and from the same network path. A quota rejection is different from connection setup failure even if both appear as a failed integration. I identify whether limits are account-, region-, resource- or operation-scoped from current provider documentation. Mitigation can smooth work, reduce concurrency or request a justified quota increase; immediate retries often worsen throttling. I verify month-end load stays within the approved limit and observe successful completion and queue age, while ensuring spreading work does not violate deadlines.",
+      "keywords": [
+        "provider error code",
+        "request rate",
+        "quota scope",
+        "burst smoothing",
+        "approved limit",
+        "queue age"
+      ],
+      "followups": [
+        {
+          "q": "Should quota failures be retried immediately?",
+          "a": "No. Follow documented delay or backoff and reduce pressure at the correct quota scope."
+        },
+        {
+          "q": "Can a quota increase alone fix it?",
+          "a": "Only if capacity is approved and downstream dependencies can handle the resulting rate."
+        }
+      ],
+      "trap": "Treating quota errors as generic network timeouts and adding immediate retries.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify current cloud quota scope, error codes and adjustment process in official documentation for the deployed service and region."
+      ],
+      "notes": "Unverified cloud scenario; no quota values asserted."
+    },
+    {
+      "id": "JH-S17-046",
+      "topic": "Cloud regional degradation",
+      "question": "One cloud region has elevated latency but no hard outage. What evidence determines whether to fail over?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:AWS",
+        "R:K8s",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare regional request latency, error rate, dependency health and data replication lag, then identify whether the service is stateless or has region-local state. A partial network path issue differs from shared provider control-plane latency. Failover can reduce user latency but risks stale reads, duplicate writes or overload in the destination region. Mitigation may shift only safe traffic or shed noncritical work. I follow the tested failover criteria and verify destination capacity, consistency and rollback path before moving traffic. Afterward I check user outcomes and replication convergence, not just the health of the new region.",
+      "keywords": [
+        "regional latency",
+        "replication lag",
+        "state ownership",
+        "failover capacity",
+        "consistency risk",
+        "rollback path"
+      ],
+      "followups": [
+        {
+          "q": "Should every elevated latency trigger failover?",
+          "a": "No. Evaluate data consistency, destination capacity and whether the fault is actually region-specific."
+        },
+        {
+          "q": "What does successful failover mean?",
+          "a": "User outcomes recover while data integrity and the ability to return traffic remain within the tested plan."
+        }
+      ],
+      "trap": "Switching regions based on latency alone without validating write ownership and replica freshness.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Verify the service's regional failover and replication guarantees for the exact cloud architecture and deployment."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-047",
+      "topic": "Configuration drift",
+      "question": "Only some replicas reject requests after a configuration rollout, even though they share the same application image. What do you compare?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:CICD",
+        "R:K8s",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare effective configuration version, secret mount or refresh time, environment and node placement for good and bad replicas. A shared image does not guarantee identical runtime configuration. I check whether rejected values correlate with one secret rotation, stale config map or rollout race, while confirming the endpoint and downstream behavior. Mitigation is to restore one known-good configuration consistently and stop partial rollout. I verify all replicas report the intended non-secret config fingerprint and pass the same request probe. I never print credentials to compare them; use version IDs or safe checksums with controlled access.",
+      "keywords": [
+        "effective configuration",
+        "secret version",
+        "replica comparison",
+        "rollout race",
+        "safe fingerprint",
+        "consistent rollout"
+      ],
+      "followups": [
+        {
+          "q": "Can you compare secret values in logs?",
+          "a": "No. Compare rotation versions or protected fingerprints without exposing the secret itself."
+        },
+        {
+          "q": "Why inspect node placement?",
+          "a": "Node-level mounts, networking or injected configuration can differ despite a shared image."
+        }
+      ],
+      "trap": "Assuming identical container images imply identical effective runtime configuration.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-048",
+      "topic": "Disk and log exhaustion",
+      "question": "A service starts failing writes after a logging change, but CPU and heap remain normal. What evidence do you gather?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Linux",
+        "R:Docker",
+        "R:K8s",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I inspect filesystem free space, inode use, container ephemeral storage, log volume and the exact write errors. A full disk can break application files, temporary storage or node-level logging while CPU and heap look healthy. I compare the release's log rate and rotation configuration, then distinguish container-local exhaustion from a shared persistent volume. Mitigation can stop verbose logging and reclaim only approved disposable files; deleting arbitrary data risks evidence or state. I verify free space remains stable under normal log volume and rotation, and test the configured retention limit. I also alert on growth rate before capacity is exhausted.",
+      "keywords": [
+        "filesystem capacity",
+        "inode use",
+        "ephemeral storage",
+        "log rotation",
+        "write errors",
+        "growth-rate alert"
+      ],
+      "followups": [
+        {
+          "q": "Can a filesystem have space but still reject file creation?",
+          "a": "Yes. Inode exhaustion or quota limits can block writes independently of byte capacity."
+        },
+        {
+          "q": "Should logs simply be deleted?",
+          "a": "Only under retention and incident-evidence policy; first identify the exhausted mount and safe cleanup scope."
+        }
+      ],
+      "trap": "Assuming normal heap means the process has adequate disk and ephemeral storage.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-049",
+      "topic": "Clock skew",
+      "question": "Signed tokens and scheduled jobs fail inconsistently across a subset of hosts. How do you test clock skew?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:OAuth",
+        "R:AWS",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I compare host time offset and synchronization status with token not-before and expiry failures, then correlate affected hosts rather than changing global clock tolerance. Clock skew can also distort leases, certificate validity and scheduled execution, so I check those symptoms separately. Mitigation is to restore time synchronization and temporarily route around confirmed bad hosts; widening token acceptance can weaken security. I verify offsets converge and valid tokens work while expired-token tests still fail. For scheduled jobs I check duplicate or skipped execution around correction, because moving clocks can affect timers differently from persisted timestamps.",
+      "keywords": [
+        "host time offset",
+        "not-before",
+        "expiry",
+        "time synchronization",
+        "security tolerance",
+        "scheduled job"
+      ],
+      "followups": [
+        {
+          "q": "Should you increase JWT clock skew to solve this?",
+          "a": "Not before confirming host time; a broad tolerance can accept expired or premature tokens."
+        },
+        {
+          "q": "Why inspect leases too?",
+          "a": "Clock assumptions can affect distributed expiration and scheduling beyond authentication."
+        }
+      ],
+      "trap": "Increasing global authentication leeway before identifying which hosts have incorrect time.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "Check the actual token library's clock-skew behavior and host time-synchronization configuration."
+      ],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-050",
+      "topic": "Deployment health verification",
+      "question": "A rollout completes and health checks pass, but a downstream workflow silently stops completing. What should post-deploy verification include?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:CICD",
+        "R:Kafka",
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Process health proves little about end-to-end progress. I compare workflow start and completion counts, oldest in-flight age, queue or scheduler state, and dependency spans across the release boundary. A consumer may be alive but not assigned work, a callback path may be broken, or a required event may be rejected without affecting liveness. Mitigation is to pause rollout and restore the last known working artifact if business deadlines are at risk. I verify a synthetic or safely identifiable workflow reaches its durable terminal state, then retain a post-deploy window for lag and error trends before declaring success.",
+      "keywords": [
+        "workflow completion",
+        "oldest in-flight age",
+        "consumer assignment",
+        "terminal state",
+        "rollout pause",
+        "synthetic verification"
+      ],
+      "followups": [
+        {
+          "q": "Why are liveness and readiness insufficient?",
+          "a": "They check process or traffic readiness, not whether asynchronous business work is making progress."
+        },
+        {
+          "q": "What is a safe synthetic check?",
+          "a": "A scoped operation with known cleanup and no customer side effect, traced to its durable completion."
+        }
+      ],
+      "trap": "Declaring success from pod health alone when asynchronous workflows may be stalled.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified troubleshooting scenario."
+    },
+    {
+      "id": "JH-S17-051",
+      "topic": "Incident response",
+      "question": "Production goes down at night after your change. What do you do?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Accolite",
+          "sources": [
+            "S010"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Restore service first by rolling back the release, scaling or restarting the affected instances; mitigate before diagnosing. Confirm the blast radius from dashboards: error rate, latency, CPU and memory, database connections and upstream health, and whether one instance or all are affected. Check the obvious suspects, namely the change itself, configuration or feature flags, a database migration, an external dependency or an expired certificate. Collect evidence before restarting everything: thread dumps for hangs and deadlocks, a heap dump for out-of-memory, GC logs, and application logs by trace id. Communicate in the incident channel with a timeline, then run a blameless root-cause analysis and add the missing alert or test.",
+      "keywords": [
+        "rollback first",
+        "blast radius",
+        "change and config suspects",
+        "thread and heap dumps",
+        "communicate with timeline",
+        "blameless RCA"
+      ],
+      "followups": [
+        {
+          "q": "Why mitigate before diagnosing?",
+          "a": "Users are affected now; a rollback restores service while the cause is investigated safely."
+        },
+        {
+          "q": "What evidence should you capture before restarting?",
+          "a": "Thread dumps, heap dumps if memory is suspected, GC logs and logs for the failing trace ids."
+        }
+      ],
+      "trap": "Starting a deep investigation while the outage continues, or restarting everything and destroying the evidence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 7.17 (Accolite). Model answer written for this handbook, not copied from the notes. Related: JH-S17-004, JH-S17-026, JH-S20-033."
+    }
+  ]
+}

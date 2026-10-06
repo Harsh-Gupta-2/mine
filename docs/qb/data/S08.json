@@ -1,0 +1,3455 @@
+{
+  "section": "S08",
+  "section_title": "Microservices and resilience",
+  "questions": [
+    {
+      "id": "JH-S08-001",
+      "topic": "Retry safety",
+      "question": "When does retrying a failed API call make an outage worse or duplicate a business action?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A timeout means the caller did not receive a timely outcome, not that the server did nothing. Retrying a write can duplicate a committed action unless the operation supports a stable idempotency key or another reconciliation contract. During overload, retries also multiply traffic against a struggling dependency. I would classify retryable failures, cap attempts within one end-to-end deadline, use exponential backoff with jitter and respect upstream rate-limit signals where meaningful. Retries at several layers can multiply unexpectedly, so one layer should normally own the policy for a given call. Each attempt still consumes concurrency and rate budgets. Validation errors and permanent authorization failures are not useful blind-retry candidates.",
+      "keywords": [
+        "unknown outcome",
+        "idempotency key",
+        "backoff",
+        "jitter",
+        "retry budget",
+        "layer amplification"
+      ],
+      "followups": [
+        {
+          "q": "Should every timeout be retried immediately?",
+          "a": "No. Check operation semantics, remaining budget and dependency health; reconcile uncertain writes when necessary."
+        },
+        {
+          "q": "What should an idempotency key bind to?",
+          "a": "The caller identity and intended operation payload, with a defined retention and conflict policy, not merely an arbitrary shared string."
+        }
+      ],
+      "trap": "Treating network failure as proof that no business side effect happened.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-002",
+      "topic": "Circuit breaker and bulkhead",
+      "question": "How do a timeout, circuit breaker and bulkhead protect different failure modes?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Resilience",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A timeout limits waiting for an operation. A circuit breaker observes configured outcomes and can stop new calls while a dependency appears unhealthy, later permitting trial calls to test recovery. A bulkhead limits resources or concurrency allocated to a dependency so it cannot consume the entire service. They are complementary: a breaker does not necessarily stop already-running calls, and a timeout does not by itself cap the number of requests admitted. I would define which failures count toward the breaker and make fallback semantics explicit. Returning stale data or a default is only acceptable when the business contract permits it. I would monitor rejection, timeout and fallback rates separately to see which protection is active.",
+      "keywords": [
+        "timeout",
+        "circuit state",
+        "half-open trials",
+        "bulkhead",
+        "fallback semantics",
+        "rejection metrics"
+      ],
+      "followups": [
+        {
+          "q": "Should a business rejection count as dependency failure?",
+          "a": "Usually not automatically. Configure the outcome classification so legitimate rejections do not open a circuit unnecessarily."
+        },
+        {
+          "q": "Can a fallback lie?",
+          "a": "Yes. Reporting a payment as successful because the downstream is unavailable violates the business contract."
+        }
+      ],
+      "trap": "Using a circuit breaker as a substitute for concurrency bounds or client timeouts.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no specific Resilience4j settings claimed."
+    },
+    {
+      "id": "JH-S08-003",
+      "topic": "Outbox and duplicate delivery",
+      "question": "How does the transactional outbox solve the database-and-message dual-write problem?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Kafka",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The business change and an outbox record are committed in one local database transaction. A separate publisher reads committed outbox records and delivers them to the broker, removing the need to atomically coordinate a normal database commit with an unrelated broker send. The publisher can crash after sending but before marking delivery, so duplicate publication is still possible. Consumers need stable event identifiers and idempotent processing, often with a deduplication record committed alongside their own business update. Ordering, retention, poison records and publisher lag remain operational responsibilities. The outbox closes one consistency gap; it does not make every downstream effect globally exactly once or guarantee immediate visibility across services.",
+      "keywords": [
+        "local transaction",
+        "outbox record",
+        "publisher",
+        "duplicate delivery",
+        "consumer deduplication",
+        "lag"
+      ],
+      "followups": [
+        {
+          "q": "Can marking the row sent before publishing solve duplicates?",
+          "a": "It creates a loss window if the publisher crashes before sending. Choose at-least-once delivery plus idempotence instead of hiding that trade-off."
+        },
+        {
+          "q": "Does an outbox replace a saga?",
+          "a": "No. A saga coordinates a multi-step business workflow; an outbox reliably transfers a committed local event."
+        }
+      ],
+      "trap": "Claiming the outbox eliminates all duplicate events.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-004",
+      "topic": "Service boundaries",
+      "question": "How would you decide whether a capability belongs in a separate microservice?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would look for a cohesive business capability with a clear owner, data invariants and a change cadence that differs enough to justify independent deployment. A boundary is stronger when the service can enforce its rules without synchronous access to another service's internal tables. I would also account for operational cost: network failure, deployment coordination, observability, security and on-call ownership all become explicit. Splitting a class or table by itself is not a reason. If teams still need coordinated releases or cross-service transactions for routine changes, the proposed boundary may be wrong. I would start with the simplest deployable unit that preserves the domain contract and split when a concrete scaling or ownership need appears.",
+      "keywords": [
+        "business capability",
+        "data ownership",
+        "independent deployment",
+        "invariants",
+        "operational cost",
+        "cohesion"
+      ],
+      "followups": [
+        {
+          "q": "Should each service have its own database server?",
+          "a": "Not necessarily. It should own its data contract and prevent other services from depending on its private schema; physical infrastructure can be shared."
+        },
+        {
+          "q": "What is a warning sign of a poor boundary?",
+          "a": "A routine use case requires synchronous calls through many services or coordinated writes across their databases."
+        }
+      ],
+      "trap": "Treating every entity, team, or deployment unit as an automatic service boundary.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-005",
+      "topic": "Synchronous versus asynchronous calls",
+      "question": "When would you use request-response HTTP rather than publish an asynchronous event between services?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Wissen",
+          "sources": [
+            "S007"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST",
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I choose synchronous request-response when the caller needs an immediate decision or representation and the dependency can meet its latency and availability budget. It creates temporal coupling: the caller waits, consumes a connection or thread, and inherits downstream failure unless it handles deadlines and errors. An event fits work that can complete later, fan out, or tolerate eventual visibility; it requires durable delivery, idempotent consumers, schema evolution and a way to expose progress. I start from the user-visible contract, not a preference for HTTP or a broker. A command asking a service to perform work and an event stating that work occurred have different ownership and retry semantics. I would not publish an event merely to hide a required immediate rejection.",
+      "keywords": [
+        "latency budget",
+        "temporal coupling",
+        "durable delivery",
+        "eventual visibility",
+        "idempotent consumer",
+        "command versus event"
+      ],
+      "followups": [
+        {
+          "q": "Can an event consumer reject a request synchronously?",
+          "a": "Not in the original request path without an additional response protocol; asynchronous acceptance is not the same as completed business success."
+        },
+        {
+          "q": "Do events remove coupling?",
+          "a": "They reduce direct availability coupling but retain schema, semantics, ordering and operational dependencies."
+        }
+      ],
+      "trap": "Calling asynchronous publication a successful business operation before the consumer has completed it.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern. Reported in user-provided interview notes, item 7.15 (Wissen)."
+    },
+    {
+      "id": "JH-S08-006",
+      "topic": "Service discovery",
+      "question": "How should a client behave when service discovery returns an endpoint that has just become unhealthy?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:K8s",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Discovery is a changing view, not a guarantee that a returned endpoint remains healthy until the request finishes. The client or proxy needs connection and request deadlines, bounded retries for safe operations, and load balancing over the current eligible endpoints. Health checks must distinguish process liveness from readiness to receive traffic; restarting a live process because one dependency is temporarily unavailable can create a restart loop. Removal also propagates with delay, so in-flight calls can still fail. I would use the platform's established discovery mechanism rather than maintain a competing registry, and observe registration churn, rejected connections and readiness transitions. The service must still handle a stale endpoint gracefully because no registry can eliminate races with network failure.",
+      "keywords": [
+        "stale endpoint",
+        "readiness",
+        "liveness",
+        "deadline",
+        "bounded retry",
+        "registration churn"
+      ],
+      "followups": [
+        {
+          "q": "Should readiness fail whenever one downstream is unavailable?",
+          "a": "Only if the service cannot meet its own contract without that dependency; otherwise broad removal can amplify an outage."
+        },
+        {
+          "q": "Does discovery eliminate DNS or connection caching issues?",
+          "a": "No. Propagation and client caches still have lifetimes and failure behavior that must be understood."
+        }
+      ],
+      "trap": "Treating a successful registry lookup as proof the remote call will succeed.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-007",
+      "topic": "Configuration and secrets",
+      "question": "How would you change a service setting safely across replicas without exposing credentials?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:AWS",
+        "R:K8s",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I separate nonsecret runtime configuration from credentials and make each setting's owner, scope and rollout behavior explicit. Secret values come from an access-controlled secret manager or platform facility, are not committed to source control or printed in logs, and have a rotation procedure. For a change, I validate the value before rollout, deploy a compatible configuration to a small or controlled cohort, observe the result, and retain a rollback path. Existing processes may not reload configuration automatically, so I verify whether restart or refresh is required instead of assuming live propagation. Related settings should be versioned together when partial rollout could violate an invariant. Audit who changed a value, but avoid recording the secret itself.",
+      "keywords": [
+        "runtime configuration",
+        "secret manager",
+        "least privilege",
+        "rotation",
+        "validation",
+        "rollback"
+      ],
+      "followups": [
+        {
+          "q": "Can an environment variable safely hold a secret?",
+          "a": "It may be a delivery mechanism, but access, process visibility, diagnostics and rotation still need platform-specific controls."
+        },
+        {
+          "q": "Should every configuration change require a restart?",
+          "a": "That depends on the setting's lifecycle; define and test reload semantics instead of promising universal hot reload."
+        }
+      ],
+      "trap": "Putting credentials in a plain configuration file or assuming a deployment platform automatically rotates them.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no platform-specific secret API is assumed."
+    },
+    {
+      "id": "JH-S08-008",
+      "topic": "API compatibility",
+      "question": "How can an API change remain compatible while old and new service instances run together?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I treat compatibility as a relation between deployed clients and servers, not just between two source schemas. During a rolling release, either version may receive traffic, so additive optional response fields are generally safer than changing an existing field's meaning or type. For requests, a server should tolerate fields older clients omit, while new clients must not require capabilities absent on old servers. I deploy tolerant readers before producers of a new shape, observe usage, and remove old behavior only after a communicated deprecation window. Compatibility tests should exercise the actual version pairs in the rollout matrix.",
+      "keywords": [
+        "rolling release",
+        "old and new versions",
+        "additive change",
+        "tolerant reader",
+        "deprecation window",
+        "version matrix"
+      ],
+      "followups": [
+        {
+          "q": "Is adding a field always safe?",
+          "a": "No. A newly required field or a changed interpretation can break deployed clients."
+        },
+        {
+          "q": "When should a breaking change use a new API version?",
+          "a": "When the contract cannot evolve compatibly and clients need an explicit migration boundary."
+        }
+      ],
+      "trap": "Assuming source compatibility means mixed deployed versions are compatible.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-009",
+      "topic": "Consumer-driven contracts",
+      "question": "What does a consumer-driven contract test prove between two independently deployed services?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST",
+        "R:Testing"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A consumer contract captures the request and response shapes, status behavior, and relevant interactions that a particular consumer relies on. The provider can verify that its implementation still satisfies those expectations before release, while the consumer verifies that it publishes an accurate contract. This catches integration incompatibility earlier than waiting for a full environment test. It does not prove production networking, authorization, latency, or every unrecorded behavior is correct. I would keep contracts narrow and owned by consumers, run provider verification in its delivery pipeline, and retain end-to-end tests for a small number of critical journeys.",
+      "keywords": [
+        "consumer expectation",
+        "provider verification",
+        "independent deployment",
+        "contract scope",
+        "pipeline",
+        "integration limits"
+      ],
+      "followups": [
+        {
+          "q": "Does a passing contract test replace integration tests?",
+          "a": "No. It validates captured interactions, not infrastructure behavior or complete workflows."
+        },
+        {
+          "q": "Who updates a contract after an API change?",
+          "a": "The consumer owning the expectation updates it and coordinates provider verification."
+        }
+      ],
+      "trap": "Treating a contract test as proof that every possible client interaction works.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-010",
+      "topic": "API deprecation",
+      "question": "How would you retire an API field or endpoint without surprising its consumers?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I first identify consumers from ownership records, traffic telemetry, and known integrations; absence of recent traffic alone may miss scheduled or infrequent clients. I publish the replacement, migration guidance, and a removal date, then measure old-route or old-field use by consumer where privacy and cardinality permit. The provider supports both behaviors during an explicit overlap and communicates any semantic difference. Before removal, owners confirm migration or accept a documented exception. I keep rollback options until the new contract is stable. Deprecation is a compatibility process, not merely adding a warning header and deleting code later.",
+      "keywords": [
+        "consumer inventory",
+        "usage telemetry",
+        "replacement",
+        "overlap window",
+        "migration",
+        "removal criteria"
+      ],
+      "followups": [
+        {
+          "q": "Can zero requests for a week prove nobody depends on it?",
+          "a": "No. Traffic may be seasonal, batch-driven, or sampled; pair telemetry with ownership confirmation."
+        },
+        {
+          "q": "What makes a deprecation date useful?",
+          "a": "A clear announced deadline, migration path, owner contact, and measurable exit criteria."
+        }
+      ],
+      "trap": "Removing an endpoint based only on a short period of observed inactivity.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-011",
+      "topic": "HTTP error contracts",
+      "question": "How should a service design error responses so callers can make safe decisions?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I define a stable machine-readable error code, an appropriate HTTP status, and a safe human-readable message, with a correlation identifier for support. Callers should not parse prose or infer retryability from every 5xx or 4xx indiscriminately; document which conditions are permanent, transient, or outcome-uncertain. Do not return stack traces, internal hostnames, tokens, or sensitive validation values. Validation errors can identify fields without echoing secrets. The error schema itself needs compatibility rules because clients depend on it. I would log richer sanitized diagnostics server-side and test that both success and error bodies follow the published contract.",
+      "keywords": [
+        "status code",
+        "stable error code",
+        "retryability",
+        "correlation ID",
+        "safe detail",
+        "schema compatibility"
+      ],
+      "followups": [
+        {
+          "q": "Should clients branch on the message text?",
+          "a": "No. Use a stable code and documented status semantics; text is for people."
+        },
+        {
+          "q": "Can a 500 always be retried?",
+          "a": "No. The operation may be non-idempotent or its outcome may be uncertain."
+        }
+      ],
+      "trap": "Returning internal exception details or making callers interpret unstable prose.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-012",
+      "topic": "Request correlation",
+      "question": "How do you correlate one request across several services without trusting caller-supplied identity data?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Observability"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "At the ingress boundary I accept or generate a bounded correlation identifier for diagnostics, validate its format, and propagate it through outbound calls. Each service logs that identifier alongside its own request or trace span, while recording authenticated principal and tenant context separately from the caller-controlled correlation value. A correlation ID helps join evidence; it is not proof of identity, authorization, or causality. Avoid using unbounded values as metric labels, and do not place secrets or personal data in the identifier. I would verify propagation through success, error, retry, and asynchronous handoff paths and ensure logs remain useful when a header is missing.",
+      "keywords": [
+        "correlation ID",
+        "ingress validation",
+        "principal separation",
+        "propagation",
+        "bounded cardinality",
+        "redaction"
+      ],
+      "followups": [
+        {
+          "q": "Can a caller choose an arbitrary correlation ID?",
+          "a": "Accept only a bounded safe format or replace it; never treat it as an identity claim."
+        },
+        {
+          "q": "Should it be a metric label?",
+          "a": "Usually not, because unique values create unbounded metric cardinality."
+        }
+      ],
+      "trap": "Using a diagnostic header as an authorization identity or logging it without validation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; operational framing uses resume-supported incident debugging without asserting an incident detail."
+    },
+    {
+      "id": "JH-S08-013",
+      "topic": "Deadline propagation",
+      "question": "What does propagating a request deadline through downstream calls prevent?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A deadline communicates the latest useful completion time for the whole request. Each hop derives a smaller remaining budget and stops work when the caller can no longer use the result, instead of starting a fresh full timeout that outlives the original request. This limits wasted computation and frees connections and worker capacity during slow dependency incidents. The service should reject expired work before expensive processing and propagate cancellation where supported. Deadlines need a trusted representation and clock-skew policy; a relative remaining duration can be safer than trusting arbitrary wall-clock input. I would measure deadline exhaustion by dependency and operation, not only total request failures.",
+      "keywords": [
+        "end-to-end deadline",
+        "remaining budget",
+        "hop propagation",
+        "cancel work",
+        "clock skew",
+        "deadline metric"
+      ],
+      "followups": [
+        {
+          "q": "Should every downstream get the full client timeout?",
+          "a": "No. That can make total latency exceed the caller's deadline at each hop."
+        },
+        {
+          "q": "What should happen when a deadline is already expired?",
+          "a": "Fail quickly without dispatching work that cannot produce a useful response."
+        }
+      ],
+      "trap": "Resetting the timeout at every service and allowing a request to run indefinitely end to end.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-014",
+      "topic": "Timeout budget allocation",
+      "question": "How would you allocate a request timeout across multiple dependent calls?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Start with the caller-visible latency objective and subtract time reserved for local work, serialization, and returning the response. Sequential dependencies share the remaining budget, while parallel calls need enough time for the slowest required result plus aggregation. I set per-call limits below the remaining end-to-end deadline and avoid assigning every hop the full request timeout. The values should reflect measured latency distributions and business criticality, not only average latency. A timeout is an upper bound, not a target. I would observe timeout rates and tail latency by dependency, then adjust the budget without masking saturation or making retries exceed it.",
+      "keywords": [
+        "latency objective",
+        "remaining time",
+        "sequential calls",
+        "parallel fan-out",
+        "tail latency",
+        "per-hop timeout"
+      ],
+      "followups": [
+        {
+          "q": "Should a dependency timeout equal the whole API timeout?",
+          "a": "Usually not; local processing and response time also need budget."
+        },
+        {
+          "q": "Should timeout values be based on average latency?",
+          "a": "No. Include tail behavior and the user-facing deadline, then validate with production measurements."
+        }
+      ],
+      "trap": "Adding independent full timeouts so worst-case latency grows with every service hop.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-015",
+      "topic": "Cancellation propagation",
+      "question": "Why should a service propagate cancellation when a caller disconnects or its deadline expires?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Concurrency",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Once a result is no longer useful, continuing expensive downstream work consumes threads, sockets, database capacity, and rate budget that could serve live requests. I propagate cancellation through supported clients and task abstractions, check it at safe boundaries, and release resources in cleanup paths. Cancellation is cooperative, so blocking libraries may need bounded timeouts or interruption-aware handling. For a write already accepted by a remote service, cancellation does not prove that the side effect was undone; the caller may need to query status or reconcile. I would distinguish cancellation before dispatch from an uncertain outcome after dispatch and measure work abandoned after client disconnect.",
+      "keywords": [
+        "cooperative cancellation",
+        "resource release",
+        "deadline",
+        "blocking call",
+        "uncertain write",
+        "abandoned work"
+      ],
+      "followups": [
+        {
+          "q": "Does cancelling an HTTP client future undo a remote write?",
+          "a": "No. The server may already have committed it; cancellation stops waiting, not necessarily execution."
+        },
+        {
+          "q": "Should cancellation be swallowed as an ordinary error?",
+          "a": "No. Preserve cancellation semantics so upstream work can stop and resources are released."
+        }
+      ],
+      "trap": "Claiming a local timeout or cancellation rolls back a remote operation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-016",
+      "topic": "HTTP connection pooling",
+      "question": "What failure modes can arise from an incorrectly configured outbound HTTP connection pool?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A pool that is too small queues callers before a connection is available, while a pool that is too large can overwhelm a dependency or consume local sockets and file descriptors. Connections also become stale after idle periods, and pool-acquisition waits can be mistaken for remote server latency if they are not measured separately. I configure bounded acquisition and response timeouts, reuse a managed client, and align per-host limits with concurrency and dependency capacity. Observe leased, idle, pending, and expired connections where the client exposes them. Load tests should include slow responses and peer restarts, not just fast steady-state calls.",
+      "keywords": [
+        "pool acquisition",
+        "per-host limit",
+        "stale connection",
+        "socket resources",
+        "pending callers",
+        "latency metrics"
+      ],
+      "followups": [
+        {
+          "q": "Does increasing the pool always improve throughput?",
+          "a": "No. It can shift overload to the dependency and increase local resource use."
+        },
+        {
+          "q": "Which timeout should be measured separately?",
+          "a": "Pool acquisition, connection establishment, and response/read time each reveal a different delay."
+        }
+      ],
+      "trap": "Diagnosing all outbound latency as server time while ignoring pool wait and local exhaustion.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-017",
+      "topic": "Load-balancing policy",
+      "question": "How would you choose a load-balancing policy for calls to multiple service instances?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:K8s",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I first determine where balancing occurs, which endpoints are eligible, and whether requests are stateless or require affinity. Round robin is simple when instances have comparable capacity; least-request or latency-aware choices can react to imbalance but need sound measurements and may create feedback loops. Connection reuse can pin many requests to a subset of endpoints, so request-level and connection-level balancing differ. Outlier ejection should be bounded to avoid removing every replica during a shared dependency failure. I would observe per-instance request rate, latency, errors, and active connections, then test scale-up and endpoint loss under realistic keep-alive behavior.",
+      "keywords": [
+        "eligibility",
+        "round robin",
+        "least request",
+        "connection reuse",
+        "outlier ejection",
+        "per-instance metrics"
+      ],
+      "followups": [
+        {
+          "q": "Does round robin guarantee equal work?",
+          "a": "No. Request cost, connection reuse, and instance capacity can differ."
+        },
+        {
+          "q": "What risk comes with aggressive ejection?",
+          "a": "A transient or correlated error can remove too many healthy instances and reduce capacity further."
+        }
+      ],
+      "trap": "Assuming equal request counts mean equal load or that all endpoints are interchangeable.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no particular proxy or platform behavior is assumed."
+    },
+    {
+      "id": "JH-S08-018",
+      "topic": "Zone-aware routing",
+      "question": "What should zone-aware service routing optimize, and what trade-off appears during a local capacity failure?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:AWS",
+        "R:K8s",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Prefer a healthy nearby instance when that reduces network latency and cross-zone cost, but keep a controlled path to other zones when local capacity is insufficient. Strictly local routing can fail even while remote capacity is healthy; unrestricted cross-zone failover can shift overload and increase shared-failure impact. Define health, capacity thresholds, and spillover policy together, and avoid treating a zone label as a complete fault-domain guarantee. I would test a full local-zone loss and partial degradation, monitor per-zone saturation and error rates, and ensure clients do not all switch at once without bounded retry and admission control.",
+      "keywords": [
+        "locality",
+        "spillover",
+        "zone failure",
+        "capacity threshold",
+        "cross-zone cost",
+        "synchronized failover"
+      ],
+      "followups": [
+        {
+          "q": "Should routing always stay in-zone?",
+          "a": "Only if the availability contract accepts local failure; otherwise define bounded spillover."
+        },
+        {
+          "q": "What prevents failover from overloading another zone?",
+          "a": "Capacity-aware admission, bounded retries, and staged spillover limits."
+        }
+      ],
+      "trap": "Assuming nearest-zone routing is both cheapest and most resilient under every failure.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; infrastructure-specific routing behavior is not asserted."
+    },
+    {
+      "id": "JH-S08-019",
+      "topic": "Endpoint and DNS changes",
+      "question": "How should clients handle service endpoint changes when DNS and connection caches outlive a deployment event?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:K8s",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A DNS answer can be cached by the runtime, client, operating system, or network layer, and an established keep-alive connection can continue using an old address after name resolution changes. I would use the platform's supported discovery client, set cache behavior deliberately, bound connection lifetime where appropriate, and make endpoint replacement overlap long enough for clients to converge. A DNS refresh alone cannot move an in-flight request or guarantee the old target remains available. Measure resolution failures and connection errors separately. During rollout, test stale connections and graceful endpoint removal rather than assuming TTL expiry instantly redirects all traffic.",
+      "keywords": [
+        "DNS cache",
+        "keep-alive",
+        "endpoint convergence",
+        "connection lifetime",
+        "overlap",
+        "stale address"
+      ],
+      "followups": [
+        {
+          "q": "Does lowering DNS TTL immediately move existing connections?",
+          "a": "No. Existing pooled connections can remain bound to the resolved address."
+        },
+        {
+          "q": "Should old instances stop accepting traffic as soon as new ones start?",
+          "a": "Not until discovery and client pools have a controlled drain path."
+        }
+      ],
+      "trap": "Treating a DNS record update as instantaneous invalidation of every client connection.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; exact cache behavior depends on the runtime and client."
+    },
+    {
+      "id": "JH-S08-020",
+      "topic": "Readiness and dependency health",
+      "question": "When should an unavailable downstream dependency make a service instance unready?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:K8s",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Readiness should represent whether this instance can currently serve its own advertised contract, not whether every dependency check is green. If the dependency is optional or the service can return a documented degraded result, removing all instances may amplify a localized outage. If the dependency is essential to every valid request, readiness may need to fail, but recovery probes must avoid excessive traffic or flapping. Keep liveness focused on whether the process should be restarted, not on remote health. I would model critical and optional dependencies separately, test partial outage behavior, and monitor readiness transitions alongside user-facing error rates.",
+      "keywords": [
+        "readiness contract",
+        "critical dependency",
+        "degraded mode",
+        "liveness separation",
+        "flapping",
+        "user-facing errors"
+      ],
+      "followups": [
+        {
+          "q": "Should liveness fail when a database is unreachable?",
+          "a": "Usually not by itself; restarting every instance can intensify a shared database outage."
+        },
+        {
+          "q": "What if only one endpoint is degraded?",
+          "a": "Use endpoint-level health and routing where supported rather than withdrawing all service capacity."
+        }
+      ],
+      "trap": "Coupling every remote health check to liveness and triggering restart cascades.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; platform probe semantics must be confirmed for deployment."
+    },
+    {
+      "id": "JH-S08-021",
+      "topic": "Graceful request draining",
+      "question": "How should a service drain in-flight requests during deployment or scale-down?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:CICD",
+        "R:K8s",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "On shutdown, stop advertising readiness first, allow routing and connection pools time to observe removal, then stop accepting new work while completing in-flight requests within a bounded grace period. Background tasks need their own policy: finish, checkpoint, or leave durable work for another instance rather than acknowledging incomplete work. Close outbound clients and executors after request work settles, and force termination only after the deadline. The grace period must fit the orchestrator's termination window and actual maximum request duration. I would test termination during slow upstream calls and rolling replacement, watching for resets, duplicate writes, and uneven capacity.",
+      "keywords": [
+        "readiness removal",
+        "drain interval",
+        "in-flight requests",
+        "grace period",
+        "durable task",
+        "termination test"
+      ],
+      "followups": [
+        {
+          "q": "Should a service stop accepting traffic before it exits?",
+          "a": "Yes, with enough propagation time for routing layers to stop selecting it."
+        },
+        {
+          "q": "What if a request exceeds the grace period?",
+          "a": "Bound its work and make the outcome safe to retry or reconcile; do not promise completion after forced termination."
+        }
+      ],
+      "trap": "Terminating immediately after readiness changes while existing connections still route work to the instance.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; deployment grace periods are environment-specific."
+    },
+    {
+      "id": "JH-S08-022",
+      "topic": "HTTP throttling responses",
+      "question": "What information should a service return when it rejects a caller for exceeding a rate limit?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Return a stable throttling status and, when policy permits, a bounded retry hint that tells a cooperative client when another attempt may be reasonable. The response should identify the applicable quota class without exposing another tenant's usage or internal enforcement details. A retry hint is guidance rather than a promise that capacity will be available, and clients should add jitter to avoid synchronized bursts. Distinguish caller-specific quota exhaustion from global overload because recovery action differs. I would document whether rejected requests consume quota, ensure proxies preserve the response, and monitor rejected volume separately from server failures.",
+      "keywords": [
+        "429 response",
+        "retry hint",
+        "quota scope",
+        "jitter",
+        "tenant isolation",
+        "rejection metric"
+      ],
+      "followups": [
+        {
+          "q": "Should clients retry immediately after a throttle response?",
+          "a": "No. Follow the documented hint and add jitter to avoid a synchronized retry wave."
+        },
+        {
+          "q": "Is every 429 a global outage?",
+          "a": "No. It may apply to one identity, route, or tenant quota."
+        }
+      ],
+      "trap": "Returning a precise shared quota state that leaks other tenants' activity or encourages immediate retries.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no specific rate-limit implementation is prescribed."
+    },
+    {
+      "id": "JH-S08-023",
+      "topic": "Ingress backpressure",
+      "question": "How can an HTTP service apply backpressure before request queues exhaust memory and threads?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Bound concurrent requests, pending work, request-body size, and queue wait rather than accepting unlimited work into memory. When capacity is exhausted, reject early with a documented overload response or shed optional work, allowing clients to retry within their own budgets. Admission decisions should consider downstream capacity and request cost, not only connection count. A queue is useful only when its maximum size and wait time are explicit. I would monitor active, queued, rejected, and timed-out requests, then test burst traffic and slow dependencies. The aim is controlled degradation with preserved responsiveness for accepted work, not maximizing the number of requests waiting.",
+      "keywords": [
+        "bounded concurrency",
+        "queue limit",
+        "early rejection",
+        "body limit",
+        "downstream capacity",
+        "overload metrics"
+      ],
+      "followups": [
+        {
+          "q": "Why not queue every incoming request?",
+          "a": "An unbounded queue converts overload into memory exhaustion and extreme latency."
+        },
+        {
+          "q": "What should clients do after overload rejection?",
+          "a": "Retry only when safe, within a deadline, with backoff and jitter."
+        }
+      ],
+      "trap": "Treating a large queue as added capacity instead of delayed work and resource consumption.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-024",
+      "topic": "Bounded asynchronous work",
+      "question": "What design decisions make an in-process asynchronous work queue safe under sustained load?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Concurrency",
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Choose a finite queue capacity from memory per task, acceptable queueing delay, and expected worker throughput. Define what happens on saturation: reject the request, run a limited caller task, or transfer work to a durable system if it must survive process loss. Bound worker count and task duration, propagate deadlines, and ensure exceptions become observable outcomes rather than disappearing in background execution. Shutdown must drain or safely abandon tasks according to their durability contract. I would expose queue depth, age, active workers, rejection count, and failure count, then load-test sustained overload rather than just a short burst.",
+      "keywords": [
+        "finite capacity",
+        "worker bound",
+        "saturation policy",
+        "task deadline",
+        "exception visibility",
+        "shutdown semantics"
+      ],
+      "followups": [
+        {
+          "q": "When is an in-memory queue insufficient?",
+          "a": "When accepted work must survive process restart or move reliably between instances."
+        },
+        {
+          "q": "Why track queue age as well as depth?",
+          "a": "A small queue of expensive or stuck work can still violate latency objectives."
+        }
+      ],
+      "trap": "Calling work asynchronous and assuming its queue is durable or its failures reach the request handler.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-025",
+      "topic": "Load shedding",
+      "question": "How would you shed load selectively so overload does not make every endpoint equally unavailable?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Classify operations by business criticality, cost, and whether they can be deferred or degraded. Under saturation, preserve capacity for essential writes or reads and reject low-priority analytics, optional enrichment, or expensive requests first, with explicit client-visible outcomes. Avoid relying on untrusted caller priority headers; derive priority from authenticated policy. Shedding must occur before scarce worker or connection pools are fully occupied, and rejected work should not trigger uncontrolled retries. I would rehearse thresholds under load and monitor both protection activity and customer impact. The policy should have a recovery path with hysteresis so traffic does not oscillate between rejection and overload.",
+      "keywords": [
+        "operation criticality",
+        "admission control",
+        "trusted priority",
+        "early rejection",
+        "retry amplification",
+        "hysteresis"
+      ],
+      "followups": [
+        {
+          "q": "Should a client choose its own priority?",
+          "a": "Not without authorization; otherwise callers can bypass service policy."
+        },
+        {
+          "q": "How do you avoid oscillation?",
+          "a": "Use measured thresholds, hysteresis, and a gradual return to normal admission."
+        }
+      ],
+      "trap": "Shedding requests only after all worker pools are saturated, when it can no longer protect capacity.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-026",
+      "topic": "Concurrency limits",
+      "question": "How do per-dependency concurrency limits protect a service differently from request-rate limits?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Concurrency",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A rate limit controls how many calls begin over a time interval, while a concurrency limit caps how many remain in flight. A dependency with slow responses can accumulate many concurrent requests even at a moderate arrival rate, consuming sockets and caller threads. I would set a bounded per-dependency semaphore or equivalent, define whether excess work waits briefly or fails fast, and include permit wait in the request deadline. Limits should reflect dependency capacity and be isolated so one destination cannot consume all outbound slots. Monitor active calls, wait time, rejections, and completion latency, then tune under degradation tests.",
+      "keywords": [
+        "arrival rate",
+        "in-flight calls",
+        "per-dependency limit",
+        "permit wait",
+        "deadline",
+        "resource isolation"
+      ],
+      "followups": [
+        {
+          "q": "Can a low request rate still exhaust concurrency?",
+          "a": "Yes. Long-running calls accumulate in flight even when arrivals are spaced apart."
+        },
+        {
+          "q": "Should callers wait indefinitely for a permit?",
+          "a": "No. Bound the wait by the end-to-end deadline or reject promptly."
+        }
+      ],
+      "trap": "Using a rate limit as if it also bounds simultaneous slow calls.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-027",
+      "topic": "Hedged requests",
+      "question": "When can a hedged request reduce tail latency, and why can it destabilize a dependency?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A hedge starts a second equivalent read after a measured delay when the first replica is unusually slow, then uses the first acceptable response and cancels the other attempt. It can reduce tail latency when replicas have independent latency variation and spare capacity. During shared overload, however, duplicate calls increase load exactly when the system is least able to serve them. I would restrict hedging to safe idempotent operations, cap the hedge fraction, coordinate it with the remaining deadline, and count cancelled work that still reaches the server. Compare tail improvement against added request volume under fault injection before enabling it broadly.",
+      "keywords": [
+        "tail latency",
+        "delayed duplicate",
+        "idempotent read",
+        "hedge fraction",
+        "cancellation",
+        "overload amplification"
+      ],
+      "followups": [
+        {
+          "q": "Should a write be hedged?",
+          "a": "Only with a strong idempotency contract and a clear policy for duplicate execution; usually prefer not to."
+        },
+        {
+          "q": "When should hedging be disabled?",
+          "a": "When dependency saturation or error signals show the extra traffic could worsen the incident."
+        }
+      ],
+      "trap": "Launching duplicate calls immediately or treating client cancellation as proof the losing call stopped remotely.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-028",
+      "topic": "Request coalescing",
+      "question": "How can request coalescing reduce duplicate downstream work, and what isolation concerns remain?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "When concurrent callers request the same safe computation, one in-flight operation can serve multiple waiters instead of sending identical calls downstream. The coalescing key must include every input that affects the result, including tenant or authorization scope; otherwise one caller's data could be returned to another. Bound the number of waiters and lifetime, propagate cancellation carefully so one disconnect does not cancel work still needed by others, and define behavior after failure. Coalescing is not a cache: it shares concurrent work but does not necessarily retain the result. I would instrument joined waiters, execution count, and errors, and test key isolation explicitly.",
+      "keywords": [
+        "in-flight deduplication",
+        "complete key",
+        "tenant isolation",
+        "waiter bound",
+        "cancellation ownership",
+        "failure behavior"
+      ],
+      "followups": [
+        {
+          "q": "Is request coalescing the same as caching?",
+          "a": "No. Coalescing joins overlapping work; caching reuses a completed result under a freshness policy."
+        },
+        {
+          "q": "Can one waiter cancel the shared operation?",
+          "a": "Only when no remaining caller needs it and cancellation ownership is coordinated."
+        }
+      ],
+      "trap": "Sharing work based on an incomplete key that omits tenant, authorization, or other result-affecting inputs.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-029",
+      "topic": "Synchronous fan-out",
+      "question": "Why can one API request that calls several services amplify latency and failure probability?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A synchronous fan-out makes the caller depend on several remote calls completing before its response can finish. Sequential calls add their delays; parallel calls finish at the pace of the slowest required dependency and consume more simultaneous connections. If every dependency is required, each introduces another way the overall request can fail. I would classify which results are essential, set a shared deadline, bound parallelism, and avoid duplicate work in downstream paths. For nonessential data, a separately defined degraded response may be better than failing the entire request. Measure per-dependency contribution and the end-to-end tail, not only aggregate average latency.",
+      "keywords": [
+        "fan-out",
+        "serial latency",
+        "slowest dependency",
+        "failure probability",
+        "shared deadline",
+        "essential result"
+      ],
+      "followups": [
+        {
+          "q": "Does parallel fan-out always make the API faster?",
+          "a": "It reduces serial waiting but increases simultaneous resource use and still waits for required slow calls."
+        },
+        {
+          "q": "What is the first design question?",
+          "a": "Which downstream results are truly required to satisfy the caller's contract?"
+        }
+      ],
+      "trap": "Assuming a large parallel fan-out is free because calls happen concurrently.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-030",
+      "topic": "Partial aggregation",
+      "question": "How should an aggregator respond when one optional service in a parallel request fails?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The response contract should distinguish required data from optional enrichment before failures occur. If an optional result is unavailable, the aggregator can return a clearly represented partial response, omit that field, or use an explicitly allowed stale value; it should not fabricate a successful default that changes meaning. Required dependencies still need the shared deadline and a clear error mapping. Include completeness or freshness information when clients must know whether a field is absent because it is empty or unavailable. I would count degraded responses by dependency and test clients against partial payloads so a transient omission does not become a parsing failure.",
+      "keywords": [
+        "required versus optional",
+        "partial response",
+        "freshness indicator",
+        "error mapping",
+        "no fabricated default",
+        "degraded metric"
+      ],
+      "followups": [
+        {
+          "q": "Should missing enrichment become an empty business value?",
+          "a": "Only if the contract distinguishes unavailable from genuinely empty data."
+        },
+        {
+          "q": "How do you avoid silent degradation?",
+          "a": "Expose a stable status or metric and alert on sustained partial responses."
+        }
+      ],
+      "trap": "Returning a plausible default that callers interpret as authoritative data.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-031",
+      "topic": "Fan-out concurrency",
+      "question": "How would you bound parallel downstream calls in an aggregation endpoint?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Concurrency",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I cap both the number of calls per request and the total in-flight calls per dependency or service instance. A request-level fan-out bound prevents one large query from launching arbitrary work; a shared dependency limit protects the downstream across many callers. Each task inherits the remaining deadline, and aggregation stops waiting when the required result can no longer arrive in time. Do not submit every item to an unbounded executor and assume its queue is harmless. I would measure queued, active, rejected, and completed tasks, then load-test large and adversarial fan-outs while checking that a single request cannot monopolize workers.",
+      "keywords": [
+        "per-request bound",
+        "global concurrency",
+        "dependency limit",
+        "bounded executor",
+        "deadline",
+        "fairness"
+      ],
+      "followups": [
+        {
+          "q": "Is a per-request limit enough?",
+          "a": "No. Many simultaneous requests can each stay within that limit and still overload one dependency."
+        },
+        {
+          "q": "What should happen when the bound is reached?",
+          "a": "Reject, degrade, or process a bounded subset according to the endpoint contract."
+        }
+      ],
+      "trap": "Limiting fan-out only within each request while ignoring aggregate concurrency across callers.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-032",
+      "topic": "Asynchronous operation status",
+      "question": "How should an API represent work that is accepted now but completes asynchronously later?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The acceptance response should say that work was durably accepted, provide a stable operation identifier, and link to an authorized status resource. That resource exposes a documented state model such as queued, running, succeeded, or terminal failure, with progress only when it can be measured honestly. Submission needs a duplicate-safe request identity so a client retry after a lost response does not start unrelated work. Define retention and access rules for status records, and state whether cancellation is supported or best effort. I would distinguish accepted from completed in API semantics and test polling, duplicate submission, authorization, and terminal-state visibility.",
+      "keywords": [
+        "accepted versus completed",
+        "operation ID",
+        "status resource",
+        "idempotent submission",
+        "terminal state",
+        "authorization"
+      ],
+      "followups": [
+        {
+          "q": "Can HTTP acceptance mean the business action succeeded?",
+          "a": "No. It means the service accepted responsibility under its durability contract; completion is a later state."
+        },
+        {
+          "q": "How should a client handle a lost acceptance response?",
+          "a": "Resubmit with the same idempotency identity or query by a stable client operation key."
+        }
+      ],
+      "trap": "Returning success for completed work when the API only queued it, or exposing status to an unauthorized caller.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-033",
+      "topic": "Saga coordination style",
+      "question": "When would you coordinate a saga centrally rather than let services react through choreography?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A central coordinator makes the workflow sequence and current state visible in one place, which helps when there are many conditional steps, timeouts, or operational interventions. Choreography lets participants react to domain events and can reduce a central runtime dependency, but the overall flow can become difficult to discover as subscriptions and implicit transitions grow. Either style still needs durable progress, idempotent commands, correlation, and explicit failure handling. I would choose based on workflow complexity, ownership boundaries, and who must diagnose it, not on a claim that one style is inherently more scalable. Keep business decisions in the responsible domain services.",
+      "keywords": [
+        "central coordinator",
+        "event choreography",
+        "workflow visibility",
+        "durable state",
+        "ownership",
+        "operational diagnosis"
+      ],
+      "followups": [
+        {
+          "q": "Does choreography remove coordination?",
+          "a": "No. It distributes coordination into contracts, subscriptions, and participant behavior."
+        },
+        {
+          "q": "When is a coordinator useful?",
+          "a": "When explicit branching, deadlines, recovery, or operator visibility justify a named workflow owner."
+        }
+      ],
+      "trap": "Equating choreography with no coupling or orchestration with a global transaction manager.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; not a detailed HLD case study. Reported in user-provided interview notes, item 7.1 (company not recorded)."
+    },
+    {
+      "id": "JH-S08-034",
+      "topic": "Saga compensation",
+      "question": "What makes a saga compensation different from rolling back a local transaction?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A local rollback restores uncommitted state within one transaction. A compensation is a new business action issued after an earlier step already committed, and it may have its own latency, failure, or external consequence. It might release a reservation or issue a refund, but it cannot erase the historical fact that the first action occurred. The workflow must record compensation intent and result, retry safely, and expose cases needing manual resolution. Some actions are not reversible, so the business may require a forward recovery path instead. I would define compensation semantics with domain owners and avoid calling the entire distributed workflow atomic.",
+      "keywords": [
+        "committed step",
+        "new business action",
+        "compensation failure",
+        "forward recovery",
+        "durable intent",
+        "manual resolution"
+      ],
+      "followups": [
+        {
+          "q": "Can every saga action be compensated?",
+          "a": "No. Some effects are irreversible, and recovery may require a different forward action."
+        },
+        {
+          "q": "Does compensation restore the exact prior world?",
+          "a": "Not necessarily; it creates a later outcome and preserves the intervening history."
+        }
+      ],
+      "trap": "Describing compensation as an automatic database rollback across services.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-035",
+      "topic": "Saga restart recovery",
+      "question": "What information must a saga persist so it can recover after its coordinator process restarts?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Persist a workflow identity, current state, completed step outcomes, pending command identity, retry or deadline metadata, and any compensation status needed to continue safely. State transitions should be conditional so duplicate callbacks or a restarted worker cannot advance the same step twice. On recovery, query participants or reconcile ambiguous calls before repeating a non-idempotent action. Store enough context to diagnose progress without copying sensitive payloads unnecessarily. A durable scheduler or recovery scanner can find stuck workflows, but needs bounded concurrency and operational ownership. I would inject crashes between dispatch, remote completion, and local state update to test the true uncertainty windows.",
+      "keywords": [
+        "workflow identity",
+        "durable state",
+        "conditional transition",
+        "ambiguous call",
+        "reconciliation",
+        "crash injection"
+      ],
+      "followups": [
+        {
+          "q": "Can a timeout state be recorded as definite failure?",
+          "a": "Not without evidence; the remote participant may have committed before the reply was lost."
+        },
+        {
+          "q": "Why persist a command identity?",
+          "a": "It lets a participant recognize a repeated dispatch as the same logical step."
+        }
+      ],
+      "trap": "Replaying all saga steps after restart without checking which remote effects already succeeded.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; workflow mechanics are scoped to service execution, not an HLD design prompt."
+    },
+    {
+      "id": "JH-S08-036",
+      "topic": "Eventual consistency contract",
+      "question": "How should an API communicate that a successful write may not yet be visible through another service?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Document what the write response confirms and which read paths may lag, rather than implying every replica or downstream projection changed immediately. If clients need to follow progress, return a resource version, operation identifier, or freshness marker that a later read can use. Define the expected lag operationally and what the client should do when it has not converged. For security-sensitive revocations, eventual visibility may be unacceptable and require a stronger path. I would distinguish absent data from not-yet-propagated data where the API can do so, and test realistic delay and reordering instead of promising a vague eventual guarantee.",
+      "keywords": [
+        "write acknowledgement",
+        "read visibility",
+        "freshness marker",
+        "convergence objective",
+        "revocation",
+        "not-yet-propagated"
+      ],
+      "followups": [
+        {
+          "q": "Does a 2xx write response guarantee all services see the change?",
+          "a": "Only if the contract explicitly waits for that boundary; otherwise it often confirms local acceptance or commit."
+        },
+        {
+          "q": "How do you make lag actionable?",
+          "a": "Expose a version or operation status and define a supported wait or retry behavior."
+        }
+      ],
+      "trap": "Using eventual consistency as an excuse to leave clients unable to distinguish stale from missing data.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-037",
+      "topic": "Read-your-writes behavior",
+      "question": "How can a client obtain read-your-writes behavior when a service reads from lagging replicas?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "After a write, return a version or consistency token that identifies the accepted state. A subsequent read can route to an authoritative path, wait until its projection has observed that version, or return an explicit not-yet-current response rather than silently showing older data. The token must be scoped to the resource and authenticated caller, and waiting must have a deadline. Sticky routing alone is not a correctness guarantee when instances or regions change. I would choose the least expensive mechanism that satisfies the user-visible contract and measure how often reads need to wait or bypass the normal path.",
+      "keywords": [
+        "resource version",
+        "consistency token",
+        "authoritative read",
+        "bounded wait",
+        "replica lag",
+        "sticky routing limits"
+      ],
+      "followups": [
+        {
+          "q": "Does sending the next read to the same server guarantee freshness?",
+          "a": "Not necessarily; that server may itself read a lagging projection or replica."
+        },
+        {
+          "q": "What if the requested version is not visible before deadline?",
+          "a": "Return a documented pending/stale outcome or use a stronger read path if the contract requires it."
+        }
+      ],
+      "trap": "Treating session affinity as a substitute for an explicit consistency contract.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-038",
+      "topic": "Versioned resource updates",
+      "question": "How can a service detect that a client is updating a resource using an outdated representation?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Expose a resource version or validator when returning a representation, and require the client to supply the version it observed when making a conditional update. The service compares that precondition against current state and rejects a stale update with a documented conflict or precondition response. This prevents silent lost updates at the API boundary, but the comparison and state change still need to be atomic within the owning service. Clients should refresh and resolve the conflict rather than blindly resubmit the old body. I would keep validators opaque where useful and test concurrent clients, missing preconditions, and unchanged representations.",
+      "keywords": [
+        "resource version",
+        "conditional update",
+        "precondition",
+        "lost update",
+        "atomic comparison",
+        "conflict response"
+      ],
+      "followups": [
+        {
+          "q": "Does an ETag itself make a write atomic?",
+          "a": "No. The service must atomically check the supplied validator while applying the change."
+        },
+        {
+          "q": "Should clients automatically retry a conflict unchanged?",
+          "a": "No. They need fresh state and a merge or user decision before retrying."
+        }
+      ],
+      "trap": "Returning a version token without enforcing it at the mutation boundary.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no database locking implementation is prescribed."
+    },
+    {
+      "id": "JH-S08-039",
+      "topic": "Conditional HTTP requests",
+      "question": "When are HTTP conditional requests useful for service-to-service APIs?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Conditional requests let a client express that it wants a representation only if it changed, or that a mutation is valid only if the resource still matches a version it previously read. A not-modified response can save transfer and downstream work; a failed mutation precondition can protect against overwriting newer state. Validators must correspond to the representation or state contract being protected, and authorization still applies on every request. A proxy or intermediary must not reuse a response across security scopes. I would document validator lifetime and mutation semantics, then test changed, unchanged, stale, and unauthorized cases.",
+      "keywords": [
+        "conditional GET",
+        "validator",
+        "not modified",
+        "mutation precondition",
+        "authorization",
+        "representation scope"
+      ],
+      "followups": [
+        {
+          "q": "Does a matching validator bypass authorization?",
+          "a": "No. The caller must still be authorized for the resource and response."
+        },
+        {
+          "q": "Can a cache validator prevent lost updates?",
+          "a": "Only when the service also enforces the validator on the mutation path."
+        }
+      ],
+      "trap": "Assuming conditional HTTP headers provide security or concurrency control without server enforcement.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-040",
+      "topic": "Workload identity",
+      "question": "What is workload identity, and why is it preferable to sharing one static credential among services?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:AWS",
+        "R:K8s"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Workload identity gives a running service a verifiable identity tied to its deployment or runtime, which it can use to obtain narrowly scoped access to another service. Distinct identities improve attribution, revocation, and least-privilege policy compared with a shared long-lived secret that every service can reuse. The identity issuer, audience, lifetime, and trust roots must be configured and rotated safely; a compromised workload can still misuse permissions granted to it. I would ensure credentials are not baked into images or logged, and verify both allowed and denied calls during deployment. The mechanism is platform-specific, so I would use the approved identity provider rather than invent one.",
+      "keywords": [
+        "workload identity",
+        "unique principal",
+        "short-lived credential",
+        "least privilege",
+        "attribution",
+        "revocation"
+      ],
+      "followups": [
+        {
+          "q": "Does a unique identity eliminate compromise risk?",
+          "a": "No. It narrows attribution and scope, but the compromised workload can use its granted permissions."
+        },
+        {
+          "q": "Why avoid one shared service credential?",
+          "a": "It obscures which workload acted and makes selective revocation difficult."
+        }
+      ],
+      "trap": "Treating an authenticated workload as automatically authorized for every internal service.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no provider-specific identity flow is claimed."
+    },
+    {
+      "id": "JH-S08-041",
+      "topic": "Service account permissions",
+      "question": "How would you scope permissions for a service that calls several internal APIs?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:OAuth",
+        "R:Security"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Give the workload separate permissions for the specific actions and resources it needs, and avoid a broad shared role that grants every downstream capability. A service identity should not inherit administrator access merely because it runs inside the network. Review permissions as APIs change, remove obsolete grants, and keep deployment and runtime identities distinct where practical. Authorization decisions should be auditable without logging credentials or sensitive request bodies. I would test representative allowed and denied calls, including cross-tenant access, and monitor unexpected authorization failures after release. Least privilege is an ongoing ownership practice, not a one-time policy file.",
+      "keywords": [
+        "least privilege",
+        "resource scope",
+        "runtime identity",
+        "deny tests",
+        "cross-tenant boundary",
+        "permission review"
+      ],
+      "followups": [
+        {
+          "q": "Is network reachability sufficient authorization?",
+          "a": "No. Each service must enforce the caller's permitted actions on its resources."
+        },
+        {
+          "q": "How should obsolete grants be found?",
+          "a": "Use ownership and access reviews plus observed use, without assuming unused access is automatically harmless."
+        }
+      ],
+      "trap": "Using network location or a broad service role as the only authorization check.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified defensive pattern."
+    },
+    {
+      "id": "JH-S08-042",
+      "topic": "Delegated user context",
+      "question": "When should a downstream service act with the calling user's authority rather than only the caller service's identity?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:OAuth",
+        "R:Security"
+      ],
+      "harsh_status": "SHAKY",
+      "answer": "Use the user's delegated authority when the downstream action is intended to be constrained by that user's permissions, such as accessing a user-owned resource. The calling service still authenticates as a workload and should not erase its own identity; the downstream decision may need both who initiated the request and which service made it. For background work, preserve an approved, auditable authorization context or re-evaluate policy rather than forwarding an expired bearer credential indefinitely. Define audience, scope, lifetime, and revocation behavior using the organization's identity system. Never trust a user ID header by itself as proof of delegated authority.",
+      "keywords": [
+        "user delegation",
+        "workload identity",
+        "audience",
+        "scope",
+        "background work",
+        "identity provenance"
+      ],
+      "followups": [
+        {
+          "q": "Can a service forward any token it received to every downstream?",
+          "a": "No. Token audience and permissions must match the intended recipient and action."
+        },
+        {
+          "q": "Is a user ID header enough?",
+          "a": "No. It is caller-controlled data unless bound to a verified authorization context."
+        }
+      ],
+      "trap": "Confusing the service's own permission with the end user's authority, or trusting an unverified identity header.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified defensive pattern; no token-exchange protocol details are asserted."
+    },
+    {
+      "id": "JH-S08-043",
+      "topic": "Tenant context validation",
+      "question": "How should tenant context be propagated between services without allowing cross-tenant data access?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Security",
+        "R:SCIM"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Derive the tenant from an authenticated and authorized request context, then propagate it through a protected internal call contract with the caller identity and trace context kept distinct. Each receiving service validates that the caller may act for that tenant and applies tenant scoping at its own resource boundary. A plain header supplied by an external caller must not be trusted just because internal services forward it. Background jobs need a durable, integrity-protected tenant association and reauthorization where required. I would test attempts to substitute another tenant at every entry point and ensure logs and metrics do not leak sensitive tenant data.",
+      "keywords": [
+        "authenticated tenant",
+        "context propagation",
+        "service authorization",
+        "untrusted header",
+        "background job",
+        "cross-tenant test"
+      ],
+      "followups": [
+        {
+          "q": "Can an internal header establish tenant authority?",
+          "a": "Not alone; the receiving service must trust the authenticated caller and validate its allowed scope."
+        },
+        {
+          "q": "Where should tenant checks occur?",
+          "a": "At each service boundary before accessing that service's tenant-owned resource."
+        }
+      ],
+      "trap": "Treating a tenant identifier as authorization merely because it arrived from another microservice.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified defensive pattern; does not assert internals of Harsh's services."
+    },
+    {
+      "id": "JH-S08-044",
+      "topic": "Authorization at service boundaries",
+      "question": "Why should each microservice authorize access even when an API gateway already authenticated the request?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:OAuth",
+        "R:Security"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A gateway can authenticate and apply coarse route policy, but services may be reachable through other internal paths, asynchronous jobs, or future topology changes. The owning service understands the resource and action, so it must validate the authenticated caller context and enforce domain authorization there. Forwarded claims need integrity and audience boundaries; blindly trusting headers can create a confused-deputy path. Central policy libraries can reduce drift, but they should not hide which service owns the decision. I would test direct and gateway-mediated access, missing identity context, and cross-resource attempts, then audit denials with enough context to investigate safely.",
+      "keywords": [
+        "defense in depth",
+        "resource authorization",
+        "alternate path",
+        "audience boundary",
+        "confused deputy",
+        "direct-access test"
+      ],
+      "followups": [
+        {
+          "q": "Does repeating authorization create inconsistent policy?",
+          "a": "It can; centralize reusable policy carefully while keeping enforcement at the resource owner."
+        },
+        {
+          "q": "What is the risk of trusting forwarded headers?",
+          "a": "An untrusted caller or misconfigured hop may forge identity or privilege claims."
+        }
+      ],
+      "trap": "Assuming gateway authentication alone authorizes every action on downstream resources.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified defensive pattern."
+    },
+    {
+      "id": "JH-S08-045",
+      "topic": "Internal network trust",
+      "question": "Why is a private network boundary not enough to trust service-to-service requests?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:AWS",
+        "R:K8s",
+        "R:Security"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Private routing can reduce exposure, but it does not establish which workload sent a request or whether it may perform the requested action. Compromised instances, misrouted traffic, shared credentials, and configuration mistakes can all cross an assumed network boundary. Authenticate workloads, authorize narrowly at service boundaries, encrypt traffic where required, and restrict ingress and egress paths. Keep trust decisions tied to verified identity and resource policy rather than source subnet alone. I would verify that network controls and application authorization fail independently, and review logs for unexpected callers without treating internal location as evidence of legitimacy.",
+      "keywords": [
+        "workload authentication",
+        "authorization",
+        "private network",
+        "compromised instance",
+        "egress control",
+        "independent controls"
+      ],
+      "followups": [
+        {
+          "q": "Does encryption alone authorize a request?",
+          "a": "No. It protects transport; identity and permission checks remain separate."
+        },
+        {
+          "q": "Is network segmentation still useful?",
+          "a": "Yes, as a containment layer, but it complements rather than replaces application controls."
+        }
+      ],
+      "trap": "Treating internal network location as proof of caller identity or permission.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified defensive pattern."
+    },
+    {
+      "id": "JH-S08-046",
+      "topic": "Outbound destination controls",
+      "question": "How should a service protect itself when it makes requests to user-configurable URLs?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Security",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Treat a user-configurable destination as untrusted input that could target internal control planes, loopback services, or private network addresses. Validate scheme, hostname, port, and resolved address against an explicit destination policy, and apply egress network controls as a second layer. Recheck after redirects and DNS resolution so an allowed name cannot redirect or resolve into a prohibited destination. Bound response size, connection time, and redirect count, and never attach ambient credentials to arbitrary hosts. I would log a safe destination classification and test IPv4, IPv6, redirects, DNS changes, and malformed URLs without exposing secrets.",
+      "keywords": [
+        "untrusted URL",
+        "private address",
+        "DNS resolution",
+        "redirect validation",
+        "egress policy",
+        "credential isolation"
+      ],
+      "followups": [
+        {
+          "q": "Is checking the hostname string enough?",
+          "a": "No. Resolution, redirects, alternate address forms, and DNS changes can alter the destination."
+        },
+        {
+          "q": "Should service credentials accompany the request?",
+          "a": "Only for an explicitly trusted recipient and scoped audience; never attach ambient credentials blindly."
+        }
+      ],
+      "trap": "Allowing redirects or resolved addresses to bypass the initial destination check.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified defensive pattern."
+    },
+    {
+      "id": "JH-S08-047",
+      "topic": "Internal API data minimization",
+      "question": "How can service-to-service API design reduce accidental exposure of sensitive data?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Security",
+        "R:SCIM"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Return only the fields the caller needs for its specific task instead of exposing an entire persistence object or forwarding a full user profile. Classify fields, avoid secrets and unnecessary personal data in URLs, logs, traces, and error responses, and define retention for copied data. Separate internal representation from public contracts so schema changes do not reveal new fields automatically. Access control still applies even when a field is omitted from one API. I would review payloads with data owners, test serialization for accidental additions, and use synthetic sensitive values to verify they do not appear in diagnostics or downstream requests.",
+      "keywords": [
+        "field minimization",
+        "data classification",
+        "persistence separation",
+        "log redaction",
+        "retention",
+        "serialization test"
+      ],
+      "followups": [
+        {
+          "q": "Can an internal endpoint return an entity object directly?",
+          "a": "It is risky; persistence fields can leak unintentionally and couple callers to storage details."
+        },
+        {
+          "q": "Does redacting logs replace minimizing payloads?",
+          "a": "No. Avoid transmitting unnecessary sensitive data in the first place."
+        }
+      ],
+      "trap": "Assuming internal traffic is safe enough to expose full records or log complete request bodies.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified defensive pattern."
+    },
+    {
+      "id": "JH-S08-048",
+      "topic": "Authorization dependency failure",
+      "question": "How should a service behave when it cannot reach a remote authorization decision point?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:OAuth",
+        "R:Security",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Choose behavior from the risk of the specific operation, not one blanket fail-open or fail-closed rule. A high-risk mutation may need to reject when policy cannot be evaluated, while a low-risk read might use a short-lived, narrowly scoped decision cache if policy allows it. Bound the authorization call by the request deadline, isolate its capacity, and avoid treating a timeout as an allow decision. Cached decisions need a clear expiry and revocation story. I would make degraded authorization visible, test outage and recovery, and ensure operators cannot silently disable checks as a generic availability fix.",
+      "keywords": [
+        "risk-based policy",
+        "fail closed",
+        "bounded decision cache",
+        "revocation",
+        "deadline",
+        "degraded authorization"
+      ],
+      "followups": [
+        {
+          "q": "Should every authorization outage fail open?",
+          "a": "No. Evaluate action risk and documented policy; never silently convert inability to check into permission."
+        },
+        {
+          "q": "Can a cached allow remain valid forever?",
+          "a": "No. Bound its lifetime according to revocation and policy-change requirements."
+        }
+      ],
+      "trap": "Equating dependency unavailability with authorization success or using an unbounded stale allow decision.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified defensive pattern."
+    },
+    {
+      "id": "JH-S08-049",
+      "topic": "Service-to-service identity rotation",
+      "question": "How can services rotate their calling identity or credential without creating an avoidable outage?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "BFSI-Fintech",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:OAuth",
+        "R:CICD",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Where the identity system supports overlap, issue the replacement credential or identity, distribute it to a limited cohort, and verify authentication and authorization before retiring the old one. Consumers need a bounded refresh path and should not pin credentials indefinitely in a connection pool or process cache. Revocation timing must account for outstanding connections and token lifetime, while exposure of the old credential may require emergency revocation instead of a slow overlap. Record rotation state without logging secret values and define rollback limits. I would test expiration, rejected credentials, refresh failure, and recovery against a nonproduction dependency before the scheduled change.",
+      "keywords": [
+        "overlap window",
+        "cohort rollout",
+        "credential refresh",
+        "connection lifetime",
+        "revocation",
+        "rotation test"
+      ],
+      "followups": [
+        {
+          "q": "Can both credentials remain valid indefinitely?",
+          "a": "No. Define a bounded overlap and remove the old identity after verified adoption."
+        },
+        {
+          "q": "When should gradual rotation be skipped?",
+          "a": "When compromise requires immediate revocation; follow the incident policy and accept controlled service impact."
+        }
+      ],
+      "trap": "Revoking the old identity before clients refresh, or retaining it forever without an owner and expiry.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; identity provider behavior is not specified."
+    },
+    {
+      "id": "JH-S08-050",
+      "topic": "Data ownership across services",
+      "question": "Why can two independently deployed services become tightly coupled when they directly write each other's database tables?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Shared write access lets a service bypass the other service's invariants and makes schema changes part of a hidden cross-team API. Deployments may be independent in tooling but still need coordinated database changes. I would identify one authority for each business aggregate and expose supported commands or events for other services. Read-only reporting access can be a deliberate exception, but it still needs a compatibility and operational contract. Splitting databases is not automatically the first step: first make ownership explicit and remove unauthorized write paths. Cross-service queries may then need projections or composition, with visibility and failure behavior stated rather than hidden in a join.",
+      "keywords": [
+        "aggregate ownership",
+        "shared writes",
+        "hidden API",
+        "schema coupling",
+        "commands",
+        "read projection"
+      ],
+      "followups": [
+        {
+          "q": "Does one physical database always violate service autonomy?",
+          "a": "Not necessarily. Logical ownership and access controls matter, though shared infrastructure still couples availability and capacity."
+        },
+        {
+          "q": "What should migrate first?",
+          "a": "The invariant and writer ownership contract; physically moving tables without that can preserve the same coupling."
+        }
+      ],
+      "trap": "Equating independent deployment pipelines with independent data ownership.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; round, level and frequency are estimates."
+    },
+    {
+      "id": "JH-S08-051",
+      "topic": "Strangler migration",
+      "question": "How would you move one capability out of a monolith without switching every request at once?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would put a deliberate routing boundary in front of the capability and move a controlled set of requests or tenants to the new implementation while preserving the public contract. Before moving writes, I must decide which system owns each record and how data is migrated or synchronized. Read-only shadow comparisons can reveal mismatches without duplicating side effects. Rollback must account for new writes and schema changes, not just route traffic back to the old binary. I would measure correctness, latency and error rates for the migrated cohort and expand only when the acceptance criteria hold. The final cleanup removes obsolete routes and dual ownership instead of leaving a permanent two-system compromise.",
+      "keywords": [
+        "routing boundary",
+        "migration cohort",
+        "write ownership",
+        "shadow read",
+        "rollback",
+        "cleanup"
+      ],
+      "followups": [
+        {
+          "q": "Can you shadow a charge-creating request unchanged?",
+          "a": "Not safely. Duplicate side effects need prevention; shadowing should use an isolated or explicitly non-mutating path."
+        },
+        {
+          "q": "Why choose tenants as a migration unit?",
+          "a": "A stable ownership boundary can simplify routing and reconciliation, provided dependencies do not cross that boundary unexpectedly."
+        }
+      ],
+      "trap": "Calling traffic rollback sufficient when the new system has written incompatible data.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified proposed migration approach."
+    },
+    {
+      "id": "JH-S08-052",
+      "topic": "Backfill and change capture",
+      "question": "How do you initialize a new service's data copy while the original system continues accepting writes?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:ETL",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A bulk copy alone is not enough because records can change while it runs. I would establish a consistent snapshot or explicit starting position for a change stream, backfill the baseline, and then apply subsequent changes without losing the overlap. Version or sequence checks prevent older backfill rows from overwriting newer streamed updates. The migration needs deletion handling, restartable checkpoints and validation of counts or business invariants, not just successful transport. Cutover occurs after the target catches up within the agreed bound and writer ownership is transferred safely. The exact snapshot-to-stream handshake depends on the source database and capture mechanism, so I would verify that contract before promising gap-free migration.",
+      "keywords": [
+        "snapshot boundary",
+        "change stream",
+        "backfill",
+        "version check",
+        "checkpoint",
+        "cutover"
+      ],
+      "followups": [
+        {
+          "q": "Why is row count alone insufficient?",
+          "a": "Counts can match while individual values or relationships differ; validate keys, important aggregates and representative records."
+        },
+        {
+          "q": "What if backfill restarts?",
+          "a": "It must resume or replay idempotently without regressing data already advanced by newer changes."
+        }
+      ],
+      "trap": "Running a snapshot and change capture independently without defining their overlap or gap boundary.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no particular capture product guarantee assumed."
+    },
+    {
+      "id": "JH-S08-053",
+      "topic": "Backend-for-frontend boundaries",
+      "question": "When does a backend-for-frontend improve an application, and when does it become another business monolith?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A backend-for-frontend can tailor aggregation and representation to a particular client without forcing every domain API to match one screen. I would keep authoritative business invariants in the owning services and let the client-facing layer coordinate calls, shape responses and enforce its own request contract. If it begins directly manipulating every service's data or implementing competing versions of domain rules, it becomes a new coupling point. Its fan-out still needs deadlines, partial-result policy and bounded resource usage. Separate client backends are justified by meaningful client differences and ownership, not merely by adding layers. Shared authentication and sensitive-data handling also need a consistent policy across the different entry points.",
+      "keywords": [
+        "client-specific aggregation",
+        "representation",
+        "domain ownership",
+        "fan-out",
+        "partial result",
+        "coupling"
+      ],
+      "followups": [
+        {
+          "q": "Should domain services trust all backend-for-frontend calls?",
+          "a": "No. They still validate identity, tenant and permissions at their own boundary."
+        },
+        {
+          "q": "Does this eliminate client latency concerns?",
+          "a": "No. It can reduce client round trips while adding internal fan-out and another availability dependency."
+        }
+      ],
+      "trap": "Moving all business rules into an aggregation layer because it sees every request.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-054",
+      "topic": "CQRS projection rebuild",
+      "question": "How do you rebuild a read model without exposing a partially reconstructed view to users?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Kafka",
+        "R:Elasticsearch"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would rebuild into a separate versioned projection rather than truncate the currently served view. The builder consumes an authoritative history or snapshot plus changes, records its progress and applies events idempotently with explicit ordering rules. Before switching reads, I validate the projection's invariants and ensure it has caught up to the intended position. The cutover can use a controlled alias or routing change with a rollback plan. Replaying history must not rerun external business side effects such as notifications or payments. If the retained event history cannot reconstruct current state, the rebuild needs a compatible snapshot or another source of truth; CQRS alone does not guarantee replayability.",
+      "keywords": [
+        "versioned projection",
+        "replay",
+        "checkpoint",
+        "idempotence",
+        "read cutover",
+        "side-effect isolation"
+      ],
+      "followups": [
+        {
+          "q": "Can old events always be interpreted by new code?",
+          "a": "No. Versioned schemas and transformation rules are needed, especially when business meaning changed."
+        },
+        {
+          "q": "What should a lagging projection report?",
+          "a": "Its freshness or progress according to the read contract, not a misleading claim of immediate consistency."
+        }
+      ],
+      "trap": "Replaying event handlers that also trigger external side effects during a read-model rebuild.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no event-sourcing requirement implied for every service."
+    },
+    {
+      "id": "JH-S08-055",
+      "topic": "Deletion propagation",
+      "question": "How can deleting a customer in the source service still leave their data in other services and caches?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:SCIM",
+        "R:Redis"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A local delete does not automatically remove derived copies, search entries, caches, queued events or backups. I would inventory the data flows and define which deletion or deactivation signal each consumer must handle. Stable identity, ordering and tombstone semantics prevent an old update from recreating deleted live state. A durable workflow can track propagation and reconciliation rather than assume one event reaches every consumer instantly. Retention obligations and access revocation may require different actions, so business and security requirements must define the result. Backup restoration also needs a procedure to reapply later deletions. I would avoid claiming universal erasure when some controlled retention is intentional or technically delayed.",
+      "keywords": [
+        "derived copies",
+        "tombstone",
+        "old update",
+        "reconciliation",
+        "revocation",
+        "retention"
+      ],
+      "followups": [
+        {
+          "q": "Why retain a tombstone instead of only removing a row?",
+          "a": "It can preserve enough ordering or identity information to reject stale recreation, subject to a suitable retention policy."
+        },
+        {
+          "q": "Is deactivation equal to erasure?",
+          "a": "No. It changes access or lifecycle state; physical deletion and retained audit information have separate requirements."
+        }
+      ],
+      "trap": "Equating one database deletion with completed deletion across the distributed system.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; not legal advice or a claim of compliance."
+    },
+    {
+      "id": "JH-S08-056",
+      "topic": "Webhook delivery lifecycle",
+      "question": "What should a webhook sender persist so deliveries can be retried without losing their business identity?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:REST",
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would persist the event identity, destination configuration version, payload reference or stable content, attempt state and next retry time before relying on background delivery. Each retry represents the same logical event, while attempt metadata is distinct. The receiver needs an authenticated integrity check and replay or deduplication policy; a successful HTTP response should have a documented acknowledgement meaning. The sender uses bounded retries and a visible terminal failure state rather than retry forever. Destination changes and secret rotation must not silently redirect old events to an unauthorized endpoint. Delivery ordering may be lost during retries, so either guarantee it deliberately or include versions that let consumers handle out-of-order events.",
+      "keywords": [
+        "event identity",
+        "attempt state",
+        "signature",
+        "acknowledgement",
+        "bounded retry",
+        "destination version"
+      ],
+      "followups": [
+        {
+          "q": "Should a delivery timeout create a new event ID?",
+          "a": "No. The result may be uncertain; keep the logical identity stable so the receiver can recognize a replay."
+        },
+        {
+          "q": "Can webhook status 200 prove the business action completed?",
+          "a": "Only if the receiver's contract says so; many endpoints acknowledge durable acceptance rather than completed processing."
+        }
+      ],
+      "trap": "Changing logical event identity on every retry and defeating receiver deduplication.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no webhook is sent."
+    },
+    {
+      "id": "JH-S08-057",
+      "topic": "Cross-service pagination",
+      "question": "Why is paginating a merged result from two remote services harder than paginating one database table?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:REST",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Each source has its own ordering, cursor and visibility timeline. Fetching page two from both and concatenating them does not produce page two of a globally ordered union. I would define the global ordering and stable tie-breaker, then retain enough per-source continuation state to resume the merge without dropping unread candidates. Concurrent changes require a snapshot or an explicitly weaker traversal contract. The composite cursor should be opaque and integrity-protected, with tenant and query binding where needed. Slow or unavailable sources also force a policy: fail the page, return a clearly partial result or serve a derived unified read model. Exact totals may be expensive or stale.",
+      "keywords": [
+        "global order",
+        "source cursor",
+        "merge buffer",
+        "snapshot semantics",
+        "opaque cursor",
+        "partial result"
+      ],
+      "followups": [
+        {
+          "q": "Can the cursor be reused for a different filter?",
+          "a": "Not safely without a defined contract; bind continuation state to the original query and authorization scope."
+        },
+        {
+          "q": "When is a projection preferable?",
+          "a": "When cross-service sorting and filtering are frequent enough to justify a maintained unified read model."
+        }
+      ],
+      "trap": "Treating equal local page numbers as equivalent global offsets.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-058",
+      "topic": "Saga isolation",
+      "question": "How can another request observe a saga's intermediate state, and how do you protect business invariants during that interval?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Postgres",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A saga commits local steps independently, so intermediate states can become visible before the whole workflow succeeds. Compensation handles some later failure effects, but it does not supply the isolation of one database transaction. I would model pending or reserved states and specify which operations can act on them. Conditional updates, semantic locks or reservations can protect particular invariants without holding a database lock across remote calls. These protections need expiration and recovery so a crashed coordinator does not leave resources unavailable forever. The response contract should distinguish accepted, pending and completed outcomes. I would reason about concurrent workflows explicitly rather than assume each saga runs alone.",
+      "keywords": [
+        "intermediate state",
+        "local commit",
+        "semantic lock",
+        "reservation",
+        "concurrent saga",
+        "recovery"
+      ],
+      "followups": [
+        {
+          "q": "Does compensation undo what other users already observed?",
+          "a": "Not necessarily. External observations and irreversible effects may require a new business action rather than erasure."
+        },
+        {
+          "q": "Why avoid a long database lock across services?",
+          "a": "It couples local capacity and availability to remote latency and failure, often creating severe contention."
+        }
+      ],
+      "trap": "Claiming saga compensation provides full ACID isolation across services.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; distinct from compensation mechanics and coordinator restart."
+    },
+    {
+      "id": "JH-S08-059",
+      "topic": "Orphaned distributed work",
+      "question": "What should happen when a caller abandons a long-running operation that has already been accepted durably?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Framework",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A disconnected caller does not necessarily mean the business operation should disappear. I would define whether acceptance transfers ownership to the service and whether cancellation is supported after each workflow stage. The durable operation needs an identifier, status and a way for the caller to retrieve the outcome later. A cancellation request can be recorded separately from confirmed cancellation because remote side effects may already be in progress or irreversible. Expiration and reconciliation policies prevent abandoned operations from remaining pending indefinitely. This differs from cancelling a local future: the service must coordinate persisted state, external effects and eventual reporting even when the initiating connection no longer exists.",
+      "keywords": [
+        "durable acceptance",
+        "operation identity",
+        "ownership transfer",
+        "cancellation request",
+        "terminal outcome",
+        "reconciliation"
+      ],
+      "followups": [
+        {
+          "q": "Should a load balancer timeout delete the job?",
+          "a": "Not without a business contract requiring it; the operation may still be valid and executing."
+        },
+        {
+          "q": "How does the client avoid creating a duplicate after reconnecting?",
+          "a": "Reuse the operation or idempotency identity and query the existing outcome before submitting another side-effecting request."
+        }
+      ],
+      "trap": "Treating loss of the initiating HTTP connection as proof that durable work should be rolled back.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-060",
+      "topic": "Idempotency retention contract",
+      "question": "How long should a service retain idempotency keys, and what changes after a key expires?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:REST",
+        "R:Microservices",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Retention must cover the documented retry and replay window, including offline clients and delayed intermediary delivery, while respecting storage and data-retention constraints. After the record expires, the same key may no longer protect against repetition, so the API must state whether reuse is accepted, rejected or reconciled against another durable business identity. I would distinguish pending operations from completed-result retention: deleting a still-running operation's record can allow concurrent duplicate execution. Payload fingerprints need a defined canonicalization and scope, not a casual hash of unstable serialization. Cleanup should be observable and tested around expiry boundaries, because a TTL is part of the correctness contract rather than only cache housekeeping.",
+      "keywords": [
+        "retry window",
+        "key expiry",
+        "pending operation",
+        "business identity",
+        "canonicalization",
+        "cleanup boundary"
+      ],
+      "followups": [
+        {
+          "q": "Can the retention period be chosen solely to save memory?",
+          "a": "No. It changes the client's protection window and must match the operation's replay contract."
+        },
+        {
+          "q": "Should keys be global across all tenants?",
+          "a": "Usually they need a defined caller or tenant scope so unrelated operations cannot collide or reveal outcomes."
+        }
+      ],
+      "trap": "Promising unlimited idempotency while deleting the only deduplication record after a short TTL.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-061",
+      "topic": "Event meaning evolution",
+      "question": "Why can an event schema remain syntactically compatible while still breaking consumers?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Kafka",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A schema checker can permit a field change or an added optional field while the business meaning of existing values changes. Changing an amount from minor to major units, reinterpreting a timestamp or altering when an event is emitted can silently break consumers without a deserialization error. I would version and document meaning, units, identity and lifecycle triggers, then test representative consumer behavior with old and new examples. Event replay extends compatibility beyond currently running clients because old records may be processed years later. A new event type or explicit semantic version can be safer than pretending the meaning is unchanged. Consumer rollout and retention policies must be part of that decision.",
+      "keywords": [
+        "semantic compatibility",
+        "units",
+        "event trigger",
+        "replay",
+        "consumer contract",
+        "versioning"
+      ],
+      "followups": [
+        {
+          "q": "Does adding a field always require a new event type?",
+          "a": "No. Decide from semantics and consumer behavior, not a blanket rule; genuinely optional additive information may be compatible."
+        },
+        {
+          "q": "What should a replay test include?",
+          "a": "Historical payloads and the business outcomes expected under the new consumer, not only parsing success."
+        }
+      ],
+      "trap": "Equating schema-registry acceptance with complete business compatibility.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; avoids product-specific registry guarantees."
+    },
+    {
+      "id": "JH-S08-062",
+      "topic": "Fleet-wide rate budget",
+      "question": "How do you enforce a provider quota across multiple service replicas without multiplying the allowed request rate?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Redis",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A full local quota on each replica multiplies the aggregate allowance. I would either coordinate allocation through a shared authority or deliberately partition a global budget into local leases or shares. Central coordination improves precision but adds latency and an availability dependency; leased local capacity reduces coordination frequency but complicates unused capacity, expiration and partition handling. The quota key must match the provider's actual scope, such as credential, tenant or account, and retries consume the same budget as original attempts. I would specify whether a coordination outage fails closed or permits a bounded overshoot. A token bucket implementation is only one part of that distributed allocation contract.",
+      "keywords": [
+        "global budget",
+        "quota scope",
+        "shared authority",
+        "local lease",
+        "bounded overshoot",
+        "retry accounting"
+      ],
+      "followups": [
+        {
+          "q": "Does increasing replicas increase the provider quota?",
+          "a": "No. Unless the provider explicitly grants independent quotas, scaling callers does not increase the shared allowance."
+        },
+        {
+          "q": "What should be measured?",
+          "a": "Granted and rejected requests, coordination failures, provider throttles and budget utilization by the actual quota key."
+        }
+      ],
+      "trap": "Deploying an identical per-process limiter and claiming it enforces one fleet-wide limit.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no particular Redis atomic script assumed."
+    },
+    {
+      "id": "JH-S08-063",
+      "topic": "Active-active ownership",
+      "question": "What extra decisions are required before making a stateful service writable in two regions?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:AWS",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Routing writes to both regions requires a conflict and invariant model, not just two deployments behind a global load balancer. I would identify which data can merge, which operations require one writer or consensus, and whether ownership can be partitioned by tenant or key. Unique identifiers do not by themselves prevent conflicting balance or inventory decisions. Replication delay and network partitions determine what each region can safely decide. I would also define failover fencing, idempotency scope and how stale regional workers are rejected after ownership changes. Active-active can reduce some latency and outage exposure, but it increases operational and consistency complexity; the business requirement must justify those costs.",
+      "keywords": [
+        "write ownership",
+        "conflict policy",
+        "replication delay",
+        "partition",
+        "fencing",
+        "global invariant"
+      ],
+      "followups": [
+        {
+          "q": "Can last-write-wins resolve every conflict safely?",
+          "a": "No. It can discard valid business operations or violate invariants; use a domain-appropriate conflict model."
+        },
+        {
+          "q": "Does globally unique ID generation solve duplicate business actions?",
+          "a": "No. Two different IDs can still represent the same unintended repeated action."
+        }
+      ],
+      "trap": "Treating multi-region routing as a complete multi-region consistency design.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified proposed architecture."
+    },
+    {
+      "id": "JH-S08-064",
+      "topic": "Recovery objectives",
+      "question": "How would you translate recovery-time and recovery-point objectives into a microservice recovery test?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:AWS",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Recovery time concerns how long the business service can remain unavailable, while recovery point concerns the acceptable amount of lost state measured against the recovery timeline. I would map those objectives onto every required dependency: database, messages, secrets, identity, configuration and external callbacks. A test restores or fails over the system and verifies business operations and reconciliation, not merely that containers are running. Backups are only useful when restoration and compatibility are tested. I would measure actual elapsed recovery and state gaps, including dependent services, and record manual steps. An objective is a requirement to validate, not a property automatically supplied by a cloud region or replication setting.",
+      "keywords": [
+        "RTO",
+        "RPO",
+        "restore test",
+        "dependency recovery",
+        "state gap",
+        "business validation"
+      ],
+      "followups": [
+        {
+          "q": "Can zero data loss be promised from asynchronous replication alone?",
+          "a": "Not generally. A failure can occur before recent writes reach the replica; inspect the precise acknowledgement and replication contract."
+        },
+        {
+          "q": "Why include secret and identity systems?",
+          "a": "Restored services may be unable to authenticate or decrypt data without them, even when application data is intact."
+        }
+      ],
+      "trap": "Reporting a successful backup job as evidence that recovery objectives have been met.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no disaster-recovery exercise claimed for Harsh."
+    },
+    {
+      "id": "JH-S08-065",
+      "topic": "Lease and clock assumptions",
+      "question": "Why can a distributed lease expire while its old holder is still performing work?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Concurrency",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Lease expiration is a coordination decision, not a mechanism that forcibly stops the holder's process. A paused or partitioned worker can resume after its lease has expired and a replacement has started. I would protect writes with a monotonically advancing fencing token or another authority check that the protected resource enforces, rather than trust the old worker to notice expiration in time. Clock skew and long pauses complicate locally calculated deadlines, so lease timing assumptions must be explicit. Renewal failure should trigger bounded, safe behavior, but checking ownership before a write can still race with losing ownership unless the write itself validates the token or version.",
+      "keywords": [
+        "lease expiry",
+        "paused worker",
+        "split ownership",
+        "fencing token",
+        "clock assumptions",
+        "atomic validation"
+      ],
+      "followups": [
+        {
+          "q": "Does a fencing token work if the downstream ignores it?",
+          "a": "No. The resource performing the protected effect must reject stale holders according to the token contract."
+        },
+        {
+          "q": "Can an old worker simply delete the lock on exit?",
+          "a": "Only with an ownership check; otherwise it can delete a newer holder's coordination state."
+        }
+      ],
+      "trap": "Assuming expiration means the previous holder can no longer write.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-066",
+      "topic": "Long-running workflow versioning",
+      "question": "How can a rolling deployment break a workflow that began under an older implementation?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:CICD",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A persisted workflow can outlive the deployment that started it. New workers may interpret its state, next-step rules or compensation data differently, even when the API remains compatible. I would include a workflow definition or schema version and decide whether old instances continue under compatible code, are migrated explicitly or drain before support is removed. Migration must preserve business invariants and be restartable; changing a status string without transforming associated data is not enough. External callbacks also need routing to the correct operation version. I would test historical workflow states and failure recovery under the new release, not only newly started happy-path workflows.",
+      "keywords": [
+        "workflow version",
+        "persisted state",
+        "migration",
+        "compensation data",
+        "callback routing",
+        "historical test"
+      ],
+      "followups": [
+        {
+          "q": "Does rolling back the binary always fix old workflows?",
+          "a": "No. New code may already have persisted state the old binary cannot interpret."
+        },
+        {
+          "q": "When can version support be removed?",
+          "a": "After no live or replayable instances require it, according to retention and recovery policy, not merely after rollout finishes."
+        }
+      ],
+      "trap": "Testing only newly created workflows when deployment compatibility must include long-lived in-progress work.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-067",
+      "topic": "Reconciliation capacity",
+      "question": "Why should reconciliation work have its own capacity budget instead of sharing unlimited resources with live traffic?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:ETL",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Reconciliation often runs when the system is already recovering from missed events or an outage. If it scans large datasets and issues unbounded repair calls through the same resources as live traffic, it can prolong the incident or create another one. I would allocate concurrency and rate budgets, checkpoint progress and prioritize the most business-critical inconsistencies. Repairs need idempotency and a way to distinguish an actual mismatch from a temporarily lagging projection. Metrics should show backlog age, corrected and unresolved records, and live-traffic impact. Reconciliation complements reliable normal processing; it should not silently become the only reason the system eventually works under routine operation.",
+      "keywords": [
+        "repair budget",
+        "checkpoint",
+        "backlog age",
+        "idempotent repair",
+        "projection lag",
+        "live traffic"
+      ],
+      "followups": [
+        {
+          "q": "Should reconciliation overwrite the source of truth?",
+          "a": "Only under an explicit authority policy. First determine which state is authoritative and why the mismatch occurred."
+        },
+        {
+          "q": "Why retain unresolved cases?",
+          "a": "Some conflicts require human or business resolution; repeatedly applying a guessed repair can corrupt valid state."
+        }
+      ],
+      "trap": "Launching a full-speed repair scan during an outage without protecting live workload capacity.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S08-068",
+      "topic": "Service dependency cycles",
+      "question": "How can synchronous calls forming A to B to C to A create a reliability problem even without a code-level lock?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Concurrency",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Each service can consume request workers, connections or permits while waiting for the next service. A cycle can exhaust the capacity needed to complete the callback into the original service, producing distributed starvation or a chain of timeouts without a JVM monitor deadlock. I would trace the dependency graph and understand why the ownership requires a callback. Often the operation should be restructured so one orchestrator passes the needed state, or a durable asynchronous step breaks the synchronous dependency. Timeouts bound damage but do not correct a cyclic ownership model. Tests should include concurrent requests and constrained pools, because a single request on an idle system may hide the problem.",
+      "keywords": [
+        "dependency cycle",
+        "held capacity",
+        "distributed starvation",
+        "orchestration",
+        "async boundary",
+        "constrained test"
+      ],
+      "followups": [
+        {
+          "q": "Does increasing every pool prove the cycle is safe?",
+          "a": "No. It can move the saturation threshold while preserving the dependency problem."
+        },
+        {
+          "q": "Will a JVM deadlock detector show the whole cycle?",
+          "a": "No. Remote waits across services are outside its local monitor-cycle model; traces and capacity metrics are needed."
+        }
+      ],
+      "trap": "Concluding there is no dependency deadlock risk because no process reports a monitor deadlock.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; cross-process contract rather than local executor starvation."
+    },
+    {
+      "id": "JH-S08-069",
+      "topic": "Controlled resilience experiments",
+      "question": "How would you test that a service degrades safely when one dependency becomes slow without causing an uncontrolled incident?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Testing",
+        "R:Observability",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would state a falsifiable hypothesis, such as a slow optional dependency must not exhaust the main request pool or corrupt a response. The experiment needs an authorized environment, a narrow affected cohort, measurable steady-state indicators and explicit abort criteria. I would inject delay or controlled failure through a test boundary, observe timeouts, queue growth and fallback outcomes, and verify recovery after removing the fault. Start in a representative nonproduction setup before considering a tightly controlled production exercise. The goal is to validate a specific protection and its limits, not randomly break components. A rollback path and someone responsible for stopping the experiment are part of the design.",
+      "keywords": [
+        "hypothesis",
+        "blast-radius limit",
+        "fault injection",
+        "abort criteria",
+        "steady state",
+        "recovery"
+      ],
+      "followups": [
+        {
+          "q": "What if errors stay low but queue age rises?",
+          "a": "The protection may still be failing operationally; measure latency and saturation, not just exception counts."
+        },
+        {
+          "q": "Does passing one experiment prove general resilience?",
+          "a": "No. It supports that scenario under those conditions; other failure modes and workload shapes remain to be tested."
+        }
+      ],
+      "trap": "Calling uncontrolled failure injection a resilience test without authorization, metrics or an abort plan.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified test-design question; no real fault injection performed."
+    },
+    {
+      "id": "JH-S08-070",
+      "topic": "Autoscaling feedback loops",
+      "question": "Why can scaling out a service make a shared downstream outage worse?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:K8s",
+        "R:Observability",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "New replicas create additional connections, startup queries, cache misses and potential retries against the same constrained dependency. If scaling responds only to growing queues without understanding that bottleneck, it can amplify downstream load rather than increase useful throughput. I would retain global or downstream-aware admission limits and measure completed work, queue age and dependency saturation. Startup should avoid a synchronized warm-up surge, and readiness should reflect when an instance can serve its intended workload. Scaling helps when the service's own capacity is the limiting resource; it is not a repair for every external failure. Scale-down also needs draining so the control loop does not repeatedly abandon useful work.",
+      "keywords": [
+        "feedback loop",
+        "startup surge",
+        "shared dependency",
+        "admission limit",
+        "useful throughput",
+        "draining"
+      ],
+      "followups": [
+        {
+          "q": "Why might CPU remain low during backlog growth?",
+          "a": "Workers can be blocked on the dependency, so low CPU does not necessarily mean more replicas can make progress."
+        },
+        {
+          "q": "What avoids synchronized cache warmup?",
+          "a": "Stagger startup and use bounded, demand-aware loading while respecting the shared downstream budget."
+        }
+      ],
+      "trap": "Treating replica count as a universal control for an overloaded external system.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; no specific autoscaler settings claimed."
+    },
+    {
+      "id": "JH-S08-071",
+      "topic": "Spring Cloud",
+      "question": "How do Hystrix and Eureka differ?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "EY",
+          "sources": [
+            "S014"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience",
+        "R:Spring"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "They solve different problems. Eureka is a service registry: instances register under a logical name, and clients look them up and load-balance across the live ones. Hystrix is a circuit breaker library that wraps remote calls with timeouts, bulkheads and fallbacks so a failing dependency does not cascade. Both came from Netflix OSS. Hystrix is in maintenance mode, so current Spring Cloud applications use Resilience4j for circuit breaker, retry, rate limiter and bulkhead, and Spring Cloud LoadBalancer in place of Ribbon. Eureka is still in use, although Kubernetes service discovery often replaces it.",
+      "keywords": [
+        "service registry versus circuit breaker",
+        "Eureka discovery",
+        "Hystrix maintenance mode",
+        "Resilience4j",
+        "Spring Cloud LoadBalancer"
+      ],
+      "followups": [
+        {
+          "q": "What does a circuit breaker do when a dependency keeps failing?",
+          "a": "It opens and fails fast with a fallback, then probes in a half-open state before closing again."
+        },
+        {
+          "q": "Does Kubernetes replace Eureka?",
+          "a": "Often. Kubernetes Services and DNS provide discovery without a separate registry."
+        }
+      ],
+      "trap": "Comparing them as alternatives. One locates services, the other protects calls to them.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: confirm the circuit-breaker and discovery starters supported by the Spring Cloud release train in use, in the Spring Cloud documentation.]"
+      ],
+      "notes": "Reported in user-provided interview notes, item 5.7 (EY). Model answer written for this handbook, not copied from the notes. Related: JH-S08-002, JH-S08-006."
+    },
+    {
+      "id": "JH-S08-072",
+      "topic": "Spring Cloud",
+      "question": "Which dependency provides client-side load balancing in current Spring Cloud?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Spring"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "spring-cloud-starter-loadbalancer provides Spring Cloud LoadBalancer, which replaced the deprecated Netflix Ribbon. Annotate a RestTemplate or WebClient.Builder bean with @LoadBalanced and call services by logical id, such as http://order-service/orders/1, instead of by host. The default strategy is round-robin, and you can supply RandomLoadBalancer or a custom ReactorServiceInstanceLoadBalancer. With OpenFeign the load balancer is used automatically. It resolves instances through a discovery client such as Eureka or the Kubernetes API, so a registry or equivalent must exist.",
+      "keywords": [
+        "spring-cloud-starter-loadbalancer",
+        "replaces Ribbon",
+        "@LoadBalanced",
+        "logical service id",
+        "round-robin default"
+      ],
+      "followups": [
+        {
+          "q": "What does @LoadBalanced change on a RestTemplate?",
+          "a": "It adds an interceptor that resolves the logical service id to a chosen instance before the request is sent."
+        },
+        {
+          "q": "Where do the candidate instances come from?",
+          "a": "From a DiscoveryClient such as Eureka, Consul or Kubernetes discovery."
+        }
+      ],
+      "trap": "Naming Ribbon, which is deprecated, instead of Spring Cloud LoadBalancer.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: check the artifact name and default strategy against the Spring Cloud release train in use.]"
+      ],
+      "notes": "Reported in user-provided interview notes, item 5.8 (company not recorded). Model answer written for this handbook, not copied from the notes. Related: JH-S08-006."
+    },
+    {
+      "id": "JH-S08-073",
+      "topic": "Spring Cloud",
+      "question": "Which Eureka timing properties govern heartbeats, eviction and self-preservation?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "EY",
+          "sources": [
+            "S014"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Spring"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The client sends a heartbeat every lease-renewal-interval-in-seconds, 30 by default. The server evicts an instance if no heartbeat arrives within lease-expiration-duration-in-seconds, 90 by default, running the eviction task every eviction-interval-timer-in-ms, 60000 by default. Clients refresh their registry copy every registry-fetch-interval-seconds, 30 by default. Self-preservation uses renewal-percent-threshold, 0.85 by default: if renewals fall below it, Eureka assumes a network partition and stops evicting, so stale entries can remain visible. For faster failure detection in development, shorten the lease values and disable self-preservation, and rely on a circuit breaker and retries so stale instances do not hurt callers.",
+      "keywords": [
+        "lease renewal interval",
+        "lease expiration duration",
+        "eviction timer",
+        "registry fetch interval",
+        "self-preservation threshold",
+        "stale entries"
+      ],
+      "followups": [
+        {
+          "q": "Why can Eureka show instances that are down?",
+          "a": "The client cache refreshes periodically and self-preservation can pause eviction, so entries may be stale for minutes."
+        },
+        {
+          "q": "How do you protect callers from stale entries?",
+          "a": "Use client timeouts, retries and a circuit breaker so a dead instance fails fast."
+        }
+      ],
+      "trap": "Quoting numbers from memory without noting that they are defaults that can be overridden.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: defaults come from the Netflix Eureka and Spring Cloud Netflix documentation; confirm them for the version in use.]"
+      ],
+      "notes": "Reported in user-provided interview notes, item 5.9 (EY). Model answer written for this handbook, not copied from the notes. Related: JH-S08-006."
+    },
+    {
+      "id": "JH-S08-074",
+      "topic": "API gateway",
+      "question": "What types of API gateway exist, and what do they do?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Capgemini",
+          "sources": [
+            "S012"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A single edge gateway gives every client one entry point, which is simple but can become a bottleneck and a deployment coupling point. A backend-for-frontend (BFF) uses one gateway per client type, such as web, mobile or partner, each shaping payloads for that client. A micro-gateway or service-mesh sidecar such as Envoy handles east-west traffic close to each service. Edge gateways typically handle TLS, WAF and authentication, while internal gateways handle routing and observability. Common responsibilities are routing, authentication and authorisation, rate limiting, transformation, aggregation, caching, circuit breaking and tracing. Examples are Spring Cloud Gateway, Kong, NGINX, AWS API Gateway and Apigee.",
+      "keywords": [
+        "single edge gateway",
+        "backend for frontend",
+        "sidecar micro-gateway",
+        "edge versus internal",
+        "rate limiting and auth",
+        "Spring Cloud Gateway"
+      ],
+      "followups": [
+        {
+          "q": "Why use a BFF?",
+          "a": "Each client type needs different payload shape and aggregation, so one gateway per client avoids a lowest-common-denominator API."
+        },
+        {
+          "q": "Why should services still authorise requests behind a gateway?",
+          "a": "The gateway can be bypassed or misconfigured; each service must enforce its own access rules."
+        }
+      ],
+      "trap": "Listing gateway products without explaining the single-edge, BFF and sidecar patterns.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 7.2 (Capgemini). Model answer written for this handbook, not copied from the notes. Related: JH-S13-028, JH-S08-044."
+    },
+    {
+      "id": "JH-S08-075",
+      "topic": "Distributed systems",
+      "question": "What does the CAP theorem say, and how does it guide design?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Morgan Stanley (Synechron)",
+          "sources": [
+            "S009"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "BFSI-Fintech",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "In a distributed data store you can guarantee only two of consistency (every read sees the latest write), availability (every request receives a non-error response) and partition tolerance (the system keeps working despite lost or delayed network messages). Because partitions happen in real networks, the practical choice during a partition is between consistency and availability: a CP system rejects or delays requests to stay consistent, while an AP system keeps serving and converges later. Many systems are tunable, so labelling a product CP or AP depends on its configuration. PACELC extends the idea: even without a partition there is a trade-off between latency and consistency.",
+      "keywords": [
+        "consistency availability partition tolerance",
+        "partition forces a choice",
+        "CP versus AP",
+        "tunable systems",
+        "PACELC"
+      ],
+      "followups": [
+        {
+          "q": "Is partition tolerance optional?",
+          "a": "Not in a distributed system. Networks fail, so the real choice is consistency versus availability during a partition."
+        },
+        {
+          "q": "What does PACELC add?",
+          "a": "If there is a Partition choose Availability or Consistency; Else choose Latency or Consistency."
+        }
+      ],
+      "trap": "Saying you can pick any two of the three. Partition tolerance is not optional in practice.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 7.4 (Morgan Stanley (Synechron)). Model answer written for this handbook, not copied from the notes. Related: JH-S08-058."
+    },
+    {
+      "id": "JH-S08-076",
+      "topic": "State management",
+      "question": "A user adds a product to the cart and the server then crashes. How does another server have the cart?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Morgan Stanley (Synechron)",
+          "sources": [
+            "S009"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "BFSI-Fintech",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Spring",
+        "R:Redis",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The root problem is state held in one server's memory. Sticky sessions pin a user to a node but fail when that node dies. Session replication copies sessions between nodes but is chatty and scales poorly. The expected answer is an externalised session store such as Spring Session with Redis, so any node can serve any request and a node failure is invisible to the user. For logged-in users persist the cart in a database, using Redis as a time-limited cache for guests; a client-side cart can be merged at login. Keep services stateless, replicate the datastore, and make cart operations idempotent so a retry after failover does not add an item twice.",
+      "keywords": [
+        "state in server memory",
+        "sticky sessions",
+        "session replication",
+        "Spring Session with Redis",
+        "persisted cart",
+        "idempotent operations"
+      ],
+      "followups": [
+        {
+          "q": "Why are sticky sessions not a real solution?",
+          "a": "They keep the state on one node, so a crash or scale-down still loses it."
+        },
+        {
+          "q": "How do you make add-to-cart safe on retry?",
+          "a": "Use an idempotency key or set quantity explicitly so a repeated request does not double-add."
+        }
+      ],
+      "trap": "Answering with sticky sessions alone. It does not survive node failure.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 7.8 (Morgan Stanley (Synechron)). Model answer written for this handbook, not copied from the notes. Related: JH-S07-016, JH-S07-047."
+    }
+  ]
+}

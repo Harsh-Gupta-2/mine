@@ -1,0 +1,3654 @@
+{
+  "section": "S03",
+  "section_title": "Java 8 to 21 and Streams",
+  "questions": [
+    {
+      "id": "JH-S03-001",
+      "topic": "Stream pipeline evaluation",
+      "question": "What is lazy evaluation in a stream, and why should you avoid business side effects in intermediate operations?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Intermediate operations describe a pipeline rather than immediately processing every element. A terminal operation initiates evaluation, and short-circuiting or optimizations can mean some elements or operations are never evaluated. For that reason I should not depend on peek or a mapping callback to perform required database updates or audit delivery. A stream is also single-use; after a terminal operation I need a new stream from the source rather than reuse the consumed one. I would keep transformations stateless and non-interfering, express required effects at an explicit boundary, and choose loops when they make control flow or failure handling clearer. Streams are not automatically faster or parallel.",
+      "keywords": [
+        "lazy evaluation",
+        "terminal operation",
+        "short-circuit",
+        "single use",
+        "non-interference",
+        "side effects"
+      ],
+      "followups": [
+        {
+          "q": "Does calling parallelStream guarantee better latency?",
+          "a": "No. Coordination, workload size and shared pool contention can outweigh parallel work; measure representative cases."
+        },
+        {
+          "q": "Can you mutate the source while traversing it?",
+          "a": "Only under a source-specific supported concurrency contract; ordinary mutation during traversal is not made safe by stream syntax."
+        }
+      ],
+      "trap": "Using peek as the only implementation of a required side effect.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; executable collectors example is in S18."
+    },
+    {
+      "id": "JH-S03-002",
+      "topic": "Collector duplicate keys",
+      "question": "What happens when Collectors.toMap encounters duplicate keys, and how do you choose a merge rule?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "The two-argument toMap collector fails on duplicate keys rather than guessing which value is correct. I would define the business meaning of duplicates before adding a merge function. Valid rules might sum amounts, keep the record with the greatest version or reject contradictory records explicitly. Keeping whichever value happens to arrive last can be wrong when encounter order is not a reliable business ordering. If all values must be retained, groupingBy into lists is often clearer. I also decide whether the resulting map needs a particular ordering or mutability guarantee. A collector choice should express the data contract, not merely silence the exception that revealed ambiguous input.",
+      "keywords": [
+        "duplicate key",
+        "merge function",
+        "groupingBy",
+        "business ordering",
+        "version",
+        "map contract"
+      ],
+      "followups": [
+        {
+          "q": "Can a merge function be arbitrary in parallel collection?",
+          "a": "It must remain compatible with the collector's reduction requirements and produce valid results under regrouping; side effects or order assumptions need careful review."
+        },
+        {
+          "q": "Does Stream.toList promise a mutable ArrayList?",
+          "a": "No. In Java 21 it returns an unmodifiable list; do not depend on a specific implementation type."
+        }
+      ],
+      "trap": "Adding a last-wins merge without establishing what last means or whether losing records is acceptable.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern."
+    },
+    {
+      "id": "JH-S03-003",
+      "topic": "Modern Java modeling",
+      "question": "Where do records and sealed types help a backend API, and what do they not guarantee?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:REST",
+        "R:Patterns"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A record is useful for a data carrier with an explicit set of components and generated accessors, value equality and representation. Its component references are final, but referenced lists or other objects may still be mutable, so records are not automatically deeply immutable. A sealed hierarchy constrains the permitted subtypes and can make a finite result model easier to reason about, for example accepted, rejected and pending outcomes. I would still validate component invariants and avoid leaking secrets through generated toString output. These language features help express intent; they do not replace API compatibility decisions, persistence mapping constraints or explicit handling of invalid external input.",
+      "keywords": [
+        "record components",
+        "value equality",
+        "shallow immutability",
+        "sealed hierarchy",
+        "invariants",
+        "representation"
+      ],
+      "followups": [
+        {
+          "q": "Does a record make a password safe to log?",
+          "a": "No. Generated representation can include components; sensitive data needs an explicit logging and modeling policy."
+        },
+        {
+          "q": "Should every JPA entity become a record?",
+          "a": "No. Entity identity and provider requirements differ from a simple immutable value carrier; use records where the model and framework support them."
+        }
+      ],
+      "trap": "Assuming final component references imply an immutable object graph.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-004",
+      "topic": "Optional API design",
+      "question": "What problem does Optional solve, and where should it usually not be used?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Framework"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Optional makes possible absence explicit in a return value, so a caller must choose how to handle a present or missing result instead of accidentally dereferencing null. I commonly use it for a lookup result whose absence is an expected outcome. It is not a universal replacement for null: parameters, entity fields, serialized DTO shape and collections each have different conventions and framework implications. I avoid calling get without checking and prefer operations such as map, flatMap, orElseGet and orElseThrow when they express the intended branch. The difference between orElse and orElseGet matters because the former evaluates its fallback argument eagerly. Optional improves a contract only when callers and serialization boundaries understand it.",
+      "keywords": [
+        "explicit absence",
+        "return contract",
+        "map",
+        "flatMap",
+        "orElseGet",
+        "eager evaluation"
+      ],
+      "followups": [
+        {
+          "q": "When does orElseGet help over orElse?",
+          "a": "When computing the fallback is expensive or has effects, because its supplier runs only when the Optional is empty."
+        },
+        {
+          "q": "Should a collection-returning method return Optional<List<T>>?",
+          "a": "Usually an empty list already represents no elements; reserve Optional for a distinct absent value rather than layering absence unnecessarily."
+        }
+      ],
+      "trap": "Treating Optional as a null-proof wrapper everywhere or using get as the normal extraction path.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified pattern; estimate only, directly addresses the supplied Streams/API gap."
+    },
+    {
+      "id": "JH-S03-005",
+      "topic": "Lambda capture",
+      "question": "What does effectively final mean when a lambda captures a local variable?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A lambda may capture a local variable only when that variable is final or effectively final: after initialization, the local is not reassigned. This restriction avoids pretending that a stack local is a mutable shared cell whose lifetime and visibility are managed automatically. It does not make a referenced object immutable; a captured reference can still point to a mutable object. If the callback runs later or on another thread, ordinary thread-safety and visibility questions still apply to that object. I prefer transformations that do not rely on mutable captured state, because they are easier to reason about and compose in stream pipelines.",
+      "keywords": [
+        "capture",
+        "effectively final",
+        "local variable",
+        "reference mutability",
+        "callback lifetime",
+        "thread safety"
+      ],
+      "followups": [
+        {
+          "q": "Can a lambda mutate a captured ArrayList?",
+          "a": "The reference may be effectively final while the list remains mutable; mutation is possible but can be unsafe or unclear."
+        },
+        {
+          "q": "Why does the rule not apply identically to instance fields?",
+          "a": "Fields have object lifetime and can be accessed through the receiver; local-variable capture has different lifetime semantics."
+        }
+      ],
+      "trap": "Equating effectively final with an immutable captured object.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; no company claims."
+    },
+    {
+      "id": "JH-S03-006",
+      "topic": "Method references",
+      "question": "When is a method reference a valid replacement for a lambda?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A method reference is shorthand when the target functional interface's abstract method can be adapted to a compatible existing method or constructor. The compiler uses the target type to determine parameter and return compatibility, so the same-looking reference can be ambiguous if overloads or generic inference provide multiple candidates. Forms include a reference to a static method, a bound instance method, an unbound instance method, and a constructor reference. I keep a lambda when it improves clarity, handles extra logic or makes argument mapping explicit. Replacing every lambda mechanically can hide which object receives which argument.",
+      "keywords": [
+        "functional interface target",
+        "static reference",
+        "bound receiver",
+        "unbound receiver",
+        "constructor reference",
+        "overload ambiguity"
+      ],
+      "followups": [
+        {
+          "q": "What does String::trim mean in a Function<String, String> context?",
+          "a": "It is an unbound instance-method reference: the input String becomes the receiver of trim()."
+        },
+        {
+          "q": "Can constructor references call a particular overload?",
+          "a": "The target function type and argument types must select a compatible constructor; explicit lambda syntax can clarify ambiguity."
+        }
+      ],
+      "trap": "Assuming a method reference has a type independently of its target functional interface.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 21 lambda typing concepts intended."
+    },
+    {
+      "id": "JH-S03-007",
+      "topic": "Functional interfaces",
+      "question": "What makes an interface functional, and how do default methods affect that status?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Yash",
+          "sources": [
+            "S011"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A functional interface has one abstract method after accounting for methods that are public members of Object and inherited interface declarations. It can still have default and static methods, because those methods already have implementations and do not add another abstract behavior a lambda must supply. The FunctionalInterface annotation is optional but asks the compiler to verify the intended shape. Generic functional interfaces let the same contract work across types, as with Function<T,R> or Predicate<T>. I use standard library interfaces where their semantics fit, and create a named interface when a domain operation needs a clearer contract than a generic function type.",
+      "keywords": [
+        "single abstract method",
+        "default method",
+        "static method",
+        "Object methods",
+        "FunctionalInterface",
+        "generic contract"
+      ],
+      "followups": [
+        {
+          "q": "Does adding a default method break a lambda target?",
+          "a": "Not by adding another abstract obligation; the default already has an implementation."
+        },
+        {
+          "q": "Why use a named interface instead of Function?",
+          "a": "A domain-specific name can clarify meaning, ownership and expected behavior at the call site."
+        }
+      ],
+      "trap": "Counting every declared method as an abstract method when deciding whether an interface is functional.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; no company claims. Reported in user-provided interview notes, item 3.2 (Yash)."
+    },
+    {
+      "id": "JH-S03-008",
+      "topic": "Stream flattening",
+      "question": "When should a stream pipeline use map versus flatMap?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Concentrix",
+          "sources": [
+            "S013"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "map applies one transformation to each input and emits one output element for each input, even if that output is itself a collection or stream. flatMap applies a transformation that produces a stream-like result and flattens those results into one output stream. For example, mapping orders to their line-item lists gives a stream of lists; flat-mapping gives a stream of line items. I pay attention to empty nested results and resource-backed streams, which may need closing. The operation should preserve a clear data shape, and I avoid using flattening just to hide a modeling ambiguity or silently discard failures.",
+      "keywords": [
+        "one-to-one transform",
+        "nested stream",
+        "flatten",
+        "empty result",
+        "data shape",
+        "resource lifecycle"
+      ],
+      "followups": [
+        {
+          "q": "What does flatMap do with an empty inner stream?",
+          "a": "It contributes no output elements for that input."
+        },
+        {
+          "q": "Does map automatically flatten Optional values?",
+          "a": "No. map can produce Optional<Optional<T>>; flatMap composes an operation already returning Optional<T>."
+        }
+      ],
+      "trap": "Using map when the desired result is a single flattened sequence, or confusing the two output shapes.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Streams GAP. Reported in user-provided interview notes, item 3.6 (Concentrix)."
+    },
+    {
+      "id": "JH-S03-009",
+      "topic": "Primitive streams",
+      "question": "Why do Java primitive streams exist, and when would you use them?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "IntStream, LongStream and DoubleStream provide operations specialized for primitive values, avoiding some boxing and unboxing and offering numeric terminals such as sum, average and summary statistics. I use them when a pipeline is genuinely numeric and the specialized operations improve clarity or allocation behavior. They are not universally faster: source conversion, mapping, terminal boxing or small workloads can erase a benefit, so performance claims need measurement. Converting back to an object stream is explicit with boxed, while mapToInt and related methods move into primitive form. I also consider overflow and numeric precision independently of stream choice.",
+      "keywords": [
+        "IntStream",
+        "boxing",
+        "mapToInt",
+        "sum",
+        "numeric precision",
+        "measurement"
+      ],
+      "followups": [
+        {
+          "q": "Does IntStream.sum detect overflow?",
+          "a": "No. Integer arithmetic can overflow; choose a wider representation or checked arithmetic when required."
+        },
+        {
+          "q": "Can a primitive stream be converted back to Stream<Integer>?",
+          "a": "Yes, boxed() produces the corresponding object stream."
+        }
+      ],
+      "trap": "Claiming primitive streams always improve performance without considering pipeline shape or measuring.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; estimate only."
+    },
+    {
+      "id": "JH-S03-010",
+      "topic": "Optional composition",
+      "question": "How does Optional.flatMap differ from Optional.map when the mapper can return no value?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Framework"
+      ],
+      "harsh_status": "GAP",
+      "answer": "map applies a function to a present value and wraps the function result, so a mapper that itself returns Optional creates a nested Optional. flatMap expects a mapper that already returns Optional and flattens the composition into one Optional layer. That lets a lookup chain express short-circuiting absence without repeated null checks or nested wrappers. I use orElseThrow at a boundary where absence becomes an error and preserve a meaningful exception or message. I also avoid returning null from an Optional mapper, because it violates the expected composition contract and produces a failure instead of representing absence.",
+      "keywords": [
+        "nested Optional",
+        "map",
+        "flatMap",
+        "short-circuit",
+        "orElseThrow",
+        "null mapper"
+      ],
+      "followups": [
+        {
+          "q": "What happens if an Optional mapper returns null?",
+          "a": "Optional's mapping operation rejects a null result rather than treating it as an empty Optional."
+        },
+        {
+          "q": "When would you use filter?",
+          "a": "When a present value should remain present only if it satisfies a predicate; otherwise it becomes empty."
+        }
+      ],
+      "trap": "Using map with a mapper returning Optional and then trying to handle Optional<Optional<T>> everywhere.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Streams/API GAP."
+    },
+    {
+      "id": "JH-S03-011",
+      "topic": "Grouping collectors",
+      "question": "How does groupingBy work, and when is a downstream collector useful?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "groupingBy classifies each input by a key and accumulates values for each key. The basic overload produces lists, while a downstream collector can transform each group during accumulation, such as counting records, summing a field, mapping to a smaller value or collecting a set. This avoids creating an intermediate list when the final result needs only an aggregate. I define the key's equality and ordering needs, and do not assume HashMap iteration order in the result. If the classifier or downstream logic has side effects, parallel evaluation and error handling become harder to reason about, so I keep the pipeline functional where practical.",
+      "keywords": [
+        "classifier",
+        "downstream collector",
+        "counting",
+        "mapping",
+        "group equality",
+        "result ordering"
+      ],
+      "followups": [
+        {
+          "q": "How do you count records per key?",
+          "a": "Use groupingBy with counting as the downstream collector."
+        },
+        {
+          "q": "Does groupingBy guarantee key iteration order?",
+          "a": "Its default map does not promise a particular iteration order; choose a map supplier if ordering is required."
+        }
+      ],
+      "trap": "Building lists for every group and then traversing them when a downstream aggregate would suffice.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-012",
+      "topic": "Stream result mutability",
+      "question": "How do Collectors.toList and Stream.toList differ in mutability guarantees?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Stream.toList, available since Java 16, returns an unmodifiable list. Collectors.toList does not promise a specific implementation type or mutability, even though common implementations often produce a mutable list. Code should not rely on that observed behavior as an API guarantee. If later mutation is required, collect into an explicitly chosen mutable implementation such as ArrayList. If the result should be immutable, use a contract that states that and still remember the elements themselves may be mutable. I choose the terminal operation based on the needed result contract, not merely whichever spelling is shorter.",
+      "keywords": [
+        "Stream.toList",
+        "Collectors.toList",
+        "unmodifiable",
+        "implementation unspecified",
+        "ArrayList",
+        "element mutability"
+      ],
+      "followups": [
+        {
+          "q": "Can you safely call add on Stream.toList output?",
+          "a": "No; the returned list is unmodifiable."
+        },
+        {
+          "q": "Does Collectors.toList guarantee ArrayList?",
+          "a": "No. Its specification does not promise a concrete list type or mutability."
+        }
+      ],
+      "trap": "Assuming both APIs promise a mutable ArrayList because that happened in one runtime.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 16+ API distinction, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-013",
+      "topic": "Collector reduction",
+      "question": "What makes a collector suitable for parallel reduction?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A collector supplies a container, an accumulator and a combiner, with an optional finisher and characteristics. For parallel collection, partial containers must be combinable so the final result is equivalent to valid sequential accumulation. The combiner must merge partial states according to the collector contract, and identity and associativity expectations matter for reductions. A collector that mutates shared external state or assumes one fixed encounter order can break under parallel execution. I start with standard collectors, whose contracts have been designed for this purpose, and only implement a custom Collector when the accumulation model is clear and tested against sequential and parallel results.",
+      "keywords": [
+        "supplier",
+        "accumulator",
+        "combiner",
+        "finisher",
+        "associativity",
+        "parallel equivalence"
+      ],
+      "followups": [
+        {
+          "q": "Why does a combiner matter?",
+          "a": "It merges partial accumulation containers produced by separate portions of a parallel computation."
+        },
+        {
+          "q": "Can a side-effecting accumulator be parallel-safe?",
+          "a": "Only with a deliberate synchronization and collector design; shared unsynchronized side effects are unsafe and obscure semantics."
+        }
+      ],
+      "trap": "Assuming a collector is parallel-safe merely because its accumulator works in a sequential stream.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; collector contract details intended for Java 21."
+    },
+    {
+      "id": "JH-S03-014",
+      "topic": "Reduction identity",
+      "question": "Why must reduce use an identity and associative accumulator for reliable parallel results?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A reduction may partition input into chunks, compute partial results and combine them in a different grouping than a sequential left fold. The identity must leave a result unchanged when combined, and the accumulator operation must be associative for regrouping to preserve the answer. Floating-point addition illustrates a limitation: rounding can make regrouped results differ slightly. An invalid identity, such as a non-neutral starting value, can produce incorrect parallel totals. I use reduce for a well-defined associative combination and prefer specialized terminals or collectors for common numeric and mutable accumulation, rather than mutating one shared seed object.",
+      "keywords": [
+        "identity element",
+        "associativity",
+        "partitioning",
+        "combiner",
+        "floating-point rounding",
+        "mutable reduction"
+      ],
+      "followups": [
+        {
+          "q": "Why can subtraction be a poor parallel reduction operator?",
+          "a": "It is not associative, so changing the grouping can change the result."
+        },
+        {
+          "q": "Should reduce mutate an ArrayList identity?",
+          "a": "No; shared mutable identities conflict with partitioned reduction. Use a collector designed for mutable accumulation."
+        }
+      ],
+      "trap": "Choosing an arbitrary initial value and assuming parallel reduce still computes the intended result.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; algebraic requirements are the relevant contract, not a performance claim."
+    },
+    {
+      "id": "JH-S03-015",
+      "topic": "Stream encounter order",
+      "question": "How does encounter order affect stream results and forEach versus forEachOrdered?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Some sources have a defined encounter order, such as a list, while others may not, such as a hash-based collection. Stateful operations like sorted can impose an order, and unordered can relax one where the result contract permits it. In a parallel pipeline, forEach does not promise encounter-order action execution; forEachOrdered preserves the encounter order for the terminal actions when one exists, potentially limiting parallel throughput. I only pay for ordering when the application needs it, and I never use output order as a substitute for an explicit business ordering or deterministic tie-breaker.",
+      "keywords": [
+        "encounter order",
+        "ordered source",
+        "unordered",
+        "parallel forEach",
+        "forEachOrdered",
+        "business ordering"
+      ],
+      "followups": [
+        {
+          "q": "Does forEachOrdered mean the upstream work is sequential?",
+          "a": "Not necessarily; it constrains the terminal action order, though coordination can reduce throughput."
+        },
+        {
+          "q": "Does HashSet have a defined encounter order?",
+          "a": "No iteration order is guaranteed by its contract."
+        }
+      ],
+      "trap": "Assuming a parallel stream always emits side effects in input order.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; no company claims."
+    },
+    {
+      "id": "JH-S03-016",
+      "topic": "Stream side effects",
+      "question": "Why should a stream predicate or mapper be stateless and non-interfering?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "A stream behavioral parameter should not interfere with the source and should generally produce a result from its input rather than hidden mutable state. If a predicate increments a shared counter or a mapper mutates the collection being traversed, evaluation order, short-circuiting and parallel execution can change what runs and when. That makes output depend on implementation details and can introduce races. I move required effects outside the transformation or represent the needed aggregate with a collector. For observability, I use explicit instrumentation that does not determine business correctness. A loop can be the better choice when side effects are the actual point of the algorithm.",
+      "keywords": [
+        "stateless behavior",
+        "non-interference",
+        "source mutation",
+        "short-circuit",
+        "parallel execution",
+        "collector"
+      ],
+      "followups": [
+        {
+          "q": "Can peek reliably count every element?",
+          "a": "No. Laziness, short-circuiting and optimization mean it is unsuitable as a correctness-dependent counter."
+        },
+        {
+          "q": "What if an operation inherently has ordered effects?",
+          "a": "Use an explicit ordered loop or a carefully specified terminal operation where ordering is part of the contract."
+        }
+      ],
+      "trap": "Assuming callbacks run exactly once in source order for every stream implementation and terminal operation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-017",
+      "topic": "Optional stream integration",
+      "question": "How can Optional participate in a stream pipeline without nested containers?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Optional.stream, available since Java 9, converts a present value to a one-element stream and an empty Optional to an empty stream. This is useful when a transformation naturally produces zero or one result and the next stage processes a stream of results. It avoids manually branching into separate stream construction paths. For a collection of Optionals, flatMap(Optional::stream) keeps present values and drops absent ones, but I check that dropping absence is actually the business rule; sometimes missing data should instead be reported. I avoid wrapping an Optional in another Optional or using streams to obscure a simple conditional.",
+      "keywords": [
+        "Optional.stream",
+        "zero-or-one",
+        "flatMap",
+        "empty result",
+        "absence policy",
+        "Java 9"
+      ],
+      "followups": [
+        {
+          "q": "What does flatMap(Optional::stream) do to empty values?",
+          "a": "They contribute no element to the resulting stream."
+        },
+        {
+          "q": "Is dropping every empty Optional always correct?",
+          "a": "No. If absence signals invalid or incomplete data, the pipeline must preserve or report that condition."
+        }
+      ],
+      "trap": "Filtering absent values silently when the application must distinguish why data is missing.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ API behavior, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-018",
+      "topic": "Collector mapping",
+      "question": "What does Collectors.mapping add to a downstream grouping collector?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Collectors.mapping applies a mapper to each element before passing it to another downstream collector. It is especially useful with groupingBy when I need each group to contain a transformed property rather than the original domain object. For example, I can group transactions by account and collect distinct category names for each account. This keeps the classification and downstream aggregation in one collector composition instead of producing lists and traversing them afterward. I still define duplicate handling, null policy and output collection semantics deliberately, and keep the mapper free from required side effects.",
+      "keywords": [
+        "downstream collector",
+        "mapping",
+        "groupingBy",
+        "distinct values",
+        "collector composition",
+        "null policy"
+      ],
+      "followups": [
+        {
+          "q": "Can mapping be combined with toSet?",
+          "a": "Yes. Use mapping(mapper, toSet()) as a downstream collector."
+        },
+        {
+          "q": "Does mapping change the group key?",
+          "a": "No. The outer classifier chooses the key; mapping transforms values collected within each group."
+        }
+      ],
+      "trap": "Confusing downstream value mapping with the classifier that determines the grouping key.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-019",
+      "topic": "Collector partitioning",
+      "question": "How does partitioningBy differ from groupingBy with a Boolean classifier?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "partitioningBy divides elements into exactly two groups based on a predicate: true and false. Its result is a map keyed by Boolean, and the overload with a downstream collector can aggregate each side. groupingBy with a Boolean classifier can express similar classification, but partitioningBy communicates the two-way intent and its contract can include both partitions even when one is empty. I use it for a genuine binary split, not for multiple categories or a classification where null and invalid values need separate treatment. As with other collectors, I avoid relying on incidental map implementation details.",
+      "keywords": [
+        "predicate",
+        "true partition",
+        "false partition",
+        "downstream collector",
+        "empty group",
+        "binary classification"
+      ],
+      "followups": [
+        {
+          "q": "Can partitioningBy count each side?",
+          "a": "Yes. Use its downstream-collector overload with counting."
+        },
+        {
+          "q": "When is groupingBy clearer?",
+          "a": "When the classifier has multiple meaningful keys or the domain is not a strict two-way split."
+        }
+      ],
+      "trap": "Using a Boolean partition to collapse invalid, absent and ordinary false cases into one group.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java collector API behavior intended."
+    },
+    {
+      "id": "JH-S03-020",
+      "topic": "Short-circuiting streams",
+      "question": "Which stream operations can short-circuit, and why does that matter for callback execution?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Operations such as anyMatch, allMatch, noneMatch, findFirst and findAny can finish without consuming every element once their result is known. Intermediate stages are lazy, so no terminal operation means no traversal at all. This matters because callbacks may run fewer times than the source size suggests, and parallel execution can make which elements are processed non-obvious. I do not put required writes, counters or cleanup solely inside a predicate or mapper. If each element must be processed exactly once with explicit failure behavior, I use a suitable loop or batch-processing design rather than treating a stream callback as a transaction boundary.",
+      "keywords": [
+        "anyMatch",
+        "findFirst",
+        "laziness",
+        "partial traversal",
+        "callback count",
+        "required effects"
+      ],
+      "followups": [
+        {
+          "q": "Does findAny promise the first encounter-order element?",
+          "a": "No. It may return any element, particularly useful with parallel streams."
+        },
+        {
+          "q": "Will anyMatch always evaluate every predicate?",
+          "a": "No. It can stop as soon as a match is established."
+        }
+      ],
+      "trap": "Relying on every intermediate callback to run once for every source element.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-021",
+      "topic": "Stateful stream operations",
+      "question": "What is a stateful stream operation, and why can it constrain parallel execution?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "A stateful intermediate operation needs information about multiple elements or prior elements to produce its result. sorted must order the whole relevant input, and distinct tracks previously seen values. Such operations may need buffering or coordination and can reduce the benefit of parallel processing, especially for large or unbounded sources. Stateful operations are not inherently wrong; they express real requirements. I place filtering before expensive sorting when semantics allow, and I verify whether the source has a meaningful encounter order. If I only need one aggregate, a purpose-built collector can be clearer and use less intermediate state.",
+      "keywords": [
+        "stateful operation",
+        "sorted",
+        "distinct",
+        "buffering",
+        "parallel coordination",
+        "encounter order"
+      ],
+      "followups": [
+        {
+          "q": "Is filter stateful?",
+          "a": "No, it can decide each element independently when its predicate is stateless."
+        },
+        {
+          "q": "Can sorted terminate on an infinite stream?",
+          "a": "Not generally; it needs to establish order over the input before emitting its sorted result."
+        }
+      ],
+      "trap": "Assuming parallel() makes a whole pipeline faster even when stateful operations dominate.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-022",
+      "topic": "Distinct semantics",
+      "question": "How does Stream.distinct decide whether two elements are duplicates?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "For a stream of object references, distinct uses equals semantics to identify duplicates, with hash-based tracking commonly involved for ordered streams. Therefore a domain type needs a correct equals and hashCode contract if its logical duplicates should collapse. For primitive streams, distinct compares primitive values according to their specialized semantics. On an ordered stream, the first encountered representative is retained; removing encounter order may allow different behavior and implementation choices. The operation is stateful because it remembers values already observed. I do not use distinct to conceal duplicate-data policy when conflicting records need explicit reconciliation.",
+      "keywords": [
+        "equals",
+        "hashCode",
+        "stateful",
+        "encounter order",
+        "primitive stream",
+        "duplicate policy"
+      ],
+      "followups": [
+        {
+          "q": "Can distinct work as expected if equals is not overridden?",
+          "a": "It uses the inherited equality, which may be object identity and not the intended domain duplicate rule."
+        },
+        {
+          "q": "Does distinct define how conflicting duplicate records should be merged?",
+          "a": "No. It removes equivalent elements; a business merge policy needs explicit logic."
+        }
+      ],
+      "trap": "Assuming distinct compares arbitrary objects by their displayed fields automatically.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-023",
+      "topic": "Stream sorting",
+      "question": "What should you consider when using sorted on a stream?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "sorted is a stateful intermediate operation that orders elements by natural order or an explicit comparator. It needs elements to be comparable under that rule and usually buffers before emitting an ordered result, so it can add memory and latency. For an ordered stream, sorting is stable according to the Stream contract; the comparator still needs a valid consistent ordering. If the final consumer needs only the smallest few values, sorting everything may be wasteful and a bounded data structure or database query may fit better. I make null ordering and tie-breaking explicit when deterministic results matter.",
+      "keywords": [
+        "stateful",
+        "Comparator",
+        "buffering",
+        "stable order",
+        "tie-breaker",
+        "top-k"
+      ],
+      "followups": [
+        {
+          "q": "What happens if natural-order elements are not comparable?",
+          "a": "A runtime ClassCastException can occur when sorting attempts a comparison."
+        },
+        {
+          "q": "Is sorting all records ideal to find the minimum?",
+          "a": "No; min or a database/indexed query can express that need without fully sorting the stream."
+        }
+      ],
+      "trap": "Using sorted().findFirst() for a minimum without considering min() or the input source's own ordering.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; sorting cost depends on source and comparator."
+    },
+    {
+      "id": "JH-S03-024",
+      "topic": "Stream slicing",
+      "question": "How do limit and skip behave, and why can they be costly on some parallel streams?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "limit retains at most the first n elements of a stream, while skip discards the first n in encounter order when that order exists. On an ordered parallel stream, determining exact slice positions can require coordination and sometimes substantial traversal. If order is irrelevant, relaxing it can improve execution choices, but only when that preserves the business result. Both operations are useful for bounded processing, yet they are not pagination over a changing database; stable paging needs an explicit ordering and usually a cursor or offset policy at the data source. I validate behavior for negative sizes because the API rejects them.",
+      "keywords": [
+        "limit",
+        "skip",
+        "encounter order",
+        "parallel coordination",
+        "unordered",
+        "database pagination"
+      ],
+      "followups": [
+        {
+          "q": "Does limit(10) guarantee ten elements?",
+          "a": "No. It emits at most ten and fewer if the source has fewer elements."
+        },
+        {
+          "q": "Is stream skip a substitute for database paging?",
+          "a": "Usually not; it may read and discard data and lacks stable cross-request snapshot semantics."
+        }
+      ],
+      "trap": "Treating skip and limit on an unordered source as stable page boundaries.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java Stream contract behavior intended."
+    },
+    {
+      "id": "JH-S03-025",
+      "topic": "Stream generation",
+      "question": "When are Stream.iterate and Stream.generate appropriate, and how do you keep them bounded?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Stream.iterate produces a sequence by repeatedly applying a function to the previous element; its predicate overload can stop generation when a condition fails. Stream.generate repeatedly invokes a Supplier and is typically an unbounded source with no relationship between successive values. I use limit or a stopping predicate when only a finite prefix is required, and I ensure the terminal operation cannot accidentally consume an infinite source. These factories are useful for modeling sequences, but they do not make blocking or side-effecting suppliers harmless. For external data or I/O, a purpose-built iterator or reactive abstraction may communicate lifecycle and cancellation more clearly.",
+      "keywords": [
+        "iterate",
+        "generate",
+        "unbounded source",
+        "predicate overload",
+        "limit",
+        "supplier"
+      ],
+      "followups": [
+        {
+          "q": "What happens with generate().count() if never bounded?",
+          "a": "It cannot complete for an unbounded source unless the pipeline has a short-circuiting termination condition."
+        },
+        {
+          "q": "How does iterate's predicate overload behave?",
+          "a": "It stops before emitting the first value that fails the predicate."
+        }
+      ],
+      "trap": "Creating an infinite stream and attaching a terminal operation that requires consuming the whole stream.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9 predicate overload availability assumes Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-026",
+      "topic": "takeWhile and dropWhile",
+      "question": "How do takeWhile and dropWhile differ from filter on an ordered stream?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "On an ordered stream, takeWhile emits the longest prefix whose elements satisfy the predicate and stops at the first failure. dropWhile discards that matching prefix and then emits the remaining elements, including later values that may satisfy the predicate again. filter instead tests every element independently and retains every match. This distinction matters for sorted or sequentially meaningful data, such as reading a prefix before a boundary. On unordered streams, prefix semantics do not apply in the same way, and parallel performance can vary. I choose based on whether the predicate defines a prefix boundary or an independent selection rule.",
+      "keywords": [
+        "longest prefix",
+        "first failure",
+        "drop prefix",
+        "filter all elements",
+        "ordered source",
+        "Java 9"
+      ],
+      "followups": [
+        {
+          "q": "Given values 1,2,0,3 with x>0, what does takeWhile emit?",
+          "a": "It emits 1 and 2, then stops at 0."
+        },
+        {
+          "q": "Does filter stop at the first false value?",
+          "a": "No. It evaluates later elements and can retain later matches."
+        }
+      ],
+      "trap": "Using filter when the requirement is to stop processing after the first boundary failure.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ operation contracts, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-027",
+      "topic": "mapMulti",
+      "question": "What does mapMulti provide compared with flatMap?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "mapMulti, added to Stream in Java 16, lets a mapper emit zero or more output elements through a consumer instead of returning a separate stream for each input. It can express flattening such as splitting a record into several values and may avoid creating many small stream objects in suitable cases. The downstream consumer is only valid during the mapper invocation; retaining it or using it asynchronously violates the operation's intended model. I prefer flatMap when it is clearer, and use mapMulti when direct emission makes a zero-to-many transformation concise without hiding control flow.",
+      "keywords": [
+        "zero-to-many",
+        "consumer emission",
+        "flatMap comparison",
+        "Java 16",
+        "lifetime constraint",
+        "allocation"
+      ],
+      "followups": [
+        {
+          "q": "Can mapMulti emit no values?",
+          "a": "Yes. It can call the downstream consumer zero times for an input."
+        },
+        {
+          "q": "Is mapMulti guaranteed faster than flatMap?",
+          "a": "No. It can avoid some overhead for some workloads, but performance should be measured."
+        }
+      ],
+      "trap": "Assuming mapMulti is a universal replacement or performance guarantee over flatMap.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 16+ API behavior, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-028",
+      "topic": "Teeing collector",
+      "question": "What does Collectors.teeing do, and when is it clearer than two traversals?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Collectors.teeing, available since Java 12, feeds each input element to two downstream collectors and then combines their finished results with a merger function. It can compute related summaries such as minimum and maximum in one traversal while preserving collector structure. The merger determines the final result type, which may be a small record or another explicit result object. I use it when both results are naturally derived from the same input and a single pass is useful; separate collectors or a small loop may be easier to read when the combination becomes intricate. It does not make side-effecting downstream collectors safe.",
+      "keywords": [
+        "two downstream collectors",
+        "single traversal",
+        "merger function",
+        "Java 12",
+        "combined summary",
+        "side effects"
+      ],
+      "followups": [
+        {
+          "q": "Can teeing combine a count and a sum?",
+          "a": "Yes; its two downstream collectors can compute those values and the merger can assemble the result."
+        },
+        {
+          "q": "Does teeing itself guarantee parallel correctness for custom collectors?",
+          "a": "Only if the downstream collectors and merge behavior obey their own contracts."
+        }
+      ],
+      "trap": "Using teeing to compress unrelated calculations into a collector expression no one can maintain.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 12+ API, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-029",
+      "topic": "collectingAndThen",
+      "question": "What does collectingAndThen add to a downstream collector?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "collectingAndThen first applies a downstream collector and then transforms its completed result with a finisher function. This is useful when the accumulation itself is straightforward but the final form needs wrapping or conversion, such as collecting into a set and exposing an unmodifiable result. The finisher runs after collection rather than once per element, so it is the right place for a result-level transformation, not per-item mapping. I make any immutability claim precise: wrapping a mutable backing collection can still expose aliasing if that backing object escapes elsewhere. If Stream.toList already states the required contract, an extra collector may add no value.",
+      "keywords": [
+        "downstream collector",
+        "finisher",
+        "post-processing",
+        "unmodifiable result",
+        "aliasing",
+        "per-element mapping"
+      ],
+      "followups": [
+        {
+          "q": "Does the finisher execute for each element?",
+          "a": "No. It transforms the completed downstream result."
+        },
+        {
+          "q": "Can it produce a different result type?",
+          "a": "Yes. The finisher can transform the accumulated result into another type."
+        }
+      ],
+      "trap": "Confusing result finishing with mapping every input element.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; no company claims."
+    },
+    {
+      "id": "JH-S03-030",
+      "topic": "Stream source characteristics",
+      "question": "Why do stream source characteristics and Spliterator behavior matter?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A stream's source and its Spliterator can describe properties such as ordering, sizing, distinctness, sorting and the ability to split. The runtime may use those characteristics to plan traversal and parallel decomposition. A collection-backed source can have different guarantees from an iterator over an external or changing source. Custom Spliterators must report characteristics truthfully; a false SIZED or ORDERED claim can make operations incorrect, not merely slower. I only inspect or implement these lower-level APIs when standard stream sources cannot model the data adequately, and I test splitting, estimateSize and boundary behavior directly.",
+      "keywords": [
+        "Spliterator",
+        "ORDERED",
+        "SIZED",
+        "SIZED accuracy",
+        "parallel splitting",
+        "source contract"
+      ],
+      "followups": [
+        {
+          "q": "What risk comes from falsely reporting SIZED?",
+          "a": "The stream implementation may rely on an incorrect exact size and produce incorrect behavior or optimizations."
+        },
+        {
+          "q": "Does every source split evenly in parallel?",
+          "a": "No. Splitting quality depends on the source and Spliterator implementation."
+        }
+      ],
+      "trap": "Treating Spliterator characteristics as hints that may contradict the actual source semantics.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; advanced API details should be checked against Java 21 documentation before custom implementation."
+    },
+    {
+      "id": "JH-S03-031",
+      "topic": "Interface evolution",
+      "question": "How did default and static interface methods change API evolution from Java 8?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Java 8 added default methods so an interface could provide behavior without requiring every existing implementation to add a new method immediately. Static methods can live on the interface as related utilities but are called through the interface type and are not inherited as instance behavior. Default methods are subject to conflict-resolution rules when multiple interfaces provide the same signature, and they should preserve the interface's semantic contract. They support compatible API evolution, but adding a default method is not risk-free if it conflicts with existing class methods or creates surprising behavior. I keep defaults small and broadly valid for implementors.",
+      "keywords": [
+        "Java 8",
+        "default method",
+        "static interface method",
+        "compatibility",
+        "conflict resolution",
+        "semantic contract"
+      ],
+      "followups": [
+        {
+          "q": "Can a static interface method be called through an implementing instance?",
+          "a": "No; it is called using the interface type, not inherited as an instance method."
+        },
+        {
+          "q": "Do defaults eliminate all interface evolution risks?",
+          "a": "No. Conflicts and semantic compatibility still need review."
+        }
+      ],
+      "trap": "Treating interface static methods as inherited polymorphic instance methods.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 8 feature baseline, exact conflict rules are covered in S01."
+    },
+    {
+      "id": "JH-S03-032",
+      "topic": "Date and time API",
+      "question": "Why is java.time preferred over legacy Date and Calendar for application logic?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The java.time API separates concepts that legacy Date and Calendar blur: an Instant is a point on the timeline, LocalDate is a calendar date without a zone, and ZonedDateTime combines local date-time with zone rules. Most java.time value types are immutable and have clearer operations. I choose the type that matches the domain instead of attaching a server-default timezone implicitly. Persisting an instant and displaying it in a user's zone are separate decisions; daylight-saving transitions can make local times ambiguous or invalid. I convert at system boundaries and test the zone and precision policy explicitly.",
+      "keywords": [
+        "Instant",
+        "LocalDate",
+        "ZonedDateTime",
+        "time zone",
+        "daylight saving",
+        "immutability"
+      ],
+      "followups": [
+        {
+          "q": "Does LocalDate identify one instant?",
+          "a": "No. It has no time or timezone and represents a calendar date."
+        },
+        {
+          "q": "What type represents a timeline point?",
+          "a": "Instant represents a point on the UTC timeline."
+        }
+      ],
+      "trap": "Using a local date-time as though it were globally unambiguous without a zone or offset.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 8+ API concepts, business timezone policy remains application-specific."
+    },
+    {
+      "id": "JH-S03-033",
+      "topic": "Optional usage boundaries",
+      "question": "Why is Optional generally most useful as a return type rather than a field or parameter?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Framework"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Optional communicates that a method may legitimately have no result, which is especially valuable at a return boundary because the caller can handle presence explicitly. Fields, entity properties, method parameters and serialized DTOs interact with frameworks, null semantics and object modeling differently. Wrapping every field or parameter can add nesting without clarifying who owns absence. I check the conventions of the persistence, validation and serialization frameworks involved before using Optional there. For collections, an empty collection often expresses no elements more directly. Optional is a small value-based container, not a replacement for every nullable reference or a synchronization mechanism.",
+      "keywords": [
+        "return contract",
+        "absence",
+        "framework compatibility",
+        "field modeling",
+        "empty collection",
+        "value-based"
+      ],
+      "followups": [
+        {
+          "q": "Is Optional a good field type in every DTO?",
+          "a": "Not automatically; serializer and API contract behavior must be considered, and null may be the established representation."
+        },
+        {
+          "q": "Should an empty search result be Optional<List<T>>?",
+          "a": "Usually return an empty list unless absent collection and empty collection mean different things."
+        }
+      ],
+      "trap": "Wrapping every potentially null member in Optional without considering boundary contracts.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Optional/Streams GAP."
+    },
+    {
+      "id": "JH-S03-034",
+      "topic": "Optional fallback",
+      "question": "When is orElseThrow preferable to orElse(null) or get?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "orElseThrow states that absence is exceptional at this point and can provide a meaningful exception supplier. It avoids returning null and gives the caller or boundary a clear failure to handle. get also throws when empty, but communicates less about the intended condition and is easy to use without deliberate reasoning. orElse(null) reintroduces the ambiguity Optional was meant to remove. When absence is normal, I instead use ifPresent, map, orElseGet, or return the Optional to a caller that owns the decision. The location of the conversion from optional absence to error is an API design choice.",
+      "keywords": [
+        "orElseThrow",
+        "absence boundary",
+        "meaningful exception",
+        "get",
+        "null ambiguity",
+        "normal absence"
+      ],
+      "followups": [
+        {
+          "q": "When should an empty Optional not throw?",
+          "a": "When absence is an expected outcome that the caller can handle as an alternate path."
+        },
+        {
+          "q": "What does orElse(null) do to the contract?",
+          "a": "It converts explicit absence back into a nullable value and weakens the clarity of the return type."
+        }
+      ],
+      "trap": "Using get as the standard extraction path or throwing for an ordinary not-found outcome without a contract reason.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses the supplied Optional GAP."
+    },
+    {
+      "id": "JH-S03-035",
+      "topic": "Local variable type inference",
+      "question": "What does var infer in Java, and where is it not allowed?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Java's local-variable type inference, introduced in Java 10, lets var declare a local variable whose type the compiler infers from its initializer. The variable remains statically typed; var is not dynamic typing. It requires an initializer and is limited to local variables, including certain loop variables, rather than fields, method parameters or return types. Inferred types can be verbose or surprising with anonymous classes and generics, so I use var when the initializer makes the type obvious and keep explicit types where they improve comprehension. It cannot be initialized with bare null because there is no useful type to infer.",
+      "keywords": [
+        "Java 10",
+        "local variable",
+        "static typing",
+        "initializer required",
+        "not fields",
+        "readability"
+      ],
+      "followups": [
+        {
+          "q": "Can a method parameter be declared var?",
+          "a": "No. var is not permitted for ordinary method parameters."
+        },
+        {
+          "q": "Does var make a variable dynamically typed?",
+          "a": "No. The compiler infers one static type at the declaration."
+        }
+      ],
+      "trap": "Using var as if the variable can later hold unrelated types.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 10 feature availability, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-036",
+      "topic": "Switch expressions",
+      "question": "What advantages do switch expressions provide over traditional switch statements?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A switch expression produces a value, which can be assigned or returned directly and can reduce temporary variables and fall-through mistakes. Arrow rules do not fall through to the next case, and a block that needs to yield a value uses yield. For an exhaustive switch over a closed domain such as an enum or sealed hierarchy, the compiler can help identify missing cases; a default may be needed when the input domain is broader or future compatibility matters. Switch expressions became permanent in Java 14. I still handle null explicitly where relevant and keep each arm readable.",
+      "keywords": [
+        "expression value",
+        "arrow rules",
+        "no fall-through",
+        "yield",
+        "exhaustiveness",
+        "Java 14"
+      ],
+      "followups": [
+        {
+          "q": "How does a block switch arm return its value?",
+          "a": "It uses yield followed by the value expression."
+        },
+        {
+          "q": "Are switch expressions exhaustive for every reference input?",
+          "a": "Not necessarily; null and open input domains require deliberate handling and may need a default."
+        }
+      ],
+      "trap": "Using break where a switch expression arm needs yield, or assuming null is handled automatically.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 14 permanent feature and Java 21 behavior intended."
+    },
+    {
+      "id": "JH-S03-037",
+      "topic": "Pattern matching instanceof",
+      "question": "What does pattern matching for instanceof improve, and what remains a runtime check?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Pattern matching for instanceof combines a type test with a binding variable, so code can test an object's type and use the narrowed variable in the valid flow scope without a separate cast. It reduces repetitive syntax but does not make an unsafe type assumption disappear: the match still succeeds only when the runtime object is compatible with the tested type. Flow scoping depends on control-flow facts, which can make a pattern variable available after a negated check that returns or throws. I use it for genuine type-based branching and prefer polymorphic behavior when repeated type tests indicate a weak abstraction.",
+      "keywords": [
+        "instanceof pattern",
+        "type test",
+        "binding variable",
+        "flow scoping",
+        "runtime compatibility",
+        "polymorphism"
+      ],
+      "followups": [
+        {
+          "q": "Does instanceof pattern matching remove the runtime type check?",
+          "a": "No. It combines the runtime check and binding in one expression."
+        },
+        {
+          "q": "Why can a pattern variable be in scope after an if block?",
+          "a": "Flow analysis can prove the type test succeeded on every path reaching that point."
+        }
+      ],
+      "trap": "Treating concise pattern syntax as proof that a type hierarchy is well designed.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; finalized in Java 16, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-038",
+      "topic": "Text blocks",
+      "question": "What problem do Java text blocks solve, and what should you still consider?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Text blocks, permanent in Java 15, provide a readable multiline string literal using triple quotes. They reduce escaping noise for JSON examples, SQL text and templates, while the compiler processes incidental indentation and escape sequences according to language rules. They do not validate the embedded language or make string concatenation safe. SQL still needs parameter binding, and HTML or JSON still needs correct contextual encoding or serialization. I use text blocks for static readable content and keep runtime data separate from executable query syntax. I verify indentation and newline behavior when exact bytes are part of a protocol or test.",
+      "keywords": [
+        "Java 15",
+        "multiline literal",
+        "incidental indentation",
+        "escape processing",
+        "parameter binding",
+        "serialization"
+      ],
+      "followups": [
+        {
+          "q": "Do text blocks make SQL parameterization unnecessary?",
+          "a": "No. Bind dynamic values through the database API rather than interpolate untrusted text."
+        },
+        {
+          "q": "Can indentation change the resulting string?",
+          "a": "Yes. Incidental indentation and line terminators are part of text-block processing."
+        }
+      ],
+      "trap": "Treating a convenient multiline literal as safe query construction or automatic escaping.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 15 permanent feature, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-039",
+      "topic": "String API additions",
+      "question": "Which Java 11 String methods help with blank input and line processing?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Java 11 added convenience methods such as isBlank, strip, stripLeading, stripTrailing, lines and repeat. isBlank recognizes empty strings and strings containing only whitespace as defined by the API, unlike isEmpty, which checks only length zero. strip methods use Unicode-aware whitespace handling rather than simply trimming a narrow set of characters. lines provides a stream of lines with defined line-terminator handling, and repeat creates a repeated string. I verify the project's Java baseline before using them and do not confuse normalization with validation or security filtering of untrusted input.",
+      "keywords": [
+        "Java 11",
+        "isBlank",
+        "strip",
+        "lines",
+        "repeat",
+        "Unicode whitespace"
+      ],
+      "followups": [
+        {
+          "q": "How does isBlank differ from isEmpty?",
+          "a": "isEmpty checks zero length; isBlank also recognizes strings consisting only of whitespace."
+        },
+        {
+          "q": "Does strip make untrusted input safe for SQL?",
+          "a": "No. Whitespace removal is not parameterization or context-specific input validation."
+        }
+      ],
+      "trap": "Assuming trim and strip have identical Unicode whitespace semantics or that either is a security sanitizer.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 11 API behavior, verify exact Unicode details against the target JDK docs."
+    },
+    {
+      "id": "JH-S03-040",
+      "topic": "Java modules",
+      "question": "What problem does the Java Platform Module System address, and what is an exports clause for?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The Java Platform Module System, introduced in Java 9, lets applications and libraries declare modules, dependencies and which packages are exposed. A module-info descriptor can require other modules and export selected packages for compile-time and runtime access. This creates stronger encapsulation than relying only on classpath conventions, though migration can expose reflection and split-package assumptions in older frameworks. exports controls ordinary package access to consumers; opens supports reflective access under specified conditions. I adopt modules when deployment and dependency boundaries justify the added descriptors and tooling complexity, rather than treating modules as a mandatory rewrite for every Java application.",
+      "keywords": [
+        "Java 9",
+        "module-info",
+        "requires",
+        "exports",
+        "opens",
+        "encapsulation"
+      ],
+      "followups": [
+        {
+          "q": "What is the purpose of requires?",
+          "a": "It declares a module dependency needed by the current module."
+        },
+        {
+          "q": "Is exports identical to opens?",
+          "a": "No. exports exposes public types for ordinary access; opens permits reflective access under module rules."
+        }
+      ],
+      "trap": "Assuming package-private access rules or reflective frameworks behave unchanged after modularization.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; module and reflection behavior should be verified for the actual deployment configuration."
+    },
+    {
+      "id": "JH-S03-041",
+      "topic": "Optional Java 9 methods",
+      "question": "What do Optional.isEmpty and ifPresentOrElse add to Java 9 code?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Java 9 added isEmpty as a direct predicate for absence and ifPresentOrElse to express actions for both present and empty cases. These methods can make a local branch concise, but a traditional if statement may be clearer when either branch has multiple steps, checked exceptions or complex control flow. The consumer and empty action should not hide important transaction or error semantics. I avoid using ifPresent as a substitute for returning a value when the caller needs the result, and I choose a method name that makes the absence policy explicit. Optional remains a value-based container, not an identity token.",
+      "keywords": [
+        "Java 9",
+        "isEmpty",
+        "ifPresentOrElse",
+        "absence branch",
+        "control flow",
+        "value-based"
+      ],
+      "followups": [
+        {
+          "q": "When is an if statement clearer than ifPresentOrElse?",
+          "a": "When branches need complex control flow, checked exception handling or multiple coordinated operations."
+        },
+        {
+          "q": "Does ifPresentOrElse return a transformed value?",
+          "a": "No. It performs one of two actions and returns void."
+        }
+      ],
+      "trap": "Compressing complex business branching into nested Optional callbacks just to avoid an if statement.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ Optional methods, Java 21 baseline; directly addresses the supplied GAP."
+    },
+    {
+      "id": "JH-S03-042",
+      "topic": "Optional fallback composition",
+      "question": "What does Optional.or do, and how does it differ from orElseGet?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Optional.or, added in Java 9, accepts a supplier that returns another Optional and uses it only when the original is empty. The result remains an Optional, so it composes fallback lookups without immediately unwrapping to a raw value. orElseGet instead accepts a supplier for a plain fallback value and returns that value, ending the Optional wrapper at that expression. I select or when absence should continue through another optional lookup, and orElseGet when a concrete default is intended. Fallback suppliers should be lazy and should not conceal errors from a failed primary operation.",
+      "keywords": [
+        "Optional.or",
+        "Optional supplier",
+        "orElseGet",
+        "lazy fallback",
+        "composition",
+        "absence"
+      ],
+      "followups": [
+        {
+          "q": "What type does Optional.or return?",
+          "a": "It returns an Optional of the same value type."
+        },
+        {
+          "q": "What type does orElseGet return?",
+          "a": "It returns the contained value type, using a supplied plain value when empty."
+        }
+      ],
+      "trap": "Using orElseGet when the fallback already returns Optional and creating nested wrappers.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ API, Java 21 baseline; directly addresses the supplied Optional GAP."
+    },
+    {
+      "id": "JH-S03-043",
+      "topic": "Stream.ofNullable",
+      "question": "When is Stream.ofNullable useful in a pipeline?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Stream.ofNullable, added in Java 9, produces an empty stream for null and a one-element stream for a non-null value. It can simplify flattening a collection of nullable references with flatMap when dropping null is the intended policy. It is not a validation mechanism: silently filtering null may conceal an upstream data-quality problem. I distinguish optional absence from invalid missing data and add metrics or explicit errors when the domain requires it. For an existing Optional, Optional.stream communicates the absence wrapper more directly. I keep null conversion near the boundary that owns the policy.",
+      "keywords": [
+        "Java 9",
+        "zero-or-one stream",
+        "null filtering",
+        "flatMap",
+        "data quality",
+        "Optional.stream"
+      ],
+      "followups": [
+        {
+          "q": "What does Stream.ofNullable(null) contain?",
+          "a": "It is an empty stream."
+        },
+        {
+          "q": "Should every null in an input batch be dropped?",
+          "a": "Only if omission is the intended domain rule; otherwise validate or report it."
+        }
+      ],
+      "trap": "Using ofNullable to silently erase invalid records without making a data-quality decision.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ stream API, Java 21 baseline; directly addresses the supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-044",
+      "topic": "Downstream filtering collector",
+      "question": "How does Collectors.filtering differ from filtering the stream before grouping?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Collectors.filtering, added in Java 9, applies a predicate inside a downstream collector, often within groupingBy. Filtering the stream before grouping removes nonmatching elements entirely, including groups that would otherwise exist. Downstream filtering can preserve a group key with an empty collected result when source elements classified to that key but none pass the predicate. That difference is important for reports that need every category represented. I select the placement based on whether empty groups matter, and avoid running different side-effecting predicates at separate stages. The collector composition keeps the classification and per-group rule explicit.",
+      "keywords": [
+        "Java 9",
+        "downstream filtering",
+        "groupingBy",
+        "empty groups",
+        "predicate placement",
+        "report semantics"
+      ],
+      "followups": [
+        {
+          "q": "Can filtering before grouping remove a category entirely?",
+          "a": "Yes. If every element for that category is filtered out, the group may not be created."
+        },
+        {
+          "q": "When is downstream filtering useful?",
+          "a": "When the grouped result should retain keys even if no values pass the group-specific predicate."
+        }
+      ],
+      "trap": "Moving a predicate before grouping without checking whether empty categories must remain in the output.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ collector API, Java 21 baseline; directly addresses Streams GAP."
+    },
+    {
+      "id": "JH-S03-045",
+      "topic": "Downstream flatMapping collector",
+      "question": "What does Collectors.flatMapping provide inside groupingBy?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Collectors.flatMapping, added in Java 9, maps each input in a downstream group to a stream and accumulates the emitted elements into another downstream collector. This is useful when grouping parent records while collecting flattened child values, without first building a list for each group and then traversing it. An empty mapped stream contributes no values. Resource-backed streams returned by the mapper need careful lifecycle handling, and null mapper results are not valid. I use it when the grouped result shape is clear and prefer an explicit intermediate model if the flattening hides important relationships or error policy.",
+      "keywords": [
+        "Java 9",
+        "downstream flatMapping",
+        "groupingBy",
+        "flattened children",
+        "empty stream",
+        "resource lifecycle"
+      ],
+      "followups": [
+        {
+          "q": "Can flatMapping be combined with mapping downstream?",
+          "a": "Yes; collector composition can flatten inputs and then transform or collect emitted values."
+        },
+        {
+          "q": "What does an empty inner stream contribute?",
+          "a": "No elements are added to that group's downstream collector."
+        }
+      ],
+      "trap": "Flattening away parent-child provenance when the output still needs to explain which parent produced each value.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ collector API, Java 21 baseline; directly addresses Streams GAP."
+    },
+    {
+      "id": "JH-S03-046",
+      "topic": "Var in lambda parameters",
+      "question": "When can var be used for lambda parameters, and why must parameter styles be consistent?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Since Java 11, var can be used to declare implicitly typed lambda parameters, mainly to allow annotations on those parameters while retaining type inference. If one lambda parameter uses var, all parameters in that lambda must use var; the declaration style cannot mix implicit, explicit and var forms. The inferred type still comes from the target functional interface, so var does not make the parameter dynamically typed. I use it when annotations or a consistent explicit visual style are useful, not merely to add noise to a simple lambda. The project's source level must support the feature.",
+      "keywords": [
+        "Java 11",
+        "lambda parameter",
+        "var",
+        "type inference",
+        "annotations",
+        "consistent style"
+      ],
+      "followups": [
+        {
+          "q": "Can one lambda parameter use var while another omits it?",
+          "a": "No. Parameter declarations in one lambda must use a consistent style."
+        },
+        {
+          "q": "Does var remove the target functional-interface type?",
+          "a": "No. The compiler still infers the parameter type from the target context."
+        }
+      ],
+      "trap": "Mixing explicit and implicit lambda parameter declaration forms in one expression.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 11 language feature, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-047",
+      "topic": "Record patterns",
+      "question": "What do record patterns add when matching record values in Java 21?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Patterns"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Record patterns let a pattern match a record type and deconstruct its components into pattern variables. In Java 21 they can be used in instanceof and switch contexts, reducing accessor boilerplate while keeping the record's declared structure visible. Nested patterns can deconstruct nested records, but deeply nested matching can become difficult to read. A pattern succeeds only when the value matches the record type and component patterns; null does not match an ordinary record pattern. I use them for closed data models where component extraction is natural, while retaining explicit validation for untrusted values and avoiding assumptions that records are deeply immutable.",
+      "keywords": [
+        "Java 21",
+        "record pattern",
+        "deconstruction",
+        "component variables",
+        "nested pattern",
+        "null handling"
+      ],
+      "followups": [
+        {
+          "q": "Does a record pattern match null?",
+          "a": "No. A null value does not match an ordinary record type pattern."
+        },
+        {
+          "q": "Do record patterns validate business invariants?",
+          "a": "They extract components; domain validation remains a separate responsibility."
+        }
+      ],
+      "trap": "Treating structural deconstruction as proof that every component is valid or immutable.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 21 final feature, verify exact pattern syntax against the project's compiler level."
+    },
+    {
+      "id": "JH-S03-048",
+      "topic": "Pattern matching switch",
+      "question": "What does pattern matching for switch enable in Java 21?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Patterns"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Pattern matching for switch lets cases match types and guarded patterns, and Java 21 also supports record patterns in switch. This can express behavior over a finite set of variants more directly than a chain of instanceof tests and casts. Exhaustiveness analysis can help when switching over sealed hierarchies, while a default may still be needed for open domains or compatibility policy. Null handling must be explicit; a case null can be used where appropriate. I keep case order and guards understandable, and treat the feature's source and preview status according to the exact Java release target.",
+      "keywords": [
+        "Java 21",
+        "type patterns",
+        "guarded patterns",
+        "record patterns",
+        "exhaustiveness",
+        "null case"
+      ],
+      "followups": [
+        {
+          "q": "Does a switch over a sealed type help identify missing variants?",
+          "a": "Yes, the compiler can analyze permitted variants for exhaustiveness, subject to the switch's cases and null policy."
+        },
+        {
+          "q": "Is null automatically handled by a type-pattern case?",
+          "a": "No. Null needs explicit handling where the switch contract permits it."
+        }
+      ],
+      "trap": "Assuming a type-pattern switch automatically handles null or remains exhaustive as an open hierarchy evolves.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 21 feature status and syntax should be checked against target source level."
+    },
+    {
+      "id": "JH-S03-049",
+      "topic": "Sealed hierarchies",
+      "question": "How do sealed, non-sealed and final control a Java type hierarchy?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Patterns"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A sealed class or interface restricts direct subclasses to a declared permitted set. Each permitted direct subtype must continue the restriction with sealed, opt out using non-sealed, or close itself using final. This makes the intended extension boundary explicit and can support exhaustive reasoning in switches. Sealed types do not automatically validate data or prevent all indirect extensibility when a branch is non-sealed. They also impose module or package placement rules on permitted types. I use them when the domain genuinely has a controlled set of variants and consider how adding a new subtype affects source and binary consumers.",
+      "keywords": [
+        "sealed",
+        "permits",
+        "final subtype",
+        "non-sealed",
+        "exhaustive switch",
+        "extension boundary"
+      ],
+      "followups": [
+        {
+          "q": "What modifiers can a permitted direct subtype use?",
+          "a": "It must be sealed, non-sealed or final."
+        },
+        {
+          "q": "Does sealed make every descendant final?",
+          "a": "No. A permitted subtype may be non-sealed and allow further extensions."
+        }
+      ],
+      "trap": "Assuming sealed means the entire descendant tree is closed regardless of non-sealed branches.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 17 final feature, Java 21 baseline; verify module/package restrictions for concrete declarations."
+    },
+    {
+      "id": "JH-S03-050",
+      "topic": "HTTP client API",
+      "question": "What does java.net.http.HttpClient provide, and what should a service still configure?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Microservices",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The standard java.net.http.HttpClient API, delivered in Java 11, supports HTTP requests and responses with configurable client behavior, synchronous send and asynchronous sendAsync. It avoids requiring a third-party client for basic HTTP integration, but an application still needs explicit connection and request timeout policy, redirect and proxy behavior, TLS configuration, error mapping, retries and observability. Asynchronous APIs return CompletableFuture and therefore interact with executor and cancellation choices; those concerns should be designed rather than hidden behind a call. I use a long-lived configured client where appropriate and avoid creating a new client for every request without understanding its resource model.",
+      "keywords": [
+        "Java 11",
+        "HttpClient",
+        "sendAsync",
+        "timeout policy",
+        "TLS",
+        "error mapping"
+      ],
+      "followups": [
+        {
+          "q": "Does HttpClient automatically retry every failed request?",
+          "a": "No. Retry semantics and idempotency policy must be designed explicitly."
+        },
+        {
+          "q": "Should each request construct a new client?",
+          "a": "Usually a configured reusable client is preferred; lifecycle and connection behavior should be verified for the chosen runtime."
+        }
+      ],
+      "trap": "Assuming a standard client API supplies production timeout, retry and observability policy automatically.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 11+ API, details depend on implementation/configuration; not a concurrency deep dive."
+    },
+    {
+      "id": "JH-S03-051",
+      "topic": "Date-time amount types",
+      "question": "How do Period and Duration differ in java.time?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Period represents a date-based amount in years, months and days, while Duration represents a time-based amount in seconds and nanoseconds. Adding one calendar day across a daylight-saving transition may not equal adding a fixed 24-hour duration to an instant. I choose Period for calendar concepts such as a billing month and Duration for elapsed time, being explicit about the temporal type receiving the amount. Neither represents every business calendar rule; month-end and holiday policies may need domain logic. Tests should include timezone transitions and month boundaries when those cases affect behavior.",
+      "keywords": [
+        "Period",
+        "Duration",
+        "calendar amount",
+        "elapsed time",
+        "daylight saving",
+        "month boundary"
+      ],
+      "followups": [
+        {
+          "q": "Is one day of Period always 24 hours?",
+          "a": "No. Calendar-day arithmetic in a zone can span a different elapsed duration across offset changes."
+        },
+        {
+          "q": "Which type is natural for measuring a timeout?",
+          "a": "Duration expresses elapsed time; a monotonic clock is still important for measuring actual elapsed runtime."
+        }
+      ],
+      "trap": "Treating a calendar month or day as a fixed number of seconds in every timezone.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; calendar policy remains domain-specific."
+    },
+    {
+      "id": "JH-S03-052",
+      "topic": "Date-time formatting",
+      "question": "Why are java.time formatters suitable for sharing, and what locale or zone decisions remain?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "DateTimeFormatter instances are immutable and thread-safe, so a configured formatter can be reused without the synchronization concerns associated with legacy mutable date formatters. But the pattern, locale, chronology, zone and resolver style still define meaning. A formatter that omits an offset may produce a local timestamp that cannot identify an instant. For public APIs I use a documented standard such as an ISO formatter where it matches the contract, and I specify timezone conversion separately. Parsing errors should become clear validation failures rather than silently choosing an unintended zone or locale.",
+      "keywords": [
+        "DateTimeFormatter",
+        "immutable",
+        "thread-safe",
+        "locale",
+        "zone offset",
+        "ISO format"
+      ],
+      "followups": [
+        {
+          "q": "Is DateTimeFormatter mutable like SimpleDateFormat?",
+          "a": "No. It is immutable and thread-safe."
+        },
+        {
+          "q": "Does a local timestamp without offset identify a global instant?",
+          "a": "No. A zone or offset is needed to resolve it on the timeline."
+        }
+      ],
+      "trap": "Assuming a timestamp's textual format alone communicates timezone semantics.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; parsing resolver and timezone policies should match the API contract."
+    },
+    {
+      "id": "JH-S03-053",
+      "topic": "Files readString",
+      "question": "When is Files.readString useful, and what limitations matter for large files?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Files.readString, added in Java 11, reads a file into one String using an explicit or default charset overload. It is convenient for small configuration files, fixtures and bounded payloads, but it materializes the full content in memory and is not appropriate for arbitrarily large files. For large or streaming data, I use a buffered reader or stream and process incrementally, with a clear resource lifecycle. I also specify the encoding required by the file format and handle malformed input deliberately. File size limits and I/O exceptions remain operational concerns regardless of the convenience API.",
+      "keywords": [
+        "Java 11",
+        "full materialization",
+        "charset",
+        "large file",
+        "buffered reader",
+        "resource lifecycle"
+      ],
+      "followups": [
+        {
+          "q": "Should readString load a multi-gigabyte file?",
+          "a": "No; use streaming or buffered processing to bound memory consumption."
+        },
+        {
+          "q": "Does readString require a charset argument?",
+          "a": "An overload accepts one, and specifying the expected file encoding is usually clearer."
+        }
+      ],
+      "trap": "Using a convenience whole-file read for unbounded input and risking memory exhaustion.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 11+ API and filesystem behavior depend on the target environment."
+    },
+    {
+      "id": "JH-S03-054",
+      "topic": "InputStream transferTo",
+      "question": "What does InputStream.transferTo do, and who owns closing the streams?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "InputStream.transferTo, available since Java 9, copies bytes from the input stream to a supplied output stream until end of input and returns the number of bytes transferred. It does not close either stream, so ownership and cleanup remain with the caller. It may block and does not impose an application-level maximum size; untrusted or remote streams need limits and cancellation policy. I use try-with-resources for resources I own and avoid closing a caller-owned destination unexpectedly. For transformations, checksums or bounded buffers, an explicit copy loop or a higher-level API may be more suitable.",
+      "keywords": [
+        "Java 9",
+        "byte copy",
+        "returns byte count",
+        "does not close",
+        "ownership",
+        "size limit"
+      ],
+      "followups": [
+        {
+          "q": "Does transferTo close the output stream?",
+          "a": "No; the caller remains responsible for closing resources it owns."
+        },
+        {
+          "q": "Does transferTo enforce a maximum payload size?",
+          "a": "No. Add an explicit limit when the input size is not trusted or bounded."
+        }
+      ],
+      "trap": "Assuming the convenience method handles resource ownership or bounds input size automatically.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ API behavior, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-055",
+      "topic": "Objects null defaults",
+      "question": "How do Objects.requireNonNullElse and requireNonNullElseGet differ?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Both methods return the first argument when it is non-null and otherwise provide a fallback, while rejecting a null fallback result. requireNonNullElse receives the fallback value directly, so that value expression is evaluated before the method call. requireNonNullElseGet accepts a Supplier and evaluates it only when the first value is null. This mirrors eager versus lazy fallback design and matters when computing the default is expensive or has side effects. I use these helpers for simple null-default contracts, but do not let a fallback hide invalid input when absence should instead be rejected.",
+      "keywords": [
+        "Java 9",
+        "requireNonNullElse",
+        "requireNonNullElseGet",
+        "eager fallback",
+        "lazy supplier",
+        "null contract"
+      ],
+      "followups": [
+        {
+          "q": "When does the supplier run?",
+          "a": "Only when the primary argument is null."
+        },
+        {
+          "q": "What if the fallback supplier returns null?",
+          "a": "The method rejects the null result rather than returning null."
+        }
+      ],
+      "trap": "Using a default value where null actually indicates a data-integrity error.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 9+ API behavior, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-056",
+      "topic": "RandomGenerator API",
+      "question": "What is the Java RandomGenerator interface intended to unify?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Java 17 introduced the RandomGenerator interface to provide a common API across pseudorandom generator implementations, including newer algorithm choices. Code can depend on the interface when it needs random values without binding to one concrete generator. Algorithm choice, reproducibility, statistical quality and cryptographic security remain separate requirements. A general-purpose pseudorandom generator is not automatically suitable for tokens or keys; security-sensitive randomness should use SecureRandom. I inject a generator when deterministic tests or repeatable simulations matter, and avoid treating a seeded sequence as a stable cross-version protocol unless the algorithm itself is fixed.",
+      "keywords": [
+        "Java 17",
+        "RandomGenerator",
+        "algorithm choice",
+        "reproducibility",
+        "SecureRandom",
+        "security boundary"
+      ],
+      "followups": [
+        {
+          "q": "Can RandomGenerator safely create authentication tokens?",
+          "a": "Not by default; use a cryptographically secure source such as SecureRandom for security-sensitive values."
+        },
+        {
+          "q": "How can tests make random behavior reproducible?",
+          "a": "Inject a deterministic generator with a fixed algorithm and seed, while keeping production security needs separate."
+        }
+      ],
+      "trap": "Equating a general pseudorandom API with cryptographic randomness.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 17 API and cryptographic suitability depend on selected generator."
+    },
+    {
+      "id": "JH-S03-057",
+      "topic": "Switch expression exhaustiveness",
+      "question": "How should an exhaustive switch over an enum or sealed hierarchy handle future variants?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Patterns"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "An exhaustive switch expression must account for all values the compiler recognizes in its input domain, which is valuable for closed enums and sealed hierarchies. Omitting a default can make a source change fail compilation when a new permitted case is introduced, prompting a deliberate update. A default can preserve compatibility for unseen values in some deployment scenarios, but it can also hide newly added cases from source review. I choose based on whether the type is closed within one build and what binary evolution policy applies. Null is a separate concern and should be handled intentionally.",
+      "keywords": [
+        "exhaustiveness",
+        "enum",
+        "sealed hierarchy",
+        "default branch",
+        "source evolution",
+        "null case"
+      ],
+      "followups": [
+        {
+          "q": "What benefit comes from no default on a closed enum switch?",
+          "a": "A newly added enum constant can prompt a compile-time review of the missing case."
+        },
+        {
+          "q": "Does exhaustiveness automatically handle null?",
+          "a": "No. Null needs explicit consideration under the switch form used."
+        }
+      ],
+      "trap": "Adding a catch-all default that silently treats a new domain variant as an old case.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; exhaustiveness and binary compatibility are compiler-version-sensitive topics."
+    },
+    {
+      "id": "JH-S03-058",
+      "topic": "Records and constructors",
+      "question": "How can a record compact constructor enforce invariants?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A record compact constructor lets code validate or normalize constructor parameters without repeating the component field assignments. The compiler assigns the component fields from the parameters after the compact constructor completes normally. I use it to reject invalid values, defensively copy mutable collections and establish local invariants. It does not make referenced objects deeply immutable, and exceptions should communicate the violated contract. If a record needs multiple construction paths or more complex lifecycle behavior, an ordinary class may express the model better. Validation must also be repeated at trust boundaries when values can be reconstructed through other mechanisms.",
+      "keywords": [
+        "compact constructor",
+        "parameter validation",
+        "implicit assignment",
+        "defensive copy",
+        "invariant",
+        "record limitations"
+      ],
+      "followups": [
+        {
+          "q": "Do you assign record component fields manually in a compact constructor?",
+          "a": "No; the compiler assigns them from the constructor parameters after the body completes."
+        },
+        {
+          "q": "Can a compact constructor normalize a parameter?",
+          "a": "Yes; the reassigned parameter value is used for the corresponding component field."
+        }
+      ],
+      "trap": "Assuming records validate their components automatically or are deeply immutable by construction.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 16+ record feature, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-059",
+      "topic": "Records and equality",
+      "question": "When can generated record equality be wrong for an application's domain?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Hibernate"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A record's generated equality compares its component values, so it models value equality over the declared state. That can be inappropriate when the domain object's identity is a stable database key, when some components are derived or mutable, or when equality should ignore transient fields. Records are often excellent DTOs and value objects but are not automatically good ORM entities. I decide identity before choosing a record and avoid including secrets or large mutable structures whose equality is expensive or misleading. If custom equality is necessary, an ordinary class may better communicate the nontrivial identity contract.",
+      "keywords": [
+        "component equality",
+        "value object",
+        "entity identity",
+        "database key",
+        "mutable component",
+        "DTO"
+      ],
+      "followups": [
+        {
+          "q": "Does record equality automatically use only an ID component?",
+          "a": "No. Generated equality includes all record components."
+        },
+        {
+          "q": "Why can mutable components be problematic?",
+          "a": "Equality and hash behavior can change while the record is used as a key or set element."
+        }
+      ],
+      "trap": "Using a record for a persistence entity without checking whether component-based equality matches lifecycle identity.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; framework support and entity identity require domain-specific evaluation."
+    },
+    {
+      "id": "JH-S03-060",
+      "topic": "Sequenced map views",
+      "question": "What does a reversed sequenced map view mean in Java 21?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Java 21's SequencedMap provides first/last entry operations and a reversed-order view for maps with defined encounter order. The reversed view presents mappings in the opposite encounter order and is connected to the underlying map according to its contract; it should not be assumed to be a detached copy. This can simplify processing newest-first or oldest-first without rebuilding a map. Mutation through a view has defined correspondence to the backing map, so ownership still matters. I use it only when encounter order is meaningful and the runtime baseline is Java 21 or later.",
+      "keywords": [
+        "Java 21",
+        "SequencedMap",
+        "encounter order",
+        "reversed view",
+        "backing map",
+        "first and last entry"
+      ],
+      "followups": [
+        {
+          "q": "Does reversing a sequenced map sort it by key?",
+          "a": "No. It reverses encounter order; it does not apply a new key comparator."
+        },
+        {
+          "q": "Should a reversed view be assumed independent?",
+          "a": "No. Treat it as a view and follow the API's mutation and ordering contract."
+        }
+      ],
+      "trap": "Confusing reversed encounter order with descending key order or a copied map.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 21 API details should be checked against target JDK documentation."
+    },
+    {
+      "id": "JH-S03-061",
+      "topic": "Functional composition",
+      "question": "How do Function.compose and andThen differ?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Function.compose combines another function to run before the current function, while andThen combines one to run after it. If f maps A to B and g maps B to C, f.andThen(g) maps A to C; g.compose(f) describes the same order. Method names are easy to reverse, so I read from the input value through each transformation and check generic types. Composition is useful for reusable transformations and adapters, but deeply nested chains can obscure error handling and logging. I give meaningful names to domain functions and use a straightforward lambda when the order is not immediately readable.",
+      "keywords": [
+        "Function",
+        "compose",
+        "andThen",
+        "input-output types",
+        "transformation order",
+        "readability"
+      ],
+      "followups": [
+        {
+          "q": "Which function runs first in f.andThen(g)?",
+          "a": "f runs first, then g receives f's result."
+        },
+        {
+          "q": "What signature relationship must compose satisfy?",
+          "a": "The preceding function's output type must be accepted by the current function's input type."
+        }
+      ],
+      "trap": "Reversing compose and andThen order based only on how the method names sound.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 8 functional API, directly addresses supplied Streams/lambda GAP."
+    },
+    {
+      "id": "JH-S03-062",
+      "topic": "Predicate composition",
+      "question": "How do Predicate.and, or and negate compose tests, and what evaluation behavior matters?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Predicate.and and Predicate.or combine boolean tests, and negate inverts one predicate. Their evaluation short-circuits: and does not evaluate the right predicate after a false left result, and or does not evaluate it after a true left result. That is useful for null guards and staged validation, but predicates should not depend on side effects whose execution varies with short-circuiting. I name predicates according to domain meaning and order inexpensive safe checks before costly checks only when semantics permit. Composition is convenient for filters, but a sequence of named validations may be clearer when each failure needs a distinct message.",
+      "keywords": [
+        "Predicate.and",
+        "Predicate.or",
+        "negate",
+        "short-circuit",
+        "side effects",
+        "validation"
+      ],
+      "followups": [
+        {
+          "q": "Does false.and(second) evaluate second?",
+          "a": "No; boolean conjunction short-circuits after the false first predicate."
+        },
+        {
+          "q": "Can short-circuiting skip required audit work in a predicate?",
+          "a": "Yes; required effects should not live in predicate composition."
+        }
+      ],
+      "trap": "Embedding required side effects in predicates that may short-circuit.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 8 functional API, directly addresses supplied Streams/lambda GAP."
+    },
+    {
+      "id": "JH-S03-063",
+      "topic": "Primitive Optional types",
+      "question": "When might OptionalInt be preferable to Optional<Integer>?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "OptionalInt, OptionalLong and OptionalDouble represent optional primitive results without wrapping each present value in a boxed object. They provide specialized presence checks and extraction methods, which can be useful in numeric APIs such as a lookup that may have no count. Optional<Integer> composes with generic Optional operations and may fit better when the value is already part of an object-oriented generic pipeline. Neither should be used automatically for fields or serialized schemas; framework support and null representation matter. I choose based on boundary contract, generic composition and measured allocation needs rather than assuming the primitive form is always faster.",
+      "keywords": [
+        "OptionalInt",
+        "boxing",
+        "primitive result",
+        "generic composition",
+        "framework contract",
+        "allocation"
+      ],
+      "followups": [
+        {
+          "q": "Does OptionalInt have map like Optional<T>?",
+          "a": "Its API is specialized and does not provide the same generic map composition surface."
+        },
+        {
+          "q": "Should a JSON DTO automatically use OptionalInt?",
+          "a": "No; serializer and wire-contract behavior must be considered explicitly."
+        }
+      ],
+      "trap": "Treating primitive Optional variants as universal replacements for nullable fields or generic Optional values.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; API surface and framework support depend on the specific use."
+    },
+    {
+      "id": "JH-S03-064",
+      "topic": "Unmodifiable collector results",
+      "question": "What does Collectors.toUnmodifiableList guarantee compared with Stream.toList?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Collectors.toUnmodifiableList, added in Java 10, collects into an unmodifiable list and rejects null elements. Stream.toList, added in Java 16, also returns an unmodifiable list but has its own specified null behavior and result contract. Neither promises a mutable ArrayList, and unmodifiable structure does not make contained objects immutable. I choose the API available at the project's Java release and verify null policy when the input can contain nulls. If a mutable result is required, I collect explicitly to a mutable implementation instead of depending on a collector's unspecified concrete type.",
+      "keywords": [
+        "Java 10",
+        "Collectors.toUnmodifiableList",
+        "Stream.toList",
+        "null policy",
+        "unmodifiable",
+        "runtime baseline"
+      ],
+      "followups": [
+        {
+          "q": "Does Collectors.toUnmodifiableList accept null elements?",
+          "a": "No, it rejects null elements."
+        },
+        {
+          "q": "Does Stream.toList promise a mutable result?",
+          "a": "No, its result is unmodifiable."
+        }
+      ],
+      "trap": "Assuming these APIs are interchangeable without checking Java baseline, null handling and mutability.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 10/16 API distinctions, Java 21 baseline."
+    },
+    {
+      "id": "JH-S03-065",
+      "topic": "Resource-backed streams",
+      "question": "How should a resource-backed stream such as Files.lines be closed?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Some streams are backed by resources and must be closed, including Files.lines. I use try-with-resources around the stream so the underlying file resource is released whether processing completes normally or fails. A terminal operation does not universally close every stream source, so I do not rely on collection-style streams to share this lifecycle behavior. Short-circuiting may stop traversal early, making explicit closure even more important. I also consider I/O exceptions, charset and large-file processing. The stream abstraction does not remove ownership responsibility for the resource from which it was created.",
+      "keywords": [
+        "Files.lines",
+        "resource-backed stream",
+        "try-with-resources",
+        "terminal operation",
+        "short-circuit",
+        "ownership"
+      ],
+      "followups": [
+        {
+          "q": "Does findFirst automatically close every stream?",
+          "a": "No. Resource-backed streams should be explicitly closed by their owner."
+        },
+        {
+          "q": "Why use try-with-resources for a file stream?",
+          "a": "It releases the underlying resource on normal completion and exceptional exits."
+        }
+      ],
+      "trap": "Assuming any terminal stream operation closes files or other source resources automatically.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses stream lifecycle and supplied ETL context."
+    },
+    {
+      "id": "JH-S03-066",
+      "topic": "Stream onClose",
+      "question": "What is Stream.onClose for, and when does its handler run?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "onClose registers a close handler on a stream, typically to connect stream closure with cleanup for a resource-backed source. The handler runs when close is invoked, not merely because a terminal operation finishes. If several handlers are registered, they are invoked in registration order, and exceptions from handlers affect close behavior. The code that owns the stream should close it, commonly through try-with-resources. I do not use onClose for ordinary business side effects or assume it runs if the stream is abandoned without closure. Resource ownership should remain visible at the API boundary.",
+      "keywords": [
+        "onClose",
+        "close invocation",
+        "handler order",
+        "resource cleanup",
+        "try-with-resources",
+        "owner"
+      ],
+      "followups": [
+        {
+          "q": "Does onClose run automatically after count?",
+          "a": "No. The stream must be explicitly closed."
+        },
+        {
+          "q": "Where should resource closure usually be expressed?",
+          "a": "At the owning scope, often with try-with-resources."
+        }
+      ],
+      "trap": "Attaching cleanup to onClose but never closing the stream that owns the handler.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; handler exception behavior should be checked for unusual cleanup chains."
+    },
+    {
+      "id": "JH-S03-067",
+      "topic": "Guarded switch patterns",
+      "question": "How do guarded patterns refine a type case in a Java 21 switch?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Patterns"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A guarded pattern adds a boolean condition to a type or record pattern case, allowing the switch to distinguish values of the same structural type by an additional rule. In Java 21 the guard uses when syntax. Cases should be ordered so more specific guarded cases are reachable before broader patterns that would subsume them. A guard can reference pattern variables, which makes validation and classification concise, but complex guards can hide policy and exceptions. I keep guards pure and extract substantial business rules into named methods. Exhaustiveness still needs a final strategy for all values in the matched domain.",
+      "keywords": [
+        "Java 21",
+        "guarded pattern",
+        "when",
+        "pattern variable",
+        "case reachability",
+        "pure guard"
+      ],
+      "followups": [
+        {
+          "q": "Can a guard use the pattern variable?",
+          "a": "Yes; the variable is available in its case guard and body."
+        },
+        {
+          "q": "What can make a later pattern case unreachable?",
+          "a": "An earlier broader pattern may already match all values the later case could accept."
+        }
+      ],
+      "trap": "Writing overlapping switch patterns in an order that makes a specific case unreachable.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 21 syntax should be compiled at the target source level."
+    },
+    {
+      "id": "JH-S03-068",
+      "topic": "Switch null handling",
+      "question": "How should null be handled in modern switch expressions and pattern switches?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A switch over a reference value should have an explicit null policy. Traditional switch behavior may throw NullPointerException for a null selector, and type patterns do not match null. Modern pattern switches can include an explicit case null where supported by the target language level. I decide whether null is invalid, maps to a domain fallback or represents a separate state, then encode that choice visibly. A default case for non-null unmatched variants is not automatically a null handler. This distinction prevents an apparently exhaustive switch from silently assuming every value is non-null.",
+      "keywords": [
+        "null selector",
+        "case null",
+        "type pattern",
+        "default case",
+        "domain policy",
+        "source level"
+      ],
+      "followups": [
+        {
+          "q": "Does default necessarily match null?",
+          "a": "No. Null handling is distinct and should be written explicitly where the switch form supports it."
+        },
+        {
+          "q": "What should happen for invalid external enum input?",
+          "a": "Validate or map it at the boundary according to the API contract instead of relying on a switch default accidentally."
+        }
+      ],
+      "trap": "Assuming a default branch is a universal null case across Java switch forms.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; exact switch null behavior depends on switch form and Java release."
+    },
+    {
+      "id": "JH-S03-069",
+      "topic": "Java 18 UTF-8 default",
+      "question": "What changed about the default charset in modern Java, and why should APIs still name it?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Starting with Java 18, UTF-8 became the standard default charset for Java APIs that use the default charset, improving consistency across platforms. Older runtimes and compatibility modes may behave differently, and code that relies on a default can still obscure an important file or protocol contract. I explicitly name the charset for persisted interchange data, signatures and external protocols so intent remains stable across runtime targets. This change does not normalize Unicode or guarantee that an external file actually uses UTF-8. I verify the deployed JDK and test malformed byte handling where data integrity matters.",
+      "keywords": [
+        "Java 18",
+        "UTF-8 default",
+        "runtime compatibility",
+        "explicit charset",
+        "protocol contract",
+        "malformed bytes"
+      ],
+      "followups": [
+        {
+          "q": "Does Java 18's default make explicit charset selection unnecessary?",
+          "a": "No; explicit encoding documents the contract and supports older or specially configured runtimes."
+        },
+        {
+          "q": "Does UTF-8 default normalize text?",
+          "a": "No. Encoding and Unicode normalization are separate operations."
+        }
+      ],
+      "trap": "Assuming every runtime targeted by an application uses the Java 18 default behavior.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; default-charset behavior depends on runtime release and compatibility configuration."
+    },
+    {
+      "id": "JH-S03-070",
+      "topic": "Java feature baselines",
+      "question": "How should a team adopt Java 9-21 language features in a multi-module service?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product",
+        "MNC-captive"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I separate the JDK used to run the build from the source and target compatibility level, then verify how the build tool configures compilation and runtime tests. A feature can be available in the local JDK but unavailable to a deployed runtime or downstream module. I check library and framework support, CI images, container base images and production rollout before using newer syntax in shared APIs. Preview features require special compiler and runtime flags and should not be treated as permanent language contracts. A gradual upgrade needs repeatable CI validation across every module that consumes the changed classes.",
+      "keywords": [
+        "JDK runtime",
+        "source level",
+        "target compatibility",
+        "build configuration",
+        "preview feature",
+        "CI deployment"
+      ],
+      "followups": [
+        {
+          "q": "Does compiling locally with Java 21 prove production supports a feature?",
+          "a": "No. Production runtime and configured source/target levels must also support it."
+        },
+        {
+          "q": "Can preview syntax be used without special flags?",
+          "a": "Preview features require the relevant compiler and runtime enablement and carry release-specific constraints."
+        }
+      ],
+      "trap": "Confusing the installed JDK version with the application's supported language and runtime baseline.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; applies to release engineering and should be checked against the repository's actual build configuration."
+    },
+    {
+      "id": "JH-S03-071",
+      "topic": "Optional construction",
+      "question": "How do Optional.of and Optional.ofNullable differ when given null?",
+      "level": "L1",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Optional.of requires a non-null value and throws NullPointerException if passed null, making an unexpected null visible immediately. Optional.ofNullable accepts either a value or null and converts null to Optional.empty. I choose based on the source contract: use of when null violates an invariant, and ofNullable when nullable input is a normal representation of absence. Applying ofNullable everywhere can silently hide a programming defect, while using of on uncontrolled data can turn a recoverable absence into an exception. I keep this conversion at the boundary where the null policy is decided.",
+      "keywords": [
+        "Optional.of",
+        "Optional.ofNullable",
+        "null rejection",
+        "empty",
+        "invariant",
+        "boundary policy"
+      ],
+      "followups": [
+        {
+          "q": "What does Optional.ofNullable(null) return?",
+          "a": "Optional.empty."
+        },
+        {
+          "q": "Why not always use ofNullable?",
+          "a": "It can hide a null that violates an invariant and should instead fail visibly."
+        }
+      ],
+      "trap": "Converting every unexpected null into empty and erasing the distinction between defect and legitimate absence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses supplied Optional GAP."
+    },
+    {
+      "id": "JH-S03-072",
+      "topic": "findFirst and findAny",
+      "question": "When should a stream use findFirst rather than findAny?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "findFirst returns the first element in encounter order when the source has one, while findAny may return any element and is explicitly nondeterministic to allow more execution freedom, especially in parallel pipelines. Both are short-circuiting terminal operations and return Optional because the stream may be empty. If order has business meaning, I use findFirst and preserve that ordering through the pipeline. If any match is acceptable, findAny expresses that weaker requirement. I avoid depending on which value findAny returns in tests or production decisions, and remember that unordered sources have no meaningful first element contract.",
+      "keywords": [
+        "encounter order",
+        "findFirst",
+        "findAny",
+        "short-circuit",
+        "Optional result",
+        "unordered source"
+      ],
+      "followups": [
+        {
+          "q": "Does findAny promise the same element on every run?",
+          "a": "No. It may return any element, particularly with parallel execution."
+        },
+        {
+          "q": "What if the stream is empty?",
+          "a": "Both methods return Optional.empty."
+        }
+      ],
+      "trap": "Using findAny when the business rule requires the earliest or otherwise ordered match.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-073",
+      "topic": "Numeric collectors",
+      "question": "What do summarizingInt and averagingInt provide beyond a simple sum?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "summarizingInt collects count, sum, minimum, maximum and average into an IntSummaryStatistics result in one traversal. averagingInt computes an average directly, while summingInt returns a numeric sum. These collectors make the desired aggregate explicit and avoid manually maintaining several mutable counters in stream callbacks. The sum uses int arithmetic and can overflow, while average is represented as a double and has floating-point precision limits. I choose long-based variants or domain-specific checked arithmetic when ranges demand it, and define behavior for an empty input, where average is not a meaningful numeric result.",
+      "keywords": [
+        "summarizingInt",
+        "IntSummaryStatistics",
+        "count",
+        "sum",
+        "average",
+        "overflow"
+      ],
+      "followups": [
+        {
+          "q": "What does summarizingInt return?",
+          "a": "An IntSummaryStatistics value containing count, sum, minimum, maximum and average."
+        },
+        {
+          "q": "Does summingInt detect integer overflow?",
+          "a": "No; the underlying int arithmetic can overflow."
+        }
+      ],
+      "trap": "Assuming a collector's numeric type automatically matches the domain's maximum possible value.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-074",
+      "topic": "Collector characteristics",
+      "question": "What do CONCURRENT, UNORDERED and IDENTITY_FINISH mean for a Collector?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Collector characteristics describe properties that can let the stream implementation optimize collection. CONCURRENT indicates the accumulator can be called concurrently on the same result container under the collector's conditions; UNORDERED means the result does not depend on encounter order; IDENTITY_FINISH means the accumulation container can be used directly as the final result without a finisher conversion. These are semantic promises, not performance hints to set casually. A false characteristic can produce incorrect results. I use standard collectors by default and declare custom characteristics only after proving the accumulator, combiner and result contract satisfy them under parallel execution.",
+      "keywords": [
+        "CONCURRENT",
+        "UNORDERED",
+        "IDENTITY_FINISH",
+        "accumulator",
+        "finisher",
+        "semantic promise"
+      ],
+      "followups": [
+        {
+          "q": "Does CONCURRENT mean any shared mutable collector is safe?",
+          "a": "No. The characteristic is a contract that the collector's accumulator supports concurrent use under specified conditions."
+        },
+        {
+          "q": "What does IDENTITY_FINISH allow?",
+          "a": "The accumulation container can be used as the result without applying a distinct finisher transformation."
+        }
+      ],
+      "trap": "Adding collector characteristics to encourage parallelism without implementing their required semantics.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; custom collector contracts require careful review and testing."
+    },
+    {
+      "id": "JH-S03-075",
+      "topic": "Comparator factories",
+      "question": "How do Comparator.comparing and thenComparing improve Java 8 sorting code?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Comparator.comparing builds an ordering from a key-extraction function, and thenComparing adds tie-breakers when the primary keys compare equal. This makes multi-field ordering declarative and easier to review than nested comparison arithmetic. Primitive-specialized helpers such as comparingInt can avoid boxing in some cases. I make null ordering explicit, use stable business identifiers as tie-breakers when deterministic output matters, and ensure extracted keys remain stable during sorting. The composed comparator must still obey transitivity and consistency. I prefer this approach for ordinary object ordering, but keep a custom comparator when domain rules need a clear named implementation.",
+      "keywords": [
+        "Comparator.comparing",
+        "key extractor",
+        "thenComparing",
+        "primitive specialization",
+        "null ordering",
+        "deterministic tie-breaker"
+      ],
+      "followups": [
+        {
+          "q": "Why add thenComparing?",
+          "a": "It establishes a secondary ordering when earlier comparison keys are equal."
+        },
+        {
+          "q": "Does comparingInt always make sorting faster?",
+          "a": "Not necessarily; it avoids a boxing path in relevant cases, but workload performance should be measured."
+        }
+      ],
+      "trap": "Stopping after a non-unique primary key when deterministic ordering is required.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; Java 8 API, directly addresses supplied design-pattern and Streams preparation gaps."
+    },
+    {
+      "id": "JH-S03-076",
+      "topic": "Stream concatenation",
+      "question": "What ordering and lifecycle behavior should be considered with Stream.concat?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Stream.concat creates a lazily concatenated stream that emits elements from the first stream followed by elements from the second, preserving encounter order when both inputs have it. It does not deduplicate or merge matching elements. Closing the concatenated stream closes both input streams, so resource ownership should be clear when either input is resource-backed. The concatenated result should be consumed once and closed when needed. For many streams, repeatedly nesting concat can create an unwieldy pipeline; flattening a stream of streams may be clearer. I use concat for a small, explicit pair of compatible streams.",
+      "keywords": [
+        "lazy concatenation",
+        "first then second",
+        "encounter order",
+        "no deduplication",
+        "close propagation",
+        "single use"
+      ],
+      "followups": [
+        {
+          "q": "Does concat remove duplicate elements?",
+          "a": "No. It appends the second stream's elements after the first without deduplication."
+        },
+        {
+          "q": "What happens when the concatenated stream is closed?",
+          "a": "Its close action closes both input streams."
+        }
+      ],
+      "trap": "Assuming concat sorts, deduplicates or automatically closes the result after a terminal operation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; resource-backed inputs require explicit closure of the resulting stream."
+    },
+    {
+      "id": "JH-S03-077",
+      "topic": "Collectors.toMap overloads",
+      "question": "When should Collectors.toMap use a map supplier in addition to a merge function?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:ETL"
+      ],
+      "harsh_status": "GAP",
+      "answer": "The merge-function overload defines what happens when multiple elements produce the same key. The map-supplier overload additionally chooses the concrete result map, for example a TreeMap when sorted keys are required or a LinkedHashMap when encounter order is required. I provide both decisions explicitly when duplicate policy and result ordering matter, and ensure the supplier creates a fresh empty map for each collection. The merge function must reflect a deterministic business rule, not merely suppress an exception. If an unmodifiable result is required, I choose a finishing step or factory that establishes that contract after accumulation.",
+      "keywords": [
+        "toMap merge",
+        "map supplier",
+        "duplicate policy",
+        "TreeMap",
+        "LinkedHashMap",
+        "fresh container"
+      ],
+      "followups": [
+        {
+          "q": "Does the map supplier define duplicate resolution?",
+          "a": "No; the merge function defines how colliding values are combined."
+        },
+        {
+          "q": "What must a map supplier return?",
+          "a": "A new empty map suitable for this collection operation."
+        }
+      ],
+      "trap": "Assuming the map supplier also resolves duplicate keys or ordering-independent value conflicts.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-078",
+      "topic": "Primitive stream mapping",
+      "question": "When should a stream use mapToInt or mapToLong instead of map?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "map transforms each element into another object-stream element, while mapToInt and mapToLong produce primitive streams with numeric terminals and avoid boxing each mapped value in the stream representation. I use them when the next operations are numeric, such as sum, average or range aggregation. If downstream code needs wrapper objects or generic composition, boxing back with boxed may be appropriate. Primitive specialization does not eliminate overflow or precision concerns, and performance depends on the whole pipeline. I make numeric width explicit so a convenient int stream does not silently exceed the domain's range.",
+      "keywords": [
+        "map",
+        "mapToInt",
+        "mapToLong",
+        "boxing",
+        "numeric terminal",
+        "overflow"
+      ],
+      "followups": [
+        {
+          "q": "How do you convert an IntStream to Stream<Integer>?",
+          "a": "Use boxed(), accepting the conversion to wrapper values."
+        },
+        {
+          "q": "Does mapToInt protect against sum overflow?",
+          "a": "No. IntStream.sum uses int arithmetic and can overflow."
+        }
+      ],
+      "trap": "Choosing int specialization for convenience when the numeric range requires long or arbitrary precision.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-079",
+      "topic": "Stream source choice",
+      "question": "What should be considered when choosing between Stream.of and Arrays.stream?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "Stream.of accepts varargs values and creates an object stream of the supplied elements, while Arrays.stream is an explicit source adapter for an array and has overloads for primitive arrays that produce primitive streams. Passing an array to a varargs method can be interpreted as the varargs array itself, which is normally flattened into its elements but can be subtle for generic or single-array-element intent. I choose the API that makes the source shape clear and consider whether primitive specialization matters. Empty arrays, null arrays and arrays as elements should be tested where overload resolution could surprise callers.",
+      "keywords": [
+        "Stream.of",
+        "Arrays.stream",
+        "varargs",
+        "primitive arrays",
+        "source shape",
+        "overload resolution"
+      ],
+      "followups": [
+        {
+          "q": "What does Arrays.stream(intArray) return?",
+          "a": "An IntStream over the primitive int values."
+        },
+        {
+          "q": "How can an array be represented as one stream element?",
+          "a": "Use an explicit wrapper or type shape that prevents varargs from treating it as the argument array."
+        }
+      ],
+      "trap": "Assuming Stream.of and Arrays.stream have identical overload behavior for primitive arrays and array-valued elements.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; overload behavior should be confirmed with the exact declared array type."
+    },
+    {
+      "id": "JH-S03-080",
+      "topic": "Stream terminal results",
+      "question": "Why can a stream terminal operation not generally be repeated on the same stream?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Service",
+        "Product"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "GAP",
+      "answer": "A stream represents a one-shot traversal pipeline. A terminal operation consumes it, and a later attempt to run another terminal operation on the same stream is invalid and typically throws IllegalStateException. Some sources can create a fresh stream repeatedly, such as a collection's stream method, but other sources may be stateful or resource-backed and cannot be replayed safely. If two results are needed, I either derive them in one collector, create two fresh streams from a repeatable source, or materialize an intentional snapshot. I do not store a stream in a field for later reuse.",
+      "keywords": [
+        "one-shot pipeline",
+        "terminal operation",
+        "consumed stream",
+        "fresh source",
+        "materialization",
+        "resource lifecycle"
+      ],
+      "followups": [
+        {
+          "q": "Can a collection create another stream after one is consumed?",
+          "a": "Usually yes, by invoking stream again, subject to source state and mutation semantics."
+        },
+        {
+          "q": "How can two aggregates be computed in one traversal?",
+          "a": "Use an appropriate collector, such as teeing, when its result and semantics fit."
+        }
+      ],
+      "trap": "Saving a consumed Stream and expecting to run another terminal operation later.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Unverified estimate; directly addresses supplied Streams GAP."
+    },
+    {
+      "id": "JH-S03-081",
+      "topic": "Streams",
+      "question": "How do intermediate, terminal and short-circuit operations differ in a Java stream?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Impetus",
+          "sources": [
+            "S008"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Intermediate operations such as filter, map, flatMap, distinct, sorted, peek, limit and skip return a new stream and are lazy: nothing runs until a terminal operation is invoked. Terminal operations such as collect, forEach, reduce, count, min, max and toArray trigger the pipeline and consume the stream, so reusing it throws IllegalStateException. Short-circuit operations can finish without processing every element: limit and takeWhile are intermediate, while anyMatch, allMatch, noneMatch, findFirst and findAny are terminal. Stateless operations such as filter and map handle one element at a time; stateful ones such as sorted and distinct need to see other elements and can hurt parallel performance.",
+      "keywords": [
+        "lazy evaluation",
+        "intermediate returns Stream",
+        "terminal consumes stream",
+        "short-circuit",
+        "stateless versus stateful",
+        "IllegalStateException on reuse"
+      ],
+      "followups": [
+        {
+          "q": "What happens if a pipeline has no terminal operation?",
+          "a": "Nothing executes; the intermediate stages only describe the work."
+        },
+        {
+          "q": "Why is sorted a poor fit before limit on a large stream?",
+          "a": "sorted must consume every element before emitting any, so limit cannot cut the work short."
+        }
+      ],
+      "trap": "Calling short-circuiting a category of its own. It cuts across both intermediate and terminal operations.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 3.4 (Impetus). Model answer written for this handbook, not copied from the notes. Related: JH-S03-001, JH-S03-020, JH-S03-021, JH-S03-080."
+    },
+    {
+      "id": "JH-S03-082",
+      "topic": "Streams",
+      "question": "When do parallel streams hurt performance or correctness?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Capgemini",
+          "sources": [
+            "S012"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "A parallel stream splits work across the shared ForkJoin common pool, which only pays off for large, CPU-bound, stateless work on a source that splits well, such as an ArrayList, an array or IntStream.range. It hurts when the data set is small, because splitting overhead exceeds the gain; when tasks block on I/O, because the common pool has few threads and is shared across the whole JVM, so one blocking task starves unrelated work; when lambdas mutate shared state or add to a non-thread-safe list; when encounter order matters; or when the source splits poorly, such as LinkedList or Stream.iterate. Inside a web request it also takes threads from other requests. For I/O, use an explicit executor with CompletableFuture.",
+      "keywords": [
+        "common ForkJoinPool",
+        "small data overhead",
+        "blocking I/O starvation",
+        "stateful lambda",
+        "poor splitting source",
+        "encounter order"
+      ],
+      "followups": [
+        {
+          "q": "What is the alternative for parallel I/O?",
+          "a": "Submit tasks to your own bounded executor through CompletableFuture, or use virtual threads, so a slow call cannot occupy the common pool."
+        },
+        {
+          "q": "Does forEachOrdered fix ordering?",
+          "a": "It preserves encounter order but gives up most of the parallel speed-up."
+        }
+      ],
+      "trap": "Answering that parallel is always faster on multi-core hardware. Splitting, merging and common-pool contention are real costs.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 3.5 (Capgemini). Model answer written for this handbook, not copied from the notes. Related: JH-S05-022, JH-S05-034, JH-S03-021, JH-S03-030."
+    },
+    {
+      "id": "JH-S03-083",
+      "topic": "Java versions",
+      "question": "How have Java's language and runtime features evolved from Java 8 to Java 21?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Concentrix",
+          "sources": [
+            "S013"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "Java 8 introduced lambdas, streams, Optional and default methods. Java 9 added the module system, List.of and private interface methods. Java 10 and 11 brought var, the standard HttpClient and String helpers such as isBlank, strip and repeat, with Java 11 as an LTS release. Java 14 to 17 added switch expressions, text blocks, records, sealed classes, pattern matching for instanceof and more helpful NullPointerException messages, with Java 17 as an LTS release. Java 21, also an LTS release, finalised virtual threads, pattern matching for switch, record patterns and sequenced collections. Later releases keep previewing features, so state the release and whether a feature is final or preview.",
+      "keywords": [
+        "Java 8 lambdas and streams",
+        "Java 9 modules",
+        "Java 11 LTS HttpClient",
+        "records sealed pattern matching by 17",
+        "Java 21 virtual threads",
+        "preview versus final"
+      ],
+      "followups": [
+        {
+          "q": "Which release made records a final feature?",
+          "a": "Java 16, with sealed classes finalised in Java 17."
+        },
+        {
+          "q": "Why say 'final' or 'preview' when naming a feature?",
+          "a": "Preview features need flags and may change, so presenting them as generally available is an error."
+        }
+      ],
+      "trap": "Reciting features without release numbers, or presenting a preview feature as final.",
+      "fs_link": null,
+      "code": null,
+      "verify": [
+        "[VERIFY: check the current OpenJDK release notes for features finalised after Java 21, including the next LTS, before quoting them as final.]"
+      ],
+      "notes": "Reported in user-provided interview notes, item 4.11 (Concentrix). Model answer written for this handbook, not copied from the notes. Related: JH-S03-070."
+    }
+  ]
+}

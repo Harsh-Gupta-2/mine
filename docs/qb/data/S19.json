@@ -1,0 +1,2753 @@
+{
+  "section": "S19",
+  "section_title": "Resume and project deep-dive",
+  "questions": [
+    {
+      "id": "JH-S19-001",
+      "topic": "Auth-service ownership",
+      "question": "What did you own across SCIM provisioning, CLM and the OAuth Management Service?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:SCIM",
+        "R:OAuth",
+        "R:Microservices"
+      ],
+      "harsh_status": "SHAKY",
+      "answer": "I own three authentication-related microservices for a financial-planning SaaS client: SCIM provisioning, CLM and an OAuth Management Service. I would distinguish each service's responsibility using [[HARSH TO FILL: actual responsibility and boundary of each service, including what CLM means here]]. Then I would trace one request through [[HARSH TO FILL: entry point, authorization, storage and downstream calls]], explain one failure case and state what I personally changed or operated. My work includes OAuth flows, vulnerability fixes, Java upgrades, production support and releases. I would not equate service ownership with having invented every component or operated every dependency; the team and provider boundaries need to be explicit.",
+      "keywords": [
+        "service boundary",
+        "personal ownership",
+        "request flow",
+        "authorization",
+        "failure case",
+        "team boundary"
+      ],
+      "followups": [
+        {
+          "q": "Which part can you draw without notes?",
+          "a": "Prepare the actual SCIM flow with concrete components and data transitions; the mock assessment identified this detail as shaky."
+        },
+        {
+          "q": "How would you answer an unknown implementation detail?",
+          "a": "State what you know, what another component owns and what you would inspect; do not fill the gap with plausible internals."
+        }
+      ],
+      "trap": "Inventing CLM's expansion or a database architecture that the supplied resume does not state.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Resume-only skeleton; missing personal details remain explicit."
+    },
+    {
+      "id": "JH-S19-002",
+      "topic": "Informatica connector architecture",
+      "question": "Explain the Informatica IICS Java connector you built from scratch and one important design decision.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Java"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "I built an Informatica IICS Java connector from scratch. I would begin with [[HARSH TO FILL: the integration need and supported operations]], then describe the real platform extension points, authentication flow and record-mapping path. The architecture explanation should show how a configured job becomes actual extraction or loading work and how failures reach the operator. I would choose one decision with a real alternative, such as [[HARSH TO FILL: batching, mapping, pagination or recovery decision actually made]], and explain the constraint that drove it. I would finish with the tests and release checks I personally used, keeping performance figures and SDK class names as placeholders until confirmed.",
+      "keywords": [
+        "integration need",
+        "extension point",
+        "record mapping",
+        "design trade-off",
+        "failure reporting",
+        "verification"
+      ],
+      "followups": [
+        {
+          "q": "What changed when adding another provider capability?",
+          "a": "Explain the actual extension path and which shared code did or did not change; do not substitute a generic architecture for your implementation."
+        },
+        {
+          "q": "Which edge case caused the most work?",
+          "a": "Use a real example and its regression test: [[HARSH TO FILL: actual connector edge case]]."
+        }
+      ],
+      "trap": "Replacing a concrete architectural story with an ungrounded list of patterns and SDK terms.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "STRONG follows supplied connector-architecture assessment."
+    },
+    {
+      "id": "JH-S19-003",
+      "topic": "Quantified reliability claim",
+      "question": "How was the reported 87% reduction in customer-impacting failures measured?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:Incidents",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "My resume reports PostgreSQL optimization and read-only transaction management associated with 87% fewer customer-impacting failures for the healthcare supply-chain client. To defend that number I need [[HARSH TO FILL: baseline period, comparison period, failure definition and counts or normalized rate]]. I would explain the failure mechanism and the specific change, then discuss workload changes or other releases that could affect attribution. A percentage without a denominator and time window is incomplete. I would distinguish incidents from failed requests and state whether the figure was measured by me or supplied by team reporting. I should not upgrade an observed association into a controlled causal claim without supporting evidence.",
+      "keywords": [
+        "baseline",
+        "denominator",
+        "time window",
+        "failure definition",
+        "normalization",
+        "attribution"
+      ],
+      "followups": [
+        {
+          "q": "Why normalize for traffic?",
+          "a": "A lower failure count can result from lower traffic; compare the appropriate rate when workload differs."
+        },
+        {
+          "q": "What if you no longer have the raw dashboard?",
+          "a": "State the origin and limits of the figure honestly and prepare the mechanism; do not invent raw counts."
+        }
+      ],
+      "trap": "Quoting 87% confidently while inventing the underlying before-and-after counts.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Resume fact preserved; measurement details are unknown."
+    },
+    {
+      "id": "JH-S19-004",
+      "topic": "Kafka throughput claim",
+      "question": "What does 2K+ integrations per hour mean in your Kafka-based system?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:ETL",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume states that Kafka event-driven services handled 2K+ integrations per hour. I would clarify [[HARSH TO FILL: what one integration counts, its typical record size and whether the figure is sustained, peak or observed throughput]]. Then I would explain the actual producer, topic, consumer and downstream path, including where completion was measured. Message ingestion rate and successfully completed integration rate are not necessarily the same. I would also state the ordering, retry and duplicate-handling rules I worked with and what I personally implemented. Partition counts, latency targets, hardware and error rates are not supplied, so those details must come from the real system rather than inference from the throughput number.",
+      "keywords": [
+        "unit of work",
+        "sustained versus peak",
+        "completion boundary",
+        "consumer path",
+        "retry",
+        "personal contribution"
+      ],
+      "followups": [
+        {
+          "q": "Can you infer worker count from this number?",
+          "a": "No. Duration, fan-out, traffic shape and downstream constraints are needed."
+        },
+        {
+          "q": "What was the bottleneck?",
+          "a": "Use actual evidence: [[HARSH TO FILL: observed bottleneck and measurement]], not an assumed broker limitation."
+        }
+      ],
+      "trap": "Treating integration count as message count or deriving nonexistent capacity measurements from it.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Resume-only skeleton."
+    },
+    {
+      "id": "JH-S19-005",
+      "topic": "Project design defense",
+      "question": "Which parts of the Pluggable Connector Framework are implemented, and which are proposed improvements?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Framework",
+        "R:Patterns",
+        "R:Concurrency",
+        "R:Resilience",
+        "R:Redis"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The supplied project description includes Strategy and Factory, ExecutorService and CompletableFuture, Resilience4j, token-bucket rate limiting and a Redis token cache. I would map each named technology to one actual responsibility rather than suggest they all solve the same problem. For example, [[HARSH TO FILL: real executor policy and composition flow]] and [[HARSH TO FILL: implemented cache key, TTL and refresh behavior]] make the mechanism concrete. I would show one completed end-to-end path and its tests, then label any stronger multi-replica coordination or operational feature as proposed if it is not implemented. I should distinguish a personal project from production client work and avoid borrowing scale numbers between them.",
+      "keywords": [
+        "implemented scope",
+        "strategy",
+        "executor policy",
+        "rate limit",
+        "token cache",
+        "proposed improvement"
+      ],
+      "followups": [
+        {
+          "q": "What would you change first under higher load?",
+          "a": "Start with a measured or explicit hypothetical bottleneck and explain the trade-off; do not invent a benchmark."
+        },
+        {
+          "q": "How do you discuss an unfinished feature?",
+          "a": "Say it is unfinished, describe the intended contract and explain what validation remains."
+        }
+      ],
+      "trap": "Presenting every improvement discussed in the handbook as something already shipped in the project.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Resume-only skeleton; no invented implementation or scale."
+    },
+    {
+      "id": "JH-S19-006",
+      "topic": "Service architecture",
+      "question": "Draw the boundary and dependency map for the three authentication services you own.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:SCIM",
+        "R:OAuth"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would draw SCIM provisioning, CLM and OAuth Management Service as three named services because those are the ownership facts supplied. For each, I would mark its caller-facing contract, state it owns, and dependencies it calls, separating confirmed boundaries from assumptions. The concrete diagram needs [[HARSH TO FILL: actual API or event interfaces, data ownership and dependency directions]]. I would trace one user or administrator action across the boxes and identify where authentication ends and authorization begins. Then I would explain one boundary that prevented coupling and one place where the current design still has coordination cost. I would not claim independent databases, deployment topology or team ownership unless verified.",
+      "keywords": [
+        "service boundary",
+        "API contract",
+        "state ownership",
+        "dependency direction",
+        "request trace",
+        "coupling"
+      ],
+      "followups": [
+        {
+          "q": "What does CLM stand for in this system?",
+          "a": "Use the product's actual expansion and responsibility: [[HARSH TO FILL: CLM meaning and function]]."
+        },
+        {
+          "q": "Which service owns user lifecycle state?",
+          "a": "Name the actual system of record and synchronization rule: [[HARSH TO FILL: confirmed owner]]."
+        }
+      ],
+      "trap": "Inferring data stores or topology from the word microservices.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Personal architecture details intentionally left for Harsh."
+    },
+    {
+      "id": "JH-S19-007",
+      "topic": "SCIM request flow",
+      "question": "Trace one real SCIM provisioning operation through your service, including its response and persisted effect.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:SCIM",
+        "R:REST",
+        "R:Microservices"
+      ],
+      "harsh_status": "SHAKY",
+      "answer": "I would pick one operation I can explain precisely, such as the actual create, update or deactivate path, and start at the authenticated request boundary. I would then follow validation, tenant resolution, mapping, persistence and any downstream effect in the order they really occur. The response status and body should match the implemented protocol behavior, including what happens for a repeated or invalid request. The supplied readiness assessment marks SCIM flow detail as shaky, so this answer needs [[HARSH TO FILL: actual endpoint, key classes or components, transaction boundary and response]]. I would draw the flow from source code or a safe test fixture before rehearsal; a generic SCIM tutorial is not evidence of my service's internals.",
+      "keywords": [
+        "operation",
+        "tenant resolution",
+        "validation",
+        "mapping",
+        "transaction",
+        "response semantics"
+      ],
+      "followups": [
+        {
+          "q": "What is the first boundary you would verify in code?",
+          "a": "The service's actual request-to-handler path and authentication context: [[HARSH TO FILL: entry point]]."
+        },
+        {
+          "q": "How will you improve this shaky explanation?",
+          "a": "Trace one tested operation end to end, then explain it without substituting protocol generalities."
+        }
+      ],
+      "trap": "Presenting the standard as though it proves the production implementation details.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Retains supplied SHAKY readiness."
+    },
+    {
+      "id": "JH-S19-008",
+      "topic": "SCIM tenant isolation",
+      "question": "How does the provisioning service ensure a valid client cannot modify another tenant's users?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:SCIM",
+        "R:OAuth",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would explain how the authenticated integration identity is bound to a tenant and how that tenant context constrains every lookup and write. The critical distinction is between trusting an identifier supplied in a request and deriving authorized scope from the validated caller context. I would describe the actual enforcement point, whether queries are tenant-scoped, and how cross-tenant attempts are rejected without leaking whether another tenant's user exists. Those implementation details are not in the resume, so I need [[HARSH TO FILL: actual tenant binding, query guard and response behavior]]. I would point to a negative test that attempts a foreign identifier and verify both no mutation and no information leak.",
+      "keywords": [
+        "caller identity",
+        "tenant binding",
+        "scoped lookup",
+        "authorization",
+        "information leak",
+        "negative test"
+      ],
+      "followups": [
+        {
+          "q": "Is a tenant ID in the URL sufficient authorization?",
+          "a": "No. It must be checked against the authenticated caller's permitted tenant context."
+        },
+        {
+          "q": "What does the negative test assert?",
+          "a": "That the foreign tenant's record is neither returned nor changed: [[HARSH TO FILL: actual test]]."
+        }
+      ],
+      "trap": "Treating syntactically valid tenant input as proof of access.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No tenant storage design assumed."
+    },
+    {
+      "id": "JH-S19-009",
+      "topic": "Identity service interfaces",
+      "question": "What contract does an authentication service expose to its callers, and how do callers handle its failures?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:REST",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would describe one real caller-facing interface and its contract: required inputs, authentication context, success result, error categories and compatibility expectations. A useful answer separates a caller's invalid request from denied access, temporary dependency failure and an unexpected service fault, because retry and user messaging differ. I would explain how the contract avoids exposing internal provider errors or secrets and how a change is introduced without surprising existing consumers. The actual endpoint, status mapping and versioning policy are unknown here: [[HARSH TO FILL: concrete interface and one consumer]]. I would support the explanation with an API specification or contract test, rather than inventing an endpoint from the service name.",
+      "keywords": [
+        "caller contract",
+        "error categories",
+        "retry semantics",
+        "compatibility",
+        "secret redaction",
+        "contract test"
+      ],
+      "followups": [
+        {
+          "q": "Which failures should a caller retry?",
+          "a": "Only failures defined as transient by the contract, with bounded policy and idempotent behavior."
+        },
+        {
+          "q": "Where is the contract documented?",
+          "a": "Use the real OpenAPI or other artifact: [[HARSH TO FILL: document and test location]]."
+        }
+      ],
+      "trap": "Equating every non-success response with a retryable error.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Does not assert REST endpoint details absent from the supplied resume."
+    },
+    {
+      "id": "JH-S19-010",
+      "topic": "OAuth flow ownership",
+      "question": "Which OAuth 2.0 flows did you implement or maintain, and what did your code own in each?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:JWT"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "My supplied resume says I worked on OAuth 2.0 flows and an OAuth Management Service, but it does not name grants or protocol endpoints. I would list only the flows I actually handled, then draw the request and token-validation path for one of them. I would separate my code's responsibilities from the identity provider's behavior and explain which checks, persistence or configuration I changed. The answer should include a test for a rejected or expired authorization result and the security property it protects. Before interview practice I need [[HARSH TO FILL: exact flows, components personally changed and provider-owned steps]]. If I supported a flow rather than designed it, I would say so plainly.",
+      "keywords": [
+        "grant type",
+        "protocol boundary",
+        "personal contribution",
+        "token validation",
+        "negative test",
+        "provider responsibility"
+      ],
+      "followups": [
+        {
+          "q": "What if asked about a flow you did not implement?",
+          "a": "Separate conceptual knowledge from project ownership and state the boundary accurately."
+        },
+        {
+          "q": "How can you substantiate your contribution?",
+          "a": "Use a concrete code change, test or operational task: [[HARSH TO FILL: verifiable example]]."
+        }
+      ],
+      "trap": "Claiming ownership of every OAuth grant because the resume says OAuth flows.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Flow-specific ownership remains unknown."
+    },
+    {
+      "id": "JH-S19-011",
+      "topic": "OAuth configuration",
+      "question": "How are OAuth client configuration and environment-specific secrets managed in the service you support?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would describe the real separation between non-secret configuration, such as issuer or redirect settings, and credentials that must be protected. Then I would explain how the service receives each value in its deployment environment, how access is limited, and what happens during rotation without exposing values in logs or build artifacts. The resume confirms OAuth work and releases through named delivery tools, but says nothing about the secret store or rotation mechanism. Those details need [[HARSH TO FILL: approved configuration source, access control and rotation procedure]]. I would never display client secrets during an interview. A strong answer names the controls and a test or operational check, not a fictitious vendor product.",
+      "keywords": [
+        "configuration boundary",
+        "secret storage",
+        "least privilege",
+        "rotation",
+        "logging",
+        "deployment"
+      ],
+      "followups": [
+        {
+          "q": "Can a client secret be placed in a container image?",
+          "a": "No; image layers and registries make that a persistent exposure risk."
+        },
+        {
+          "q": "How do you verify rotation worked?",
+          "a": "Use the actual non-production rotation check and failure signal: [[HARSH TO FILL: procedure]]."
+        }
+      ],
+      "trap": "Naming a secret-management service or rotation cadence without evidence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No cloud secret product is inferred."
+    },
+    {
+      "id": "JH-S19-012",
+      "topic": "Vulnerability remediation",
+      "question": "Tell me how you triage and fix one vulnerability in an authentication service.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:Incidents",
+        "R:Testing"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The supplied facts say I worked on vulnerability fixes, but do not identify a finding. I would select a real one and explain the affected asset, reachable attack path and evidence used to assess severity, without disclosing a client secret or exploitable customer detail. Next I would separate immediate containment from the code correction, identify the regression test and explain how the fix was reviewed and released. I need [[HARSH TO FILL: actual finding, my role, mitigation, test and verified closure evidence]]. If the issue came from a dependency scan, I would distinguish upgrading a package from proving the vulnerable path is no longer exploitable. I would avoid claiming a security outcome beyond evidence.",
+      "keywords": [
+        "attack path",
+        "severity",
+        "containment",
+        "code fix",
+        "regression test",
+        "verified closure"
+      ],
+      "followups": [
+        {
+          "q": "Would you share a production exploit payload?",
+          "a": "Only within approved security channels; interview details should be sanitized and non-sensitive."
+        },
+        {
+          "q": "How do you show closure?",
+          "a": "Cite the actual retest, version or approved tracking evidence: [[HARSH TO FILL: closure proof]]."
+        }
+      ],
+      "trap": "Presenting a dependency update as proof the vulnerability was fully remediated.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No vulnerability incident is invented."
+    },
+    {
+      "id": "JH-S19-013",
+      "topic": "Security trade-offs",
+      "question": "How do you decide whether an authentication security fix can be released immediately or needs compatibility work?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:Microservices",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would frame the decision around exploitability and exposure, the impact of continued risk, and the chance that a rushed change blocks legitimate integrations. First establish facts with the security owner and service logs, then identify a safe containment that does not destroy evidence or broaden access. For a permanent fix, test both the security rejection and legitimate client behavior, agree on communication and rollout, and define a rollback or forward-repair path. My resume says I handled vulnerability fixes, not which severity or release exception applied, so the case must be [[HARSH TO FILL: real decision and approval boundary]]. If there was no such decision, I would answer as a hypothetical rather than manufacture a story.",
+      "keywords": [
+        "exposure",
+        "containment",
+        "compatibility",
+        "security test",
+        "approval",
+        "rollout"
+      ],
+      "followups": [
+        {
+          "q": "Who accepts residual security risk?",
+          "a": "The designated accountable security and product owners under the real process, not an individual engineer alone."
+        },
+        {
+          "q": "What if no safe rollback exists?",
+          "a": "Plan forward repair and data or client compatibility explicitly before release."
+        }
+      ],
+      "trap": "Claiming an engineer can waive a security control alone to meet a deadline.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No real security trade-off is supplied; label a hypothetical clearly."
+    },
+    {
+      "id": "JH-S19-014",
+      "topic": "Java upgrade",
+      "question": "What did a Java upgrade change in your service, and how did you prove behavior stayed compatible?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:CICD",
+        "R:Testing"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume confirms Java upgrades but not the source and target versions, so I would name them only after checking the actual change. I would explain why the upgrade was needed, which runtime or dependency compatibility risks mattered, and what changed in the build and deployment image. Evidence should include automated tests, startup or integration checks, and any targeted behavior that was sensitive to the runtime change. Then I would describe the rollout and how a regression would be detected. I need [[HARSH TO FILL: service, version pair, dependency issue, verification and my contribution]]. A successful compile alone is insufficient evidence that production behavior, TLS configuration or resource use remained correct.",
+      "keywords": [
+        "source version",
+        "target version",
+        "dependency compatibility",
+        "runtime image",
+        "integration test",
+        "rollout"
+      ],
+      "followups": [
+        {
+          "q": "What is your first check after changing the runtime?",
+          "a": "Run the existing test suite and inspect dependency or build compatibility reports: [[HARSH TO FILL: actual project gate]]."
+        },
+        {
+          "q": "Does compilation prove runtime compatibility?",
+          "a": "No. Exercise startup, integration behavior and the deployment artifact in a representative environment."
+        }
+      ],
+      "trap": "Inventing exact Java versions or treating a green compile as complete upgrade validation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Java version details are not in the supplied facts."
+    },
+    {
+      "id": "JH-S19-015",
+      "topic": "Upgrade decision",
+      "question": "How did you balance dependency modernization against release risk during a Java upgrade?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Java",
+        "R:CICD",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would explain the concrete constraint that made the upgrade necessary and separate required compatibility changes from unrelated cleanup. A narrow change is easier to review and bisect; however, changing runtime and several major libraries together may be necessary if support boundaries demand it. I would show how I assessed dependency support, test coverage, deployment consistency and rollback compatibility, then state the actual trade-off chosen by the team. The supplied resume does not identify that decision, so I need [[HARSH TO FILL: upgrade scope, alternatives considered and decision owner]]. I would not present a preferred strategy as a historical fact. For a hypothetical, I would label it and articulate the risk controls explicitly.",
+      "keywords": [
+        "support boundary",
+        "scope control",
+        "dependency matrix",
+        "test coverage",
+        "rollback",
+        "decision ownership"
+      ],
+      "followups": [
+        {
+          "q": "Would you bundle unrelated refactoring?",
+          "a": "Usually not; isolate it unless a verified compatibility dependency requires the broader change."
+        },
+        {
+          "q": "Who approves the release risk?",
+          "a": "Name the actual team decision process rather than claiming unilateral authority."
+        }
+      ],
+      "trap": "Retrofitting a polished trade-off that was never part of the real upgrade.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Decision details remain placeholders."
+    },
+    {
+      "id": "JH-S19-016",
+      "topic": "CLM service",
+      "question": "What does CLM mean in your project, and what lifecycle responsibility does that service own?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:OAuth"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume names a CLM service but does not expand the acronym or specify its product responsibility. I would begin with the exact meaning used by the team, then identify the lifecycle entities or operations it owns and the callers that depend on it. A small state diagram would clarify creation, updates, expiry or revocation only where those are real behaviors. I would explain its interface to the other authentication services and which service remains authoritative for each piece of state. I need [[HARSH TO FILL: acronym expansion, owned lifecycle, data boundary and one real operation]]. If the acronym is client-specific, I would avoid exposing confidential naming and describe the responsibility at a safe level.",
+      "keywords": [
+        "acronym meaning",
+        "lifecycle state",
+        "system of record",
+        "service interface",
+        "state transition",
+        "confidentiality"
+      ],
+      "followups": [
+        {
+          "q": "How do you avoid over-sharing client terminology?",
+          "a": "Use an approved sanitized description while preserving the technical boundary and behavior."
+        },
+        {
+          "q": "What is one important lifecycle transition?",
+          "a": "Use the actual transition and guard: [[HARSH TO FILL: real example]]."
+        }
+      ],
+      "trap": "Guessing what CLM expands to based on a common industry acronym.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Acronym and internals intentionally unresolved."
+    },
+    {
+      "id": "JH-S19-017",
+      "topic": "Production support",
+      "question": "What did production support for the authentication services involve, and how did you distinguish a user issue from a service fault?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:OAuth",
+        "R:SCIM"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The supplied facts say I provided production support, but do not specify the support rotation, tools or a particular case. I would describe the real intake path, how impact and scope were confirmed, and the evidence that separated client configuration or identity-provider behavior from a service defect. I would then state what I personally investigated, what needed escalation, and how any mitigation was communicated and verified. Authentication incidents require care not to expose tokens, identifiers or customer data in diagnostic material. I need [[HARSH TO FILL: one sanitized support case, my action and outcome]]. If no specific example is available, I would explain the support process I actually followed without claiming incident command ownership.",
+      "keywords": [
+        "impact scope",
+        "evidence",
+        "provider boundary",
+        "sanitization",
+        "escalation",
+        "verification"
+      ],
+      "followups": [
+        {
+          "q": "What do you remove before sharing logs?",
+          "a": "Secrets and unnecessary personal data, following the actual security policy."
+        },
+        {
+          "q": "How do you classify an external provider failure?",
+          "a": "Correlate safe request evidence with dependency health and document the boundary; avoid assuming from one timeout."
+        }
+      ],
+      "trap": "Claiming the identity provider caused an incident before checking service-side evidence.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No specific support case supplied."
+    },
+    {
+      "id": "JH-S19-018",
+      "topic": "Release ownership",
+      "question": "What does release ownership mean in your role, beyond pressing a deployment button?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:CICD",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "My resume says I own releases through ArgoCD, Jenkins and Harness. I would define the actual scope: the artifact and change I prepared, required checks and approvals, deployment observation, and the point at which the release was considered healthy. I would distinguish my actions from pipeline automation and team approval. The exact workflow is unknown, so I need [[HARSH TO FILL: which tool handled each stage, promotion policy and release verification]]. I would include how I communicated risk and what rollback or forward-recovery option was available, without implying every tool participated in every release. A release is complete only when the intended service behavior is verified, not merely when a pipeline reports success.",
+      "keywords": [
+        "artifact",
+        "quality gates",
+        "approval",
+        "promotion",
+        "health verification",
+        "recovery"
+      ],
+      "followups": [
+        {
+          "q": "Who authorizes production promotion?",
+          "a": "Describe the actual approval boundary: [[HARSH TO FILL: role or policy]]."
+        },
+        {
+          "q": "What is your completion signal?",
+          "a": "Use the real post-deployment health or business check, not only job status."
+        }
+      ],
+      "trap": "Conflating ownership with sole authority or claiming all three tools form one pipeline.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Release stages require Harsh's exact account."
+    },
+    {
+      "id": "JH-S19-019",
+      "topic": "Deployment pipeline",
+      "question": "How do Jenkins, ArgoCD and Harness fit into the release path you actually use?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:CICD",
+        "R:K8s"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume lists these tools for release ownership, but does not establish their sequence or exact responsibilities. I would draw the real path from commit through build, test, artifact publication, environment promotion and deployment reconciliation, labeling which system performs each action and where a human approves. Then I would identify the immutable artifact reference and the signal that confirms the deployed version. I need [[HARSH TO FILL: actual job or workflow boundaries, handoffs and verification]]. This distinction matters because a CI job can pass while a deployment controller is still reconciling, or a rollout can finish while the application is unhealthy. I would not claim a feature or integration from a tool's general capabilities alone.",
+      "keywords": [
+        "build",
+        "artifact identity",
+        "workflow handoff",
+        "approval",
+        "reconciliation",
+        "health check"
+      ],
+      "followups": [
+        {
+          "q": "Which system is the source of desired deployment state?",
+          "a": "Answer from the real environment configuration: [[HARSH TO FILL: source of truth]]."
+        },
+        {
+          "q": "How do you avoid shipping a different artifact later?",
+          "a": "Promote the same immutable artifact identity and verify it at deployment."
+        }
+      ],
+      "trap": "Describing a generic vendor pipeline as though it exactly matches the candidate's environment.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Tool responsibilities are not specified by supplied facts."
+    },
+    {
+      "id": "JH-S19-020",
+      "topic": "Cloud and container skill ownership",
+      "question": "What AWS, Docker and Kubernetes work have you personally done, and where does your responsibility end?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:AWS",
+        "R:Docker",
+        "R:K8s",
+        "R:CICD"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume lists AWS, Docker and Kubernetes among my skills, but does not attach them to a specific client deployment or project. I would distinguish hands-on production work, lab use and familiarity, then choose one technology actually used and trace its boundary: image or workload, configuration, deployment and operational signal. I need [[HARSH TO FILL: concrete task, AWS services if any, Docker image work, Kubernetes resources, decisions, failure/test and ownership boundary]]. I would not imply these tools were part of every ArgoCD, Jenkins or Harness release. If a skill is only familiarity, I would say so and explain how I would ramp up.",
+      "keywords": [
+        "hands-on scope",
+        "workload",
+        "configuration",
+        "deployment",
+        "failure evidence",
+        "ownership boundary"
+      ],
+      "followups": [
+        {
+          "q": "Which cloud service did you operate directly?",
+          "a": "Name it only if verified: [[HARSH TO FILL: AWS service and task]], otherwise distinguish familiarity."
+        },
+        {
+          "q": "Did you own Kubernetes production changes?",
+          "a": "State the actual resource, approval and operational boundary: [[HARSH TO FILL: details]]."
+        }
+      ],
+      "trap": "Conflating skills listed on a resume with production ownership or assuming all deployment tools were used together.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Cloud/container scope remains explicitly unverified from supplied facts."
+    },
+    {
+      "id": "JH-S19-021",
+      "topic": "API compatibility",
+      "question": "How do you introduce a change to an authentication API without breaking existing integrations?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:REST",
+        "R:OAuth",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would start by identifying the actual consumers and the compatibility promise, then classify the proposed change as additive, behavior-changing or breaking. An additive field can still break strict clients, so contract tests and consumer communication matter. For a behavior change, a staged rollout, explicit version or feature control may be appropriate, but I would choose only what the real platform supports. I need [[HARSH TO FILL: an actual API change, compatibility evidence and release plan]] to claim project experience. I would monitor old and new caller behavior during transition and define when deprecated behavior can be removed. The key is to make the migration observable and reversible rather than assuming the server controls every client.",
+      "keywords": [
+        "consumer inventory",
+        "compatibility promise",
+        "contract tests",
+        "staged rollout",
+        "deprecation",
+        "migration"
+      ],
+      "followups": [
+        {
+          "q": "Can an optional response field break a client?",
+          "a": "Yes, if a consumer rejects unknown fields or assumes a fixed schema; verify actual clients."
+        },
+        {
+          "q": "When can deprecation end?",
+          "a": "Use the agreed support policy and evidence that affected consumers have migrated."
+        }
+      ],
+      "trap": "Assuming an additive API change is automatically backward-compatible for every consumer.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No specific API change is supplied."
+    },
+    {
+      "id": "JH-S19-022",
+      "topic": "Testing strategy",
+      "question": "What would your test pyramid look like for a change spanning SCIM, OAuth and persistence?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Testing",
+        "R:SCIM",
+        "R:OAuth",
+        "R:Hibernate"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would test deterministic rules at unit level, such as mapping or validation, and use service tests to verify transaction and authorization boundaries. A smaller integration layer should exercise the actual persistence mapping and protocol wiring that mocks cannot prove. For OAuth or SCIM provider interactions, a controlled test double can validate our contract, while at least one environment-specific check may be needed for configuration we do not own. I would add negative cases for unauthorized tenant access, duplicate identity and failed persistence, then ensure no secret enters assertions or logs. The resume lists JUnit and Mockito, but the actual suite and database test setup are unknown: [[HARSH TO FILL: test layers and a real regression test]].",
+      "keywords": [
+        "unit tests",
+        "service boundary",
+        "integration test",
+        "negative cases",
+        "provider contract",
+        "regression"
+      ],
+      "followups": [
+        {
+          "q": "What does a mock fail to validate?",
+          "a": "Real transaction behavior, mappings, network configuration and provider compatibility, depending on what is mocked."
+        },
+        {
+          "q": "Which test should run on every change?",
+          "a": "The fast deterministic suite plus the narrow regression covering the changed contract."
+        }
+      ],
+      "trap": "Using mocks as evidence that database transactions or external protocol wiring work in production.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Testing tools are resume facts; exact test coverage remains unknown."
+    },
+    {
+      "id": "JH-S19-023",
+      "topic": "Test failure diagnosis",
+      "question": "A Mockito-based test passes but the authentication change fails after deployment. What gap would you investigate?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Testing",
+        "R:OAuth",
+        "R:Microservices"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would first reproduce the deployed symptom and compare the test's assumptions with runtime configuration, persistence, identity-provider behavior and network boundaries. A mock can return exactly what the test asks for while hiding token audience, clock, serialization or transaction differences. I would inspect the deployed artifact and configuration identity, then add the narrowest integration or contract test that captures the missed behavior. The actual cause is not supplied, so I would not imply this happened to me; as a hypothetical, I would label it clearly. For a real case I need [[HARSH TO FILL: symptom, evidence, missing test boundary and correction]]. I would keep test data synthetic and credentials out of diagnostics.",
+      "keywords": [
+        "reproduce",
+        "configuration drift",
+        "mock boundary",
+        "artifact identity",
+        "integration test",
+        "synthetic data"
+      ],
+      "followups": [
+        {
+          "q": "Should all mocks be removed?",
+          "a": "No. Keep them for isolated rules, and complement them with focused tests at important real boundaries."
+        },
+        {
+          "q": "How do you rule out the deployed version?",
+          "a": "Verify the immutable artifact and configuration actually running: [[HARSH TO FILL: source used]]."
+        }
+      ],
+      "trap": "Blaming the testing framework before identifying which production boundary was not exercised.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Scenario is hypothetical unless Harsh supplies an incident."
+    },
+    {
+      "id": "JH-S19-024",
+      "topic": "Informatica connector architecture",
+      "question": "For the IICS connector you built, what was the end-to-end path from configuration to a completed data operation?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Framework"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "I built a Java connector for Informatica IICS from scratch; I would map a configured operation to the real connector lifecycle, then follow how the source or destination is selected, credentials are obtained, data is requested, transformed and reported as complete. The resume does not disclose SDK entry points or supported operations, so I need [[HARSH TO FILL: actual extension interfaces, configuration fields and execution path]]. I would identify where the connector owns behavior and where IICS schedules or orchestrates it. A sequence diagram should include one failure path and the point at which progress is safe to report. I would not name SDK methods until checked against the code and version used.",
+      "keywords": [
+        "configuration",
+        "connector lifecycle",
+        "SDK boundary",
+        "data operation",
+        "completion",
+        "failure path"
+      ],
+      "followups": [
+        {
+          "q": "What happens before a network call?",
+          "a": "Describe actual validation and credential setup: [[HARSH TO FILL: implemented preflight]]."
+        },
+        {
+          "q": "How do you establish completion?",
+          "a": "Use the real platform result and checkpoint semantics, not merely a successful request."
+        }
+      ],
+      "trap": "Inventing Informatica SDK class names or assigning orchestration responsibility to the connector without checking.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "STRONG status is limited to the supplied Informatica architecture assessment."
+    },
+    {
+      "id": "JH-S19-025",
+      "topic": "Connector configuration",
+      "question": "How does the IICS connector validate configuration and report a useful error before running a job?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Testing"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would separate required connection settings from operation-specific options and validate them at the earliest supported point, before expensive work begins. Validation should produce an actionable but safe error: identify the missing or incompatible setting without echoing a credential or full sensitive payload. I would explain which rules are enforced locally and which can only be confirmed by the remote provider. The supplied resume does not say which fields or validation hooks exist, so I need [[HARSH TO FILL: real config schema and user-visible errors]]. A strong implementation tests missing values, malformed endpoints and invalid combinations, then verifies error text does not reveal secrets. I would not imply that an offline validation guarantees remote authorization.",
+      "keywords": [
+        "required settings",
+        "preflight validation",
+        "remote validation",
+        "actionable error",
+        "secret redaction",
+        "negative tests"
+      ],
+      "followups": [
+        {
+          "q": "Should validation send a credential to the provider?",
+          "a": "Only if the actual safe test operation requires it and is explicitly understood; never expose the value in diagnostics."
+        },
+        {
+          "q": "How do you distinguish invalid config from provider outage?",
+          "a": "Use separate error categories and evidence from local validation versus the remote call."
+        }
+      ],
+      "trap": "Treating every connection-test failure as proof that configuration is malformed.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Configuration design must be filled from the implementation."
+    },
+    {
+      "id": "JH-S19-026",
+      "topic": "Connector mapping",
+      "question": "How did you handle differences between provider data types and the connector's internal representation?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would pick one real field whose provider representation differs from the target and trace it through parsing, internal representation and output. Important risks include decimal precision, timestamp zones, null versus absent values, nested records and provider-specific enums. A mapping policy should either preserve meaning, reject unsupported values clearly or document a deliberate lossy conversion. The resume confirms connector development but gives no schema or mapping facts; I need [[HARSH TO FILL: actual example, chosen representation and test]]. I would explain how schema changes are surfaced rather than silently coercing unknown fields. I would not claim universal type support from one connector path; support must be tied to tested types and versioned behavior.",
+      "keywords": [
+        "source schema",
+        "precision",
+        "timezone",
+        "null semantics",
+        "schema evolution",
+        "mapping test"
+      ],
+      "followups": [
+        {
+          "q": "Why is a decimal-to-double conversion risky?",
+          "a": "Binary floating-point may not preserve decimal precision required for financial or exact values."
+        },
+        {
+          "q": "What should happen to an unknown enum?",
+          "a": "Follow the documented compatibility policy: reject, preserve raw value or map safely; do not silently invent meaning."
+        }
+      ],
+      "trap": "Saying data was mapped successfully without addressing semantic loss or schema evolution.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No connector schema or field names invented."
+    },
+    {
+      "id": "JH-S19-027",
+      "topic": "Connector pagination",
+      "question": "How does your connector retrieve all pages safely when the upstream dataset changes during extraction?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would explain the actual pagination model supported by the provider, such as cursor, offset or page token, and state what consistency guarantees it offers. Offset paging can skip or repeat rows when the source shifts; a cursor can be safer but still has expiry and replay semantics. I would show where the next token is stored, how termination is detected and what happens if a page fails after previous pages were delivered. Those facts are not in the supplied resume: [[HARSH TO FILL: real provider pagination and checkpoint behavior]]. A useful test covers an empty final page, repeated token or interrupted run. I would never infer a provider's API behavior or claim snapshot consistency without documentation.",
+      "keywords": [
+        "pagination model",
+        "cursor",
+        "source mutation",
+        "checkpoint",
+        "interruption",
+        "termination"
+      ],
+      "followups": [
+        {
+          "q": "Can an offset cursor guarantee a stable snapshot?",
+          "a": "Not generally; it depends on provider semantics and concurrent updates."
+        },
+        {
+          "q": "What if a continuation token repeats?",
+          "a": "Detect bounded progress failure and return a clear error rather than loop indefinitely."
+        }
+      ],
+      "trap": "Assuming pagination is complete because the first page returned successfully.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Pagination implementation is unknown and explicitly requested for prep."
+    },
+    {
+      "id": "JH-S19-028",
+      "topic": "Connector batching",
+      "question": "What batch-size decision did you make in a connector, and how did you balance throughput with recoverability?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would first establish whether the actual connector batches records at all and which side imposes the limit. A larger batch can reduce request overhead but increases memory use, latency to first result and replay cost when part of the batch fails. The choice should account for provider limits, record size and per-record result semantics rather than a guessed universal value. The resume supplies no batch size or benchmark, so I need [[HARSH TO FILL: actual batch strategy, constraint and measurement]]. I would discuss partial acceptance and how the checkpoint advances only after outcomes are known. If no batching decision was mine, I would say who owned it and what I contributed instead of adopting the team's decision as my own.",
+      "keywords": [
+        "provider limit",
+        "record size",
+        "memory",
+        "partial acceptance",
+        "replay cost",
+        "measurement"
+      ],
+      "followups": [
+        {
+          "q": "Is the largest accepted batch always best?",
+          "a": "No. It can worsen tail latency, memory pressure and the amount replayed after failure."
+        },
+        {
+          "q": "How would you tune a value?",
+          "a": "Use representative payloads and measure throughput, failure recovery and resource use: [[HARSH TO FILL: actual method]]."
+        }
+      ],
+      "trap": "Inventing a measured optimal batch size or claiming a benchmark that was never run.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No numeric implementation details supplied."
+    },
+    {
+      "id": "JH-S19-029",
+      "topic": "Connector error handling",
+      "question": "How did the IICS connector distinguish authentication, rate-limit, validation and transient upstream failures?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would map actual provider and transport failures into categories that help an operator choose a safe action: correct credentials, fix input, wait for a rate limit, or retry a transient condition. That mapping must preserve useful provider context while removing tokens and sensitive response bodies. Retry policy should honor documented retry hints and use a bounded delay; permanent validation errors should not enter an endless retry loop. The supplied facts do not identify provider responses or connector error classes, so I need [[HARSH TO FILL: actual mapping and operator-visible result]]. I would test malformed responses and timeouts as well as normal error codes. If completion is uncertain after a timeout, reconcile before repeating a side-effecting operation.",
+      "keywords": [
+        "failure taxonomy",
+        "retryable",
+        "permanent error",
+        "rate limit",
+        "secret redaction",
+        "uncertain outcome"
+      ],
+      "followups": [
+        {
+          "q": "Should every timeout be retried immediately?",
+          "a": "No. Bound attempts, respect backoff and consider whether the remote side already performed the operation."
+        },
+        {
+          "q": "What should an operator see?",
+          "a": "A safe category, actionable context and correlation reference, not raw secrets or unfiltered payloads."
+        }
+      ],
+      "trap": "Retrying every error identically and potentially duplicating a completed remote write.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Provider-specific behavior remains unknown."
+    },
+    {
+      "id": "JH-S19-030",
+      "topic": "Connector test design",
+      "question": "What did you test for the new IICS connector before considering it ready to use?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:Testing",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would organize the evidence around the connector contract: valid configuration and authentication, representative mapping, pagination or batch behavior where implemented, and clear failure handling. Unit tests can cover deterministic transformation rules; a controlled integration test can verify SDK wiring and provider interaction without using production credentials. I would include a regression test for the actual defect or edge case that took the most work, and explain how test fixtures avoid customer data. The resume does not state the test suite or release criteria, so I need [[HARSH TO FILL: test types, key cases and readiness gate]]. I would distinguish tests I wrote from tests run by the platform and avoid claiming broad certification based on a happy-path demo.",
+      "keywords": [
+        "contract tests",
+        "mapping",
+        "authentication",
+        "failure path",
+        "synthetic fixtures",
+        "release gate"
+      ],
+      "followups": [
+        {
+          "q": "What does a happy-path test miss?",
+          "a": "Invalid config, partial failure, expired credentials, pagination boundaries and uncertain write outcomes."
+        },
+        {
+          "q": "How do you avoid leaking data in fixtures?",
+          "a": "Use synthetic or approved sanitized data and keep secrets outside source control."
+        }
+      ],
+      "trap": "Calling a manual successful connection test a complete validation strategy.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No specific test results are asserted."
+    },
+    {
+      "id": "JH-S19-031",
+      "topic": "SDK boundary",
+      "question": "How did you keep a Java connector's platform SDK concerns separate from provider-specific API behavior?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:Java",
+        "R:Patterns"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would show which code participates in the platform lifecycle and which code handles the remote provider's authentication, requests and data model. Keeping that boundary explicit can make provider behavior unit-testable and reduce coupling to SDK types, while the actual extension contract still has to match the platform. The resume says I built the Java connector from scratch but does not describe its module layout, interfaces or SDK version. I need [[HARSH TO FILL: real package boundary, adapter or facade and one test seam]]. I would discuss one trade-off: additional abstraction helps only if it isolates a real change axis. I would not invent SDK APIs or imply a generic abstraction existed if the implementation was simpler.",
+      "keywords": [
+        "platform lifecycle",
+        "provider adapter",
+        "SDK coupling",
+        "test seam",
+        "change axis",
+        "module boundary"
+      ],
+      "followups": [
+        {
+          "q": "What belongs in the provider adapter?",
+          "a": "Provider protocol details that should not leak into shared orchestration, as confirmed by the actual design."
+        },
+        {
+          "q": "When would you avoid another abstraction?",
+          "a": "When it only renames a call and creates no useful isolation or independent behavior."
+        }
+      ],
+      "trap": "Inventing a clean layered architecture that the actual code does not have.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No SDK classes or versions guessed."
+    },
+    {
+      "id": "JH-S19-032",
+      "topic": "Connector debugging",
+      "question": "A connector job reports success but the destination is missing some records. How would you investigate your implementation?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Observability"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would first define what success means at each boundary: fetched, transformed, submitted, accepted and durably visible. Then I would compare source counts, connector checkpoints, per-record outcomes and destination visibility using safe correlation identifiers. Likely gaps include advancing progress too early, pagination termination errors, partial batch acceptance or asynchronous completion being mistaken for final completion. Those are hypotheses, not claims about my connector. I would inspect the actual evidence and reproduce with a small synthetic dataset, then add a regression test around the violated boundary. I need [[HARSH TO FILL: real debugging example if one exists]]. If this is only a scenario, I would keep the diagnosis conditional and avoid asserting a cause before measurement.",
+      "keywords": [
+        "completion boundary",
+        "checkpoint",
+        "per-record outcome",
+        "pagination",
+        "synthetic reproduction",
+        "regression"
+      ],
+      "followups": [
+        {
+          "q": "Which count would you compare first?",
+          "a": "The counts at source read, connector submission, accepted outcome and destination, using the actual available metrics."
+        },
+        {
+          "q": "What if records are asynchronous?",
+          "a": "Track the provider job to terminal completion before declaring the integration done."
+        }
+      ],
+      "trap": "Assuming a successful job status guarantees every record reached the destination.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Hypothetical diagnosis, not a fabricated project incident."
+    },
+    {
+      "id": "JH-S19-033",
+      "topic": "Power BI connector contribution",
+      "question": "What was your specific contribution to the Power BI connector, and how did it differ from building the IICS connector?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Informatica",
+        "R:ETL",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The supplied resume identifies me as a core developer on a Power BI connector and separately says I built the IICS Java connector from scratch. I would preserve that distinction: name the component or feature I personally delivered, the collaborators or existing code I relied on, and the review or test that established it worked. I need [[HARSH TO FILL: actual Power BI task, implementation boundary, interface and outcome]]. Then I can compare only the real differences in platform lifecycle, data shape or extension model. I should not imply sole authorship of the Power BI connector or guess its SDK. If the details are confidential, I can explain the design pattern without naming client data or exposing implementation secrets.",
+      "keywords": [
+        "personal contribution",
+        "team boundary",
+        "platform difference",
+        "interface",
+        "verification",
+        "confidentiality"
+      ],
+      "followups": [
+        {
+          "q": "What did core developer mean on that project?",
+          "a": "Define the actual responsibility and decision scope: [[HARSH TO FILL: role boundary]]."
+        },
+        {
+          "q": "Can you show proprietary source code?",
+          "a": "No; describe a sanitized design and public or synthetic example instead."
+        }
+      ],
+      "trap": "Converting core developer into sole owner or borrowing the IICS implementation story for Power BI.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Specific Power BI work is an explicit follow-up fact to collect."
+    },
+    {
+      "id": "JH-S19-034",
+      "topic": "MuleSoft connector contribution",
+      "question": "Which connector capability did you personally implement for MuleSoft, and what integration boundary did it cross?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:MuleSoft",
+        "R:ETL",
+        "R:Java"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "My resume says I was a core developer on a MuleSoft connector, but does not specify the feature or runtime boundary. I would explain the actual caller, connector interface and remote system involved, then isolate my code from platform configuration and shared team work. A useful answer follows one request or record through validation, transformation and result reporting, and identifies a decision I influenced. I need [[HARSH TO FILL: specific contribution, interface, test and ownership boundary]]. I would not assume the connector used a particular SDK or runtime version. If the work overlapped with another connector, I would describe what was reused and what stayed provider-specific, backed by a real code or test example.",
+      "keywords": [
+        "connector interface",
+        "request path",
+        "data transformation",
+        "personal scope",
+        "test evidence",
+        "reuse boundary"
+      ],
+      "followups": [
+        {
+          "q": "What was the hardest edge case?",
+          "a": "Use a real one and its regression test: [[HARSH TO FILL: edge case]]."
+        },
+        {
+          "q": "Which decisions were shared?",
+          "a": "Separate my recommendation and implementation from the team's approval and delivery."
+        }
+      ],
+      "trap": "Assuming a platform-specific SDK or overstating personal ownership from the title core developer.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No platform version or capability invented."
+    },
+    {
+      "id": "JH-S19-035",
+      "topic": "Anaplan Connect contribution",
+      "question": "What work did you do on Anaplan Connect, and how did you validate that a connector run was correct?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Anaplan",
+        "R:ETL",
+        "R:Testing"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume identifies core-developer work on an Anaplan Connect connector but provides no operations or results. I would choose one concrete responsibility and explain the source or destination contract, how a run was initiated, and what evidence established data correctness rather than merely process completion. That could include a real reconciliation, output check or failure test if one existed. I need [[HARSH TO FILL: actual task, data boundary, validation method and my role]]. I would distinguish validation performed by connector code from checks done by an operator or the platform. I must not invent record counts, business outcomes or API methods. If no numeric reconciliation was used, I would say what weaker evidence was available and its limits.",
+      "keywords": [
+        "personal task",
+        "source destination",
+        "run completion",
+        "data correctness",
+        "reconciliation",
+        "evidence limits"
+      ],
+      "followups": [
+        {
+          "q": "Can a zero exit status prove data correctness?",
+          "a": "No. It may only show the process ended successfully; validate content and expected effects too."
+        },
+        {
+          "q": "How do you avoid claiming team results as yours?",
+          "a": "Name my action, team contribution and evidence separately."
+        }
+      ],
+      "trap": "Treating a successful connector process as proof that every business record is correct.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No Anaplan details beyond resume supplied."
+    },
+    {
+      "id": "JH-S19-036",
+      "topic": "Multi-connector design",
+      "question": "What design principle did you reuse across Power BI, MuleSoft and Anaplan connectors, and where did you deliberately diverge?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Framework",
+        "R:Informatica",
+        "R:MuleSoft",
+        "R:Anaplan"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would compare the connectors only after identifying the real common contract and the provider-specific semantics. Reuse might apply to lifecycle, error reporting or configuration validation, while authentication, pagination or schema behavior may require distinct implementations. The supplied resume says I contributed to these connectors but does not say they shared code, so I must not invent a common framework. I need [[HARSH TO FILL: one genuine reused concept and one meaningful divergence]]. I would explain the maintenance trade-off: duplication can be clearer when semantics differ, while shared code pays off when behavior truly matches and can be tested once. A small concrete comparison is stronger than asserting a universal connector abstraction.",
+      "keywords": [
+        "common contract",
+        "provider semantics",
+        "reuse evidence",
+        "intentional divergence",
+        "maintenance cost",
+        "tests"
+      ],
+      "followups": [
+        {
+          "q": "How do you decide to extract shared code?",
+          "a": "Look for stable repeated semantics and a testable contract, not just similar-looking classes."
+        },
+        {
+          "q": "What if the providers differ in retries?",
+          "a": "Expose a meaningful capability or provider policy instead of forcing identical behavior."
+        }
+      ],
+      "trap": "Claiming shared architecture solely because the projects all use the word connector.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Actual reuse is unknown and must be checked."
+    },
+    {
+      "id": "JH-S19-037",
+      "topic": "PostgreSQL optimization",
+      "question": "What PostgreSQL query or access path did you optimize for the healthcare supply-chain client?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "My resume states PostgreSQL optimization but gives no query, schema or index details. I would select the actual slow or failure-prone operation and describe its filter, join and expected row volume without exposing customer data. Then I would explain the evidence that identified the bottleneck, such as a query plan or timing, and the specific change I made. I need [[HARSH TO FILL: sanitized query shape, plan finding, change and before-after method]]. I would distinguish an index that reduces reads from a query rewrite or transaction correction, and mention write overhead or planner trade-offs. I would not invent an index definition or claim a speedup from the 87% reliability figure, which measures a different reported outcome.",
+      "keywords": [
+        "query shape",
+        "execution plan",
+        "selectivity",
+        "index trade-off",
+        "measurement",
+        "sanitized example"
+      ],
+      "followups": [
+        {
+          "q": "What would you compare before and after?",
+          "a": "Use representative plan and latency evidence under a comparable workload: [[HARSH TO FILL: actual method]]."
+        },
+        {
+          "q": "Can adding indexes only help?",
+          "a": "No. They consume storage and add write and maintenance cost."
+        }
+      ],
+      "trap": "Inventing a SQL query or treating the failure reduction as a query-latency result.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Query specifics are absent from supplied resume facts."
+    },
+    {
+      "id": "JH-S19-038",
+      "topic": "Database skill ownership",
+      "question": "What real work did you do with MySQL, MongoDB and Elasticsearch, and how does it differ from the PostgreSQL work on your resume?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:MySQL",
+        "R:Mongo",
+        "R:Elasticsearch",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume lists MySQL, MongoDB and Elasticsearch as skills and separately describes PostgreSQL optimization and read-only transaction work. It does not specify a project or ownership level for the other three, so I would not imply equivalent production experience. I need [[HARSH TO FILL: MySQL use case and query or schema work; MongoDB operation and data model; Elasticsearch indexing or search task; personal boundary and tests]]. I would compare only concrete decisions, such as relational constraints versus document shape or search indexing, when those match my actual work. If a technology is familiarity rather than delivery, I would say that plainly and identify what evidence would establish deeper competence.",
+      "keywords": [
+        "technology-specific scope",
+        "data model",
+        "query or index",
+        "personal ownership",
+        "testing",
+        "experience boundary"
+      ],
+      "followups": [
+        {
+          "q": "Which of these did you use in production?",
+          "a": "Answer per technology with the actual project and task: [[HARSH TO FILL: verified scope]]."
+        },
+        {
+          "q": "Can PostgreSQL experience prove MongoDB expertise?",
+          "a": "No; concepts transfer, but data modeling and operational behavior require separate evidence."
+        }
+      ],
+      "trap": "Treating a skills list as proof of equal hands-on depth across four database technologies.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "PostgreSQL project facts preserved; other database details remain placeholders."
+    },
+    {
+      "id": "JH-S19-039",
+      "topic": "Read-only transaction management",
+      "question": "What did read-only transaction management change in the database path, and what guarantee did it provide?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:Hibernate"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume connects PostgreSQL optimization and read-only transaction management with fewer customer-impacting failures, but does not state the previous failure mechanism or framework boundary. I would explain which operation was marked read-only, where the transaction began, and whether the control was an application hint, database-enforced restriction or both. Then I would identify the failure it prevented and the test that proves writes cannot occur on that path. I need [[HARSH TO FILL: transaction configuration, actual boundary, former failure and verification]]. I would be precise that read-only settings can have different enforcement semantics depending on the layer. I would not claim they provide isolation or concurrency guarantees they do not actually establish.",
+      "keywords": [
+        "transaction boundary",
+        "read-only semantics",
+        "database enforcement",
+        "failure mode",
+        "negative test",
+        "isolation distinction"
+      ],
+      "followups": [
+        {
+          "q": "Does a read-only transaction define an isolation level?",
+          "a": "Not by itself; these are separate transaction properties."
+        },
+        {
+          "q": "How would you test an accidental write?",
+          "a": "Exercise the actual path and assert the configured layer rejects or prevents it: [[HARSH TO FILL: test]]."
+        }
+      ],
+      "trap": "Treating a read-only hint as proof that no write can ever happen at every layer.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No transaction annotation or framework detail assumed."
+    },
+    {
+      "id": "JH-S19-040",
+      "topic": "Transaction boundary",
+      "question": "How did you decide where a read-only transaction begins and ends around service calls?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:Microservices",
+        "R:Hibernate"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would identify the unit of work that needs a consistent read and place the transaction around database operations, avoiding unrelated remote calls that hold resources longer. The transaction boundary also affects which service layer can enforce the policy and whether nested calls join an existing transaction. The resume confirms read-only transaction management but not the framework annotations, propagation or call graph. I need [[HARSH TO FILL: actual boundary, caller chain and reason for placement]]. I would explain the trade-off between a coherent snapshot and keeping locks or connections occupied, without claiming a specific isolation guarantee unless configured. Tests should verify both expected reads and any forbidden mutation in the real persistence setup.",
+      "keywords": [
+        "unit of work",
+        "transaction scope",
+        "remote call",
+        "propagation",
+        "connection holding",
+        "persistence test"
+      ],
+      "followups": [
+        {
+          "q": "Should a slow external call happen inside the transaction?",
+          "a": "Usually avoid it because it can hold database resources while waiting, unless a documented consistency need requires otherwise."
+        },
+        {
+          "q": "How do you know nested calls join?",
+          "a": "Check the actual transaction manager and propagation configuration: [[HARSH TO FILL: verified behavior]]."
+        }
+      ],
+      "trap": "Assuming a method annotation alone proves the runtime transaction boundary.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No Spring or Hibernate transaction configuration supplied."
+    },
+    {
+      "id": "JH-S19-041",
+      "topic": "Reliability measurement",
+      "question": "The resume says customer-impacting failures fell by 87%; how do you explain attribution and the measurement limits?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Postgres",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would retain the resume's exact claim but qualify it with the evidence I can support. First define a customer-impacting failure, then provide the comparison periods, denominator, traffic context and source of the measurement. Next explain the database and read-only-transaction changes associated with the reduction while acknowledging other releases or workload changes that could contribute. I need [[HARSH TO FILL: counts or rates, windows, dashboard or report owner and attribution limits]]. Unless there was a controlled comparison, I would say the change was associated with the observed reduction rather than claiming sole causation. If I cannot recover the underlying method, I should disclose that limitation and avoid adding fabricated precision.",
+      "keywords": [
+        "failure definition",
+        "comparison window",
+        "denominator",
+        "traffic context",
+        "attribution",
+        "measurement source"
+      ],
+      "followups": [
+        {
+          "q": "What does 87% represent exactly?",
+          "a": "Confirm whether it is a count or normalized rate and state its denominator: [[HARSH TO FILL: calculation]]."
+        },
+        {
+          "q": "Can you claim the code alone caused it?",
+          "a": "Only if the evidence supports attribution; otherwise describe association and other possible changes."
+        }
+      ],
+      "trap": "Adding invented counts or causal certainty to make a resume percentage sound stronger.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "This deepens measurement beyond existing S19-003 without repeating its prompt."
+    },
+    {
+      "id": "JH-S19-042",
+      "topic": "Kafka service architecture",
+      "question": "Draw the Kafka-based integration path and identify where an integration is considered complete.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Microservices",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume states that Kafka event-driven services handled more than 2K integrations per hour. I would draw the actual producer, topic, consumer and downstream integration boundary, then define whether the reported unit counts an accepted event, a started job or completed business operation. The topic count, partitioning, consumer groups and storage path are unknown, so I need [[HARSH TO FILL: actual topology and completion signal]]. I would mark where offsets advance relative to durable side effects and how failures are surfaced. This makes the throughput statement interpretable and exposes replay behavior. I would not infer exactly-once business effects from Kafka processing semantics; the system's database and downstream operations need their own idempotency design.",
+      "keywords": [
+        "producer",
+        "topic",
+        "consumer",
+        "completion boundary",
+        "offset",
+        "durable side effect"
+      ],
+      "followups": [
+        {
+          "q": "What does the 2K+ unit count?",
+          "a": "Clarify its real business definition before translating it into messages or requests."
+        },
+        {
+          "q": "Does committing an offset prove integration success?",
+          "a": "Not necessarily; it depends on ordering with the durable effect and recovery policy."
+        }
+      ],
+      "trap": "Equating Kafka message consumption with completed downstream integration.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Throughput details are not expanded beyond the resume claim."
+    },
+    {
+      "id": "JH-S19-043",
+      "topic": "Kafka partitioning",
+      "question": "What partition key and ordering requirement did your integration service use, and what trade-off did that create?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. occasional",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Concurrency"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would first state the actual ordering requirement: whether events for one entity must be processed in sequence or can run independently. Then I would identify the real partition key and explain how it balances ordering against distribution. A hot key may concentrate traffic, while a random key may destroy per-entity order; changing the key can also repartition history in ways consumers must handle. The resume gives Kafka usage and throughput but no topic configuration. I need [[HARSH TO FILL: key choice, ordering invariant, partition evidence and any hot-key mitigation]]. If there was no strict ordering requirement, I would say that and explain the simpler contract. I would not invent partition counts or say Kafka guarantees global ordering.",
+      "keywords": [
+        "ordering invariant",
+        "partition key",
+        "hot partition",
+        "distribution",
+        "consumer concurrency",
+        "key migration"
+      ],
+      "followups": [
+        {
+          "q": "Does one topic provide total ordering across partitions?",
+          "a": "No; ordering is limited to a partition under the relevant producer and consumer behavior."
+        },
+        {
+          "q": "How would you detect a hot key?",
+          "a": "Compare per-partition arrival and lag, then correlate with key distribution: [[HARSH TO FILL: actual metric]]."
+        }
+      ],
+      "trap": "Claiming global order or guessing the production partition strategy.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Kafka configuration is not supplied."
+    },
+    {
+      "id": "JH-S19-044",
+      "topic": "Kafka delivery and idempotency",
+      "question": "How did the consumer prevent retries or redelivery from duplicating a healthcare integration effect?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Resilience",
+        "R:Postgres"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would describe the real idempotency key and the durable boundary that checks it before applying the integration effect. A consumer can repeat work after a crash or uncertain acknowledgement, so the business operation needs a deduplication or naturally idempotent update strategy. The database write and offset handling must be ordered or coordinated according to the actual design; merely enabling a broker setting does not make an external side effect exactly once. The resume does not specify this mechanism, so I need [[HARSH TO FILL: event identity, persistence constraint and recovery sequence]]. I would include a test that processes the same event twice and verifies one business effect. If the system instead tolerates duplicates, I would state that contract and its reconciliation path.",
+      "keywords": [
+        "event identity",
+        "deduplication",
+        "durable effect",
+        "offset ordering",
+        "duplicate test",
+        "reconciliation"
+      ],
+      "followups": [
+        {
+          "q": "Is a retry always harmless?",
+          "a": "Only if the operation is idempotent or duplicate effects are detected and reconciled."
+        },
+        {
+          "q": "Where should deduplication state live?",
+          "a": "At the durable business boundary with a uniqueness or equivalent guarantee: [[HARSH TO FILL: actual design]]."
+        }
+      ],
+      "trap": "Claiming exactly-once processing from Kafka configuration without covering downstream side effects.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No idempotency mechanism is assumed."
+    },
+    {
+      "id": "JH-S19-045",
+      "topic": "Kafka failure recovery",
+      "question": "What happens to an integration when a Kafka consumer fails after writing downstream data but before recording progress?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Kafka",
+        "R:Postgres",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would identify this as an uncertain completion window: after restart, the record may be delivered again because progress was not safely recorded, even though the downstream write happened. The recovery depends on the actual idempotency contract, transaction boundaries and offset policy. I would inspect whether the data write and progress update share an atomic resource; if not, a stable event key and deduplication are usually needed. The supplied resume does not name the implementation, so I need [[HARSH TO FILL: actual recovery design and failure test]]. I would avoid claiming broker-level exactly-once covers an unrelated database or external API. A fault-injection test around the boundary is the clearest proof.",
+      "keywords": [
+        "uncertain completion",
+        "redelivery",
+        "atomic boundary",
+        "event key",
+        "deduplication",
+        "fault injection"
+      ],
+      "followups": [
+        {
+          "q": "What is the likely replay behavior?",
+          "a": "It depends on when progress was committed; verify the consumer's actual offset policy."
+        },
+        {
+          "q": "How can the test expose this window?",
+          "a": "Fail between durable output and progress commit, restart and assert the final business effect."
+        }
+      ],
+      "trap": "Assuming a crash cannot occur between the database write and offset commit.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Scenario is a design probe; not claimed as an actual incident."
+    },
+    {
+      "id": "JH-S19-046",
+      "topic": "RabbitMQ skill ownership",
+      "question": "What RabbitMQ work can you substantiate, and how does it differ from the Kafka integration work on your resume?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:RabbitMQ",
+        "R:Kafka"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume lists RabbitMQ as a skill and describes Kafka-based event-driven services handling more than 2K integrations per hour. It does not say RabbitMQ was used in that client system or identify my RabbitMQ implementation work. I need [[HARSH TO FILL: RabbitMQ project or exercise, exchange/queue interface if applicable, delivery or acknowledgement decision, failure test and ownership]]. I would compare the brokers only through behavior I have actually used, not recite a generic feature matrix as project experience. If RabbitMQ is familiarity rather than production work, I would say so and explain which concepts transfer and which operational details I still need to learn.",
+      "keywords": [
+        "experience boundary",
+        "queue or topic",
+        "acknowledgement",
+        "delivery semantics",
+        "failure test",
+        "transferable concepts"
+      ],
+      "followups": [
+        {
+          "q": "Was RabbitMQ part of the stated 2K+ workload?",
+          "a": "The supplied facts only attribute that event-driven work to Kafka; do not imply RabbitMQ was involved."
+        },
+        {
+          "q": "What RabbitMQ detail have you implemented?",
+          "a": "Give a verified example: [[HARSH TO FILL: real task]], or identify it as study only."
+        }
+      ],
+      "trap": "Conflating Kafka project ownership with RabbitMQ experience because both are messaging technologies.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No RabbitMQ project or delivery semantics are inferred."
+    },
+    {
+      "id": "JH-S19-047",
+      "topic": "OAuth PKCE with Okta",
+      "question": "What part of the OAuth 2.0 PKCE integration with Okta did you implement, and what remained provider-managed?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:OAuth",
+        "R:REST"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The supplied facts establish OAuth 2.0 PKCE with Okta for the healthcare supply-chain work, but not whether I configured the provider, implemented client behavior or integrated callback validation. I would name my exact responsibility and trace the authorization request through callback and token use, marking Okta-owned behavior separately from our service. I need [[HARSH TO FILL: client type, actual components, redirect handling and personal changes]]. I would explain the tests for state correlation, verifier handling and rejected callbacks only where those were implemented. I would not state grant settings, SDKs, token lifetimes or tenant configuration from memory. A sanitized sequence diagram can show the security boundary without exposing customer-specific configuration.",
+      "keywords": [
+        "PKCE",
+        "provider boundary",
+        "callback",
+        "state correlation",
+        "verifier handling",
+        "sanitized diagram"
+      ],
+      "followups": [
+        {
+          "q": "Who validates the callback in your system?",
+          "a": "Name the actual component and its responsibility: [[HARSH TO FILL: callback owner]]."
+        },
+        {
+          "q": "Which details should stay confidential?",
+          "a": "Credentials, tenant-specific URLs or policies, and any customer data not approved for disclosure."
+        }
+      ],
+      "trap": "Claiming ownership of Okta's implementation or inventing configuration values.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No provider setup details beyond supplied PKCE/Okta fact."
+    },
+    {
+      "id": "JH-S19-048",
+      "topic": "SAML skill ownership",
+      "question": "What SAML work have you personally done, and how is that experience distinct from your OAuth and PKCE work?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:SAML",
+        "R:OAuth"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "SAML appears in the supplied skills list, while the work bullets specifically mention OAuth flows and OAuth 2.0 PKCE with Okta. I would distinguish direct SAML implementation, integration support, training and familiarity instead of implying the PKCE project used SAML. I need [[HARSH TO FILL: actual SAML system, message or library boundary, validation responsibility, tests and my ownership]]. If my experience is conceptual only, I would say so and explain the protocol distinction accurately: SAML commonly conveys an authentication assertion, while OAuth is an authorization framework and OIDC adds an identity layer. I would not claim a production federation outcome without evidence.",
+      "keywords": [
+        "hands-on scope",
+        "assertion boundary",
+        "issuer and audience",
+        "validation",
+        "testing",
+        "OAuth distinction"
+      ],
+      "followups": [
+        {
+          "q": "Was SAML part of the Okta PKCE project?",
+          "a": "That is not established by the supplied facts; verify before connecting the two."
+        },
+        {
+          "q": "What SAML check did you personally implement?",
+          "a": "Name only a verified check: [[HARSH TO FILL: implementation]], or state that it was familiarity."
+        }
+      ],
+      "trap": "Treating SAML and OAuth as interchangeable or assuming SAML was used because Okta was involved.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "SAML resume skill is probed without invented project use."
+    },
+    {
+      "id": "JH-S19-049",
+      "topic": "P1 incident narrative",
+      "question": "Walk through your strongest P1 root-cause investigation from symptom to verified prevention.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. very common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech",
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Observability",
+        "R:Postgres"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "I have P1 root-cause-analysis experience using Grafana, Prometheus and Loki for a healthcare supply-chain client. I would start with [[HARSH TO FILL: customer impact and timeline]], then separate the first symptom from the verified cause. I would show which metric, log or other evidence changed my hypothesis, what mitigation reduced impact, and how the permanent correction was tested. I would distinguish my investigation from the incident team's decisions and state what remained uncertain. I need [[HARSH TO FILL: actual root cause, my actions, recovery evidence and prevention follow-up]]. I would not disclose customer identifiers or invent outage duration. The supplied mock assessment marks incident-debugging stories STRONG, but this specific story still needs its personal facts filled in accurately.",
+      "keywords": [
+        "impact",
+        "timeline",
+        "hypothesis",
+        "evidence",
+        "mitigation",
+        "verified cause",
+        "prevention"
+      ],
+      "followups": [
+        {
+          "q": "What did you personally decide?",
+          "a": "Identify the actual decision and collaborators: [[HARSH TO FILL: decision boundary]]."
+        },
+        {
+          "q": "How did you confirm prevention?",
+          "a": "Use the real regression or monitoring evidence: [[HARSH TO FILL: verification]]."
+        }
+      ],
+      "trap": "Using a strong readiness label as permission to invent the incident's cause or outcome.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "STRONG applies to incident-story readiness, not to unknown incident particulars."
+    },
+    {
+      "id": "JH-S19-050",
+      "topic": "Incident observability",
+      "question": "During a P1, how did Grafana, Prometheus and Loki contribute different evidence rather than duplicate the same signal?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Observability",
+        "R:Incidents"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume names Grafana, Prometheus and Loki in P1 root-cause analysis. I would explain the actual role each played in the investigation, without assuming a particular dashboard or instrumentation setup. Metrics can establish when and how broadly a symptom changed; logs can expose event-level context, while Grafana may have been the surface where signals were inspected. I need [[HARSH TO FILL: exact query, metric, log fields and correlation method used]]. I would describe how one observation tested a hypothesis and what evidence remained inconclusive. Tool names alone do not establish distributed tracing or a causal chain. I would redact sensitive identifiers and avoid sharing screenshots or queries containing customer information.",
+      "keywords": [
+        "metric",
+        "log context",
+        "time correlation",
+        "hypothesis",
+        "causality",
+        "redaction"
+      ],
+      "followups": [
+        {
+          "q": "Did the investigation use traces?",
+          "a": "Only claim that if confirmed; the supplied facts name Grafana, Prometheus and Loki, not tracing."
+        },
+        {
+          "q": "What did a dashboard prove?",
+          "a": "It showed the measured signal; causation required corroborating evidence and a tested hypothesis."
+        }
+      ],
+      "trap": "Claiming OpenTelemetry or distributed tracing was used because it appears elsewhere in the skills list.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Carefully confines observability facts to supplied tools."
+    },
+    {
+      "id": "JH-S19-051",
+      "topic": "Incident decision making",
+      "question": "What did you do when incident evidence contradicted your first hypothesis?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Observability"
+      ],
+      "harsh_status": "STRONG",
+      "answer": "For a real P1 story, I would identify my first hypothesis, the observation that contradicted it and how that changed the investigation. The useful evidence may be a metric trend, a log sequence or a controlled reproduction, but I need [[HARSH TO FILL: actual hypothesis and disconfirming evidence]]. I would explain how I communicated uncertainty and avoided turning a guess into a risky production change. Then I would state the next test and its result, separating incident coordination from my own work. I have supplied experience with P1 RCA using Grafana, Prometheus and Loki; no specific hypothesis is provided. I should use only a real example, and if I cannot supply one, present this as an approach rather than a personal anecdote.",
+      "keywords": [
+        "initial hypothesis",
+        "disconfirming evidence",
+        "uncertainty",
+        "safe test",
+        "communication",
+        "role boundary"
+      ],
+      "followups": [
+        {
+          "q": "Why state that a hypothesis was wrong?",
+          "a": "It demonstrates evidence-led investigation and prevents others from acting on an obsolete explanation."
+        },
+        {
+          "q": "What if evidence is incomplete?",
+          "a": "State confidence and next check explicitly; do not report a guess as root cause."
+        }
+      ],
+      "trap": "Rewriting hindsight as though the correct cause was obvious from the start.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "STRONG readiness is for incident stories; facts remain placeholders."
+    },
+    {
+      "id": "JH-S19-052",
+      "topic": "Incident follow-through",
+      "question": "After the P1 was mitigated, how did you ensure corrective actions were owned and the failure did not recur?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Managerial",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "BFSI-Fintech"
+      ],
+      "resume_hooks": [
+        "R:Incidents",
+        "R:Observability",
+        "R:Testing"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would separate service restoration from prevention. After immediate impact is controlled, a useful follow-up records the evidence-based cause, the corrective change, a regression guard, and any monitoring or runbook improvement with an accountable owner. I need [[HARSH TO FILL: actual follow-up action, owner boundary, due date and verification]]. A ticket marked complete is not itself proof; the test or signal should show the intended condition is covered. I would also mention residual risk and whether the incident review changed alert thresholds or escalation. The supplied resume establishes P1 RCA experience but not these post-incident practices, so I must not claim a formal process or recurrence result unless I can verify it.",
+      "keywords": [
+        "restoration",
+        "root cause",
+        "regression guard",
+        "action owner",
+        "verification",
+        "residual risk"
+      ],
+      "followups": [
+        {
+          "q": "Who owns a cross-team corrective action?",
+          "a": "Assign it through the actual incident process with an explicit accountable team and follow-up."
+        },
+        {
+          "q": "Can you claim no recurrence?",
+          "a": "Only with a defined observation window and evidence: [[HARSH TO FILL: period and signal]]."
+        }
+      ],
+      "trap": "Equating action-item closure with demonstrated prevention or claiming zero recurrence without a time window.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Post-incident practice is not stated in the resume."
+    },
+    {
+      "id": "JH-S19-053",
+      "topic": "Framework strategy and factory",
+      "question": "Show how Strategy and Factory divide responsibilities in your Pluggable Connector Framework.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Framework",
+        "R:Patterns",
+        "R:ETL"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The project description names Strategy and Factory. I would point to the real connector contract as the interchangeable behavior and the actual selection mechanism as the factory or registry, then trace how configuration chooses an implementation. I need [[HARSH TO FILL: interface, construction path and one connector-selection example]]. The design is useful only if callers depend on stable capabilities rather than a chain of provider-specific type checks. I would discuss how unsupported features are represented and how a new implementation is tested against common expectations. I should distinguish what exists in the project from improvements I would make now. Pattern names are not evidence by themselves; a small code-level example and a changed-file boundary make the explanation credible.",
+      "keywords": [
+        "strategy contract",
+        "factory selection",
+        "configuration",
+        "capabilities",
+        "extension test",
+        "change boundary"
+      ],
+      "followups": [
+        {
+          "q": "Where should provider selection happen?",
+          "a": "At a composition boundary using validated configuration, not scattered throughout business logic."
+        },
+        {
+          "q": "How do you test registration?",
+          "a": "Assert the intended provider is selected and invalid or unsupported keys fail clearly."
+        }
+      ],
+      "trap": "Describing the pattern definitions without showing where selection and behavior occur in the actual project.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Pattern names are supplied; exact implementation awaits Harsh's details."
+    },
+    {
+      "id": "JH-S19-054",
+      "topic": "Framework concurrency",
+      "question": "How does the framework use ExecutorService and CompletableFuture, and where are failures observed?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Framework",
+        "R:Concurrency",
+        "R:Java"
+      ],
+      "harsh_status": "SHAKY",
+      "answer": "The project lists ExecutorService and CompletableFuture, but the readiness note warns against concurrency explanations that mix terms without a coherent mechanism. I would draw one task's submission, execution and result-combination path, then state which executor owns the work and how its capacity is bounded. I need [[HARSH TO FILL: task graph, executor configuration, cancellation and exception observation]]. I would explain what happens when one child fails and whether sibling work continues, using the actual composition operations. A returned future is not proof that an exception is observed; the caller or terminal composition stage must handle it. I would distinguish project code from general Java knowledge and avoid claiming a thread count or throughput measurement absent from the facts.",
+      "keywords": [
+        "task submission",
+        "executor ownership",
+        "bounded capacity",
+        "completion stage",
+        "exception observation",
+        "cancellation"
+      ],
+      "followups": [
+        {
+          "q": "What must happen for an asynchronous failure to be visible?",
+          "a": "The result must be observed or composed into a stage whose failure is handled."
+        },
+        {
+          "q": "Can you state the pool size?",
+          "a": "Only after checking configuration: [[HARSH TO FILL: actual bound and rationale]]."
+        }
+      ],
+      "trap": "Listing futures and executors without explaining task ownership, bounds or failure propagation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "SHaky concurrency mechanisms are not labeled as stronger than supplied evidence."
+    },
+    {
+      "id": "JH-S19-055",
+      "topic": "Framework backpressure",
+      "question": "What happens when connector tasks arrive faster than the framework can execute them?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Framework",
+        "R:Concurrency",
+        "R:Resilience"
+      ],
+      "harsh_status": "SHAKY",
+      "answer": "I would locate the real admission point and explain whether excess work is queued, rejected, delayed or bounded by the caller. ExecutorService alone does not define a safe overload policy. A finite queue protects memory but forces an explicit rejection or backpressure decision; an unbounded queue can turn overload into growing latency and resource exhaustion. I need [[HARSH TO FILL: actual executor queue, rejection behavior and upstream response]]. I would then describe how the token-bucket limiter and Resilience4j policies interact with this admission decision, if they do in the implementation. I would not assume a limiter controls concurrency or that a circuit breaker controls request rate. The correct policy depends on job durability and caller expectations.",
+      "keywords": [
+        "admission control",
+        "queue bound",
+        "rejection",
+        "backpressure",
+        "rate limit",
+        "circuit breaker"
+      ],
+      "followups": [
+        {
+          "q": "Does a token bucket cap concurrent work?",
+          "a": "Not inherently; it limits starts over time, while concurrency needs a separate bound."
+        },
+        {
+          "q": "What if rejected work must not be lost?",
+          "a": "Persist or return it through a durable retry contract rather than silently dropping it."
+        }
+      ],
+      "trap": "Treating rate limiting, thread-pool capacity and circuit breaking as interchangeable controls.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Concurrency status stays SHAKY pending a coherent personal mechanism."
+    },
+    {
+      "id": "JH-S19-056",
+      "topic": "Framework resilience",
+      "question": "Which Resilience4j policies did your project use, and how did you avoid harmful retry amplification?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Resilience",
+        "R:Framework"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The project description names Resilience4j but not which modules or configuration were implemented. I would identify the actual policy around one dependency, its purpose, its thresholds and the failure categories it sees. If retries exist, I would state attempt limits, delay behavior, deadline budget and idempotency requirements, then explain whether a circuit breaker observes each attempt or the final operation. I need [[HARSH TO FILL: actual policy, configuration and test evidence]]. Policies can amplify load when each layer retries independently, so I would trace the full call stack and calculate the total attempt bound only from real settings. If the feature is merely planned, I would say that instead of claiming it shipped.",
+      "keywords": [
+        "policy boundary",
+        "retry bound",
+        "deadline",
+        "idempotency",
+        "breaker observation",
+        "layer amplification"
+      ],
+      "followups": [
+        {
+          "q": "Should every transient exception be retried?",
+          "a": "No. Consider operation safety, remaining deadline, provider guidance and total attempt budget."
+        },
+        {
+          "q": "How do you validate breaker transitions?",
+          "a": "Use focused tests with controlled outcomes and verify the actual configured state behavior."
+        }
+      ],
+      "trap": "Name-dropping Resilience4j without identifying the configured policies or their failure semantics.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No Resilience4j module or numeric setting inferred."
+    },
+    {
+      "id": "JH-S19-057",
+      "topic": "Token-bucket rate limiting",
+      "question": "Explain the token-bucket rate limiter in your framework, including its state and burst behavior.",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Framework",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The resume names token-bucket rate limiting, so I would explain the actual bucket's capacity, refill rule, request cost and decision when insufficient tokens exist. A token bucket permits bounded bursts while controlling average admission over time; it does not by itself cap simultaneous in-flight operations. I need [[HARSH TO FILL: implementation location, state model, refill clock and rejection or wait behavior]]. If multiple application instances share a limit, I would state whether state is local or coordinated and what consistency trade-off follows. I would cover clock behavior and tests around refill boundaries. No rate, capacity or measured result is supplied, so I must not invent numeric settings or claim a specific distributed algorithm.",
+      "keywords": [
+        "capacity",
+        "refill",
+        "request cost",
+        "burst",
+        "concurrency distinction",
+        "shared state"
+      ],
+      "followups": [
+        {
+          "q": "What does bucket capacity control?",
+          "a": "The maximum stored tokens and therefore the permitted burst, based on its configured semantics."
+        },
+        {
+          "q": "Can a local bucket enforce one global limit?",
+          "a": "Not across independent instances without coordination; each local bucket maintains separate state."
+        }
+      ],
+      "trap": "Inventing bucket parameters or describing rate limit as a concurrency limit.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Mechanism detail is requested but not present in supplied facts."
+    },
+    {
+      "id": "JH-S19-058",
+      "topic": "Redis token cache",
+      "question": "How does the Redis token cache behave on a miss, expiry, concurrent refresh or Redis outage?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Redis",
+        "R:Framework",
+        "R:OAuth"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The project description says it uses a Redis token cache but supplies no key design or fallback policy. I would explain the real cache key scope, token expiry margin, refresh ownership and whether concurrent misses are coalesced. Then I would distinguish a cache miss from a Redis outage and state whether the system can obtain a token safely without Redis. I need [[HARSH TO FILL: key dimensions, TTL rule, refresh lock or coordination and outage behavior]]. Tokens are sensitive, so I would cover access controls, transport and logging without exposing values. Tests should exercise expiry and simultaneous refresh. I would avoid claiming cache invalidation, global coordination or availability guarantees that the project has not actually implemented.",
+      "keywords": [
+        "cache key",
+        "expiry margin",
+        "concurrent refresh",
+        "miss",
+        "outage fallback",
+        "token secrecy"
+      ],
+      "followups": [
+        {
+          "q": "Should a token TTL exceed its real expiry?",
+          "a": "No. The cache should not serve a token beyond its validity; any safety margin must match actual policy."
+        },
+        {
+          "q": "Does Redis availability equal identity-provider availability?",
+          "a": "No. They are separate dependencies with distinct failure and recovery behavior."
+        }
+      ],
+      "trap": "Assuming Redis cache behavior or fallback semantics not stated in the project facts.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Cache mechanism remains placeholder-led."
+    },
+    {
+      "id": "JH-S19-059",
+      "topic": "Framework failure isolation",
+      "question": "How does one connector's slow or failing dependency affect other connector work in the framework?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Framework",
+        "R:Concurrency",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would trace whether connectors share an executor, connection pool, rate limit or downstream client, since any shared bounded resource can create cross-provider interference. Isolation might use per-provider bulkheads, separate budgets or fair admission, but those are design options rather than supplied implementation facts. I need [[HARSH TO FILL: shared resources, actual isolation policy and a failure test]]. I would identify the useful failure signal and the trade-off: more isolation can improve containment while increasing resource reservation and operational complexity. A test should make one fake provider slow and verify the expected behavior of unrelated work. I would not claim the framework isolates failures just because each provider has a separate Strategy implementation.",
+      "keywords": [
+        "shared resource",
+        "bulkhead",
+        "fair admission",
+        "failure isolation",
+        "resource cost",
+        "slow-provider test"
+      ],
+      "followups": [
+        {
+          "q": "Does a separate strategy imply separate execution capacity?",
+          "a": "No. Implementations can still share the same executor or downstream resources."
+        },
+        {
+          "q": "What is the cost of per-provider pools?",
+          "a": "More reserved capacity and configuration, plus potential underutilization."
+        }
+      ],
+      "trap": "Confusing code modularity with runtime fault isolation.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "No isolation mechanism or pool topology is assumed."
+    },
+    {
+      "id": "JH-S19-060",
+      "topic": "Framework project validation",
+      "question": "How did you validate the Pluggable Connector Framework end to end, and what evidence would make you change its design?",
+      "level": "L2",
+      "level_basis": "est.",
+      "round": "Design",
+      "evidence": "E0",
+      "frequency": "est. common",
+      "companies": [],
+      "company_types": [
+        "Product",
+        "Startup"
+      ],
+      "resume_hooks": [
+        "R:Framework",
+        "R:Patterns",
+        "R:Concurrency",
+        "R:Resilience",
+        "R:Redis"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "I would demonstrate one representative connector path from selection through execution, result handling and a failure case, then show the tests that protect each boundary. The project description names patterns, asynchronous execution, resilience, rate limiting and Redis caching, but gives no benchmark or deployment result. I need [[HARSH TO FILL: runnable scenario, test coverage, observed limitation and any measurement]]. I would explain what evidence might change the design, such as contention, unsafe retry behavior or a provider-specific capability that does not fit the contract. If it is a personal project, I would state its scope and avoid representing it as production client infrastructure. I would separate implemented behavior from future work throughout the answer.",
+      "keywords": [
+        "end-to-end path",
+        "failure test",
+        "measurement",
+        "design feedback",
+        "implemented scope",
+        "future work"
+      ],
+      "followups": [
+        {
+          "q": "What is the strongest current evidence?",
+          "a": "Name a reproducible test or measurement actually available: [[HARSH TO FILL: evidence]]."
+        },
+        {
+          "q": "What would you avoid claiming?",
+          "a": "Production scale, reliability or adoption without real deployment evidence."
+        }
+      ],
+      "trap": "Presenting a list of technologies as proof of a tested or production-ready framework.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Completes project defense without asserting deployment or scale."
+    },
+    {
+      "id": "JH-S19-061",
+      "topic": "Architecture reflection",
+      "question": "What are the disadvantages of your project's architecture?",
+      "level": "L3",
+      "level_basis": "est.",
+      "round": "Technical",
+      "evidence": "E1",
+      "frequency": "seen in 1 source",
+      "companies": [
+        {
+          "name": "Accolite",
+          "sources": [
+            "S010"
+          ],
+          "year": null
+        }
+      ],
+      "company_types": [
+        "Service"
+      ],
+      "resume_hooks": [
+        "R:Microservices",
+        "R:Resilience"
+      ],
+      "harsh_status": "UNTESTED",
+      "answer": "The interviewer wants honest engineering judgement, structured as trade-off, impact and what you would change, followed by what you actually improved. For my project the real answer is [[HARSH TO FILL: the actual weaknesses of the architecture I work on and the measured result of any fix]]. Typical weakness patterns, to use only if true for my system, are synchronous chains between services that cause cascading latency, with non-critical steps better moved to events; two services sharing a database, which couples their deployments; missing timeouts or circuit breakers so one slow dependency exhausts a connection pool; retries without idempotency creating duplicates; and missing tracing, which makes debugging slow. Close with the improvement and its measurable outcome.",
+      "keywords": [
+        "trade-off then impact then change",
+        "cascading synchronous calls",
+        "shared database coupling",
+        "missing timeouts",
+        "idempotency",
+        "measurable result"
+      ],
+      "followups": [
+        {
+          "q": "How do you keep the answer from sounding like a complaint?",
+          "a": "Name the trade-off, quantify its impact and finish with what you changed and the result."
+        },
+        {
+          "q": "Which weaknesses should you avoid claiming?",
+          "a": "Any you did not actually see or fix; invented examples fall apart under follow-up questions."
+        }
+      ],
+      "trap": "Inventing generic weaknesses that are not true of your system.",
+      "fs_link": null,
+      "code": null,
+      "verify": [],
+      "notes": "Reported in user-provided interview notes, item 7.19 (Accolite). Model answer written for this handbook, not copied from the notes. Related: JH-S19-002, JH-S20-042."
+    }
+  ]
+}
